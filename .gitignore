@@ -74,8 +74,9 @@ Thumbs.db
 # Backup directories
 *_backup_*/
 
-# Generated HTML files in root
-*.html
+# Generated HTML files in root (but allow docs/ for GitHub Pages)
+/*.html
+!docs/*.html
 
 # Test images
 *.png

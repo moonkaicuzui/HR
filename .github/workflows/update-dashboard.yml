@@ -1,0 +1,263 @@
+# HR Dashboard Auto-Update Workflow
+# HR 대시보드 자동 업데이트 워크플로우
+#
+# This workflow automatically syncs data from Google Drive,
+# generates updated dashboard reports, and deploys to GitHub Pages.
+# 이 워크플로우는 Google Drive에서 데이터를 자동으로 동기화하고,
+# 업데이트된 대시보드 리포트를 생성하여 GitHub Pages에 배포합니다.
+
+name: Update HR Dashboard
+
+on:
+  # Scheduled run - every day at 9 AM KST (00:00 UTC)
+  # 예약 실행 - 매일 한국시간 오전 9시 (UTC 00:00)
+  schedule:
+    - cron: '0 0 * * *'
+
+  # Manual trigger with inputs
+  # 수동 트리거 (입력값 포함)
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Target month (1-12)'
+        required: false
+        default: ''
+      year:
+        description: 'Target year (e.g., 2025)'
+        required: false
+        default: ''
+      force_sync:
+        description: 'Force data sync from Google Drive'
+        required: false
+        default: 'false'
+        type: boolean
+
+  # Trigger on push to main branch (config changes)
+  # main 브랜치에 푸시 시 트리거 (설정 변경)
+  push:
+    branches:
+      - main
+    paths:
+      - 'config/**'
+      - 'src/**'
+
+env:
+  PYTHON_VERSION: '3.10'
+  TZ: 'Asia/Seoul'
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      # ============================================================
+      # Setup Steps
+      # 설정 단계
+      # ============================================================
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ============================================================
+      # Google Drive Sync (Optional - requires secrets)
+      # Google Drive 동기화 (선택사항 - secrets 필요)
+      # ============================================================
+
+      - name: Setup Google Drive credentials
+        if: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY != '' }}
+        run: |
+          mkdir -p credentials
+          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > credentials/service-account-key.json
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Determine target month/year
+        id: date
+        run: |
+          if [ -n "${{ github.event.inputs.month }}" ]; then
+            MONTH=${{ github.event.inputs.month }}
+          else
+            MONTH=$(date +%-m)
+          fi
+
+          if [ -n "${{ github.event.inputs.year }}" ]; then
+            YEAR=${{ github.event.inputs.year }}
+          else
+            YEAR=$(date +%Y)
+          fi
+
+          echo "month=$MONTH" >> $GITHUB_OUTPUT
+          echo "year=$YEAR" >> $GITHUB_OUTPUT
+          echo "Target: $YEAR-$MONTH"
+
+      - name: Sync data from Google Drive
+        if: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY != '' }}
+        continue-on-error: true
+        run: |
+          python -c "
+          from src.integration.google_drive_sync import GoogleDriveSync
+          sync = GoogleDriveSync()
+          if sync.authenticate():
+              sync.sync_monthly_data(${{ steps.date.outputs.year }}, ${{ steps.date.outputs.month }})
+              print('Data sync completed successfully')
+          else:
+              print('Authentication failed, skipping sync')
+          "
+
+      # ============================================================
+      # Dashboard Generation
+      # 대시보드 생성
+      # ============================================================
+
+      - name: Generate Dashboard
+        id: generate
+        run: |
+          # Create output directory if not exists
+          mkdir -p docs
+
+          # Generate dashboard with all languages embedded
+          python src/generate_dashboard.py \
+            --month ${{ steps.date.outputs.month }} \
+            --year ${{ steps.date.outputs.year }} \
+            --language ko \
+            --output-dir docs
+
+          # Check if dashboard was generated
+          DASHBOARD_FILE="docs/HR_Dashboard_Complete_${{ steps.date.outputs.year }}_$(printf '%02d' ${{ steps.date.outputs.month }}).html"
+
+          if [ -f "$DASHBOARD_FILE" ]; then
+            echo "dashboard_generated=true" >> $GITHUB_OUTPUT
+            echo "dashboard_file=$DASHBOARD_FILE" >> $GITHUB_OUTPUT
+            echo "Dashboard generated: $DASHBOARD_FILE"
+          else
+            echo "dashboard_generated=false" >> $GITHUB_OUTPUT
+            echo "Dashboard generation may have failed or no data available"
+          fi
+
+      - name: Update dashboards manifest
+        if: steps.generate.outputs.dashboard_generated == 'true'
+        run: |
+          python << 'EOF'
+          import json
+          import os
+          import re
+          from datetime import datetime
+
+          DOCS_DIR = 'docs'
+          MANIFEST_FILE = os.path.join(DOCS_DIR, 'dashboards.json')
+          PATTERN = re.compile(r'HR_Dashboard_Complete_(\d{4})_(\d{2})\.html')
+
+          # Scan for dashboard files
+          dashboards = []
+          for filename in os.listdir(DOCS_DIR):
+              match = PATTERN.match(filename)
+              if match:
+                  year, month = int(match.group(1)), int(match.group(2))
+                  filepath = os.path.join(DOCS_DIR, filename)
+                  mtime = os.path.getmtime(filepath)
+                  updated = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M')
+
+                  dashboards.append({
+                      'file': filename,
+                      'year': year,
+                      'month': month,
+                      'updated': updated,
+                      'stats': {
+                          'total': '-',
+                          'absenceRate': '-',
+                          'resignationRate': '-'
+                      }
+                  })
+
+          # Sort by year and month (newest first)
+          dashboards.sort(key=lambda x: (x['year'], x['month']), reverse=True)
+
+          # Update manifest
+          manifest = {
+              'version': '1.0.0',
+              'description': 'HR Dashboard manifest file - Auto-updated by GitHub Actions',
+              'lastUpdated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+              'dashboards': dashboards
+          }
+
+          with open(MANIFEST_FILE, 'w', encoding='utf-8') as f:
+              json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+          print(f'Manifest updated with {len(dashboards)} dashboard(s)')
+          EOF
+
+      # ============================================================
+      # Commit and Deploy
+      # 커밋 및 배포
+      # ============================================================
+
+      - name: Commit changes
+        if: steps.generate.outputs.dashboard_generated == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add docs/
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update: HR Dashboard ${{ steps.date.outputs.year }}-$(printf '%02d' ${{ steps.date.outputs.month }})
+
+            Generated by GitHub Actions workflow
+            Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+
+            git push
+          fi
+
+      - name: Setup Pages
+        if: steps.generate.outputs.dashboard_generated == 'true'
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        if: steps.generate.outputs.dashboard_generated == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs'
+
+      - name: Deploy to GitHub Pages
+        if: steps.generate.outputs.dashboard_generated == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # ============================================================
+      # Cleanup
+      # 정리
+      # ============================================================
+
+      - name: Cleanup credentials
+        if: always()
+        run: |
+          rm -rf credentials/service-account-key.json 2>/dev/null || true
+
+      - name: Job Summary
+        run: |
+          echo "## HR Dashboard Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Period:** ${{ steps.date.outputs.year }}-$(printf '%02d' ${{ steps.date.outputs.month }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dashboard Generated:** ${{ steps.generate.outputs.dashboard_generated || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY

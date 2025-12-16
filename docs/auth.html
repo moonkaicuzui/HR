@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>HR Dashboard - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .lockout-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .attempt-counter {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 15px;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .language-selector select {
+            border-radius: 8px;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+        }
+
+        .security-notice {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #95a5a6;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .security-notice i {
+            color: var(--success-color);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="langSelect" onchange="changeLanguage()">
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+            <option value="vi">Tiếng Việt</option>
+        </select>
+    </div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h1 id="title">HR 관리 대시보드</h1>
+            <p id="subtitle">인력 현황 및 데이터 분석</p>
+        </div>
+
+        <div id="lockoutAlert" class="alert lockout-warning">
+            <strong id="lockoutTitle">계정 잠금</strong>
+            <p id="lockoutMessage" class="mb-0"></p>
+        </div>
+
+        <div id="errorAlert" class="alert error-message">
+            <span id="errorMessage"></span>
+        </div>
+
+        <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="form-floating">
+                <input type="password" class="form-control" id="password"
+                       placeholder="비밀번호" required autocomplete="off"
+                       maxlength="100">
+                <label for="password" id="passwordLabel">비밀번호</label>
+            </div>
+
+            <button type="submit" class="btn btn-login" id="loginBtn">
+                <span id="loginText">로그인</span>
+            </button>
+        </form>
+
+        <div class="attempt-counter" id="attemptCounter"></div>
+
+        <div class="security-notice">
+            <i>&#128274;</i> <span id="securityNotice">SHA-256 암호화로 보호됩니다</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // Security Configuration
+        // 보안 설정
+        // ============================================================
+        const SECURITY_CONFIG = {
+            // SHA-256 hashed password (default: 'hr2025!')
+            // 비밀번호 SHA-256 해시 (기본값: 'hr2025!')
+            PASSWORD_HASH: '2e70b818e473c1eb4ea100d3e01703320fc29e856db5bd91615ecbc67f9feeda',
+
+            // Session timeout in milliseconds (30 minutes)
+            // 세션 타임아웃 (30분)
+            SESSION_TIMEOUT: 30 * 60 * 1000,
+
+            // Maximum login attempts before lockout
+            // 계정 잠금 전 최대 로그인 시도 횟수
+            MAX_ATTEMPTS: 5,
+
+            // Lockout duration in milliseconds (15 minutes)
+            // 계정 잠금 시간 (15분)
+            LOCKOUT_DURATION: 15 * 60 * 1000,
+
+            // Session storage keys
+            // 세션 스토리지 키
+            KEYS: {
+                SESSION: 'hr_dashboard_session',
+                ATTEMPTS: 'hr_login_attempts',
+                LOCKOUT: 'hr_lockout_until',
+                LANGUAGE: 'hr_language'
+            }
+        };
+
+        // ============================================================
+        // Translations
+        // 다국어 지원
+        // ============================================================
+        const TRANSLATIONS = {
+            ko: {
+                title: 'HR 관리 대시보드',
+                subtitle: '인력 현황 및 데이터 분석',
+                password: '비밀번호',
+                login: '로그인',
+                lockoutTitle: '계정 잠금',
+                lockoutMessage: '너무 많은 로그인 시도가 감지되었습니다. {minutes}분 후에 다시 시도해주세요.',
+                errorMessage: '비밀번호가 올바르지 않습니다.',
+                attemptsRemaining: '남은 시도 횟수: {count}회',
+                securityNotice: 'SHA-256 암호화로 보호됩니다'
+            },
+            en: {
+                title: 'HR Management Dashboard',
+                subtitle: 'Workforce Status & Data Analysis',
+                password: 'Password',
+                login: 'Login',
+                lockoutTitle: 'Account Locked',
+                lockoutMessage: 'Too many login attempts detected. Please try again in {minutes} minutes.',
+                errorMessage: 'Incorrect password.',
+                attemptsRemaining: 'Attempts remaining: {count}',
+                securityNotice: 'Protected by SHA-256 encryption'
+            },
+            vi: {
+                title: 'Bảng điều khiển HR',
+                subtitle: 'Tình trạng nhân lực & Phân tích dữ liệu',
+                password: 'Mật khẩu',
+                login: 'Đăng nhập',
+                lockoutTitle: 'Tài khoản bị khóa',
+                lockoutMessage: 'Phát hiện quá nhiều lần đăng nhập. Vui lòng thử lại sau {minutes} phút.',
+                errorMessage: 'Mật khẩu không chính xác.',
+                attemptsRemaining: 'Số lần thử còn lại: {count}',
+                securityNotice: 'Được bảo vệ bằng mã hóa SHA-256'
+            }
+        };
+
+        let currentLang = 'ko';
+
+        // ============================================================
+        // Utility Functions
+        // 유틸리티 함수
+        // ============================================================
+
+        /**
+         * SHA-256 hash function
+         * SHA-256 해시 함수
+         */
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        /**
+         * Sanitize input to prevent XSS
+         * XSS 방지를 위한 입력 살균
+         */
+        function sanitizeInput(input) {
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.innerHTML;
+        }
+
+        /**
+         * Get current timestamp
+         * 현재 타임스탬프 반환
+         */
+        function now() {
+            return Date.now();
+        }
+
+        // ============================================================
+        // Session Management
+        // 세션 관리
+        // ============================================================
+
+        /**
+         * Create secure session
+         * 보안 세션 생성
+         */
+        function createSession() {
+            const session = {
+                created: now(),
+                expires: now() + SECURITY_CONFIG.SESSION_TIMEOUT,
+                token: crypto.randomUUID ? crypto.randomUUID() :
+                       Math.random().toString(36).substring(2) + Date.now().toString(36)
+            };
+            sessionStorage.setItem(SECURITY_CONFIG.KEYS.SESSION, JSON.stringify(session));
+            return session;
+        }
+
+        /**
+         * Validate existing session
+         * 기존 세션 유효성 검사
+         */
+        function validateSession() {
+            try {
+                const sessionData = sessionStorage.getItem(SECURITY_CONFIG.KEYS.SESSION);
+                if (!sessionData) return false;
+
+                const session = JSON.parse(sessionData);
+                if (now() > session.expires) {
+                    sessionStorage.removeItem(SECURITY_CONFIG.KEYS.SESSION);
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        /**
+         * Clear session data
+         * 세션 데이터 삭제
+         */
+        function clearSession() {
+            sessionStorage.removeItem(SECURITY_CONFIG.KEYS.SESSION);
+        }
+
+        // ============================================================
+        // Login Attempt Management
+        // 로그인 시도 관리
+        // ============================================================
+
+        /**
+         * Get current login attempts
+         * 현재 로그인 시도 횟수 반환
+         */
+        function getAttempts() {
+            try {
+                return parseInt(localStorage.getItem(SECURITY_CONFIG.KEYS.ATTEMPTS) || '0');
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        /**
+         * Increment login attempts
+         * 로그인 시도 횟수 증가
+         */
+        function incrementAttempts() {
+            const attempts = getAttempts() + 1;
+            localStorage.setItem(SECURITY_CONFIG.KEYS.ATTEMPTS, attempts.toString());
+            return attempts;
+        }
+
+        /**
+         * Reset login attempts
+         * 로그인 시도 횟수 초기화
+         */
+        function resetAttempts() {
+            localStorage.removeItem(SECURITY_CONFIG.KEYS.ATTEMPTS);
+        }
+
+        /**
+         * Check if account is locked
+         * 계정 잠금 여부 확인
+         */
+        function isLockedOut() {
+            try {
+                const lockoutUntil = parseInt(localStorage.getItem(SECURITY_CONFIG.KEYS.LOCKOUT) || '0');
+                if (lockoutUntil > now()) {
+                    return lockoutUntil;
+                }
+                localStorage.removeItem(SECURITY_CONFIG.KEYS.LOCKOUT);
+                return false;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        /**
+         * Set lockout
+         * 계정 잠금 설정
+         */
+        function setLockout() {
+            const lockoutUntil = now() + SECURITY_CONFIG.LOCKOUT_DURATION;
+            localStorage.setItem(SECURITY_CONFIG.KEYS.LOCKOUT, lockoutUntil.toString());
+            return lockoutUntil;
+        }
+
+        // ============================================================
+        // UI Functions
+        // UI 함수
+        // ============================================================
+
+        /**
+         * Change language
+         * 언어 변경
+         */
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            localStorage.setItem(SECURITY_CONFIG.KEYS.LANGUAGE, currentLang);
+            updateUI();
+        }
+
+        /**
+         * Update UI with current language
+         * 현재 언어로 UI 업데이트
+         */
+        function updateUI() {
+            const t = TRANSLATIONS[currentLang];
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('passwordLabel').textContent = t.password;
+            document.getElementById('loginText').textContent = t.login;
+            document.getElementById('lockoutTitle').textContent = t.lockoutTitle;
+            document.getElementById('securityNotice').textContent = t.securityNotice;
+
+            updateAttemptCounter();
+            checkLockoutStatus();
+        }
+
+        /**
+         * Update attempt counter display
+         * 시도 횟수 표시 업데이트
+         */
+        function updateAttemptCounter() {
+            const attempts = getAttempts();
+            const remaining = SECURITY_CONFIG.MAX_ATTEMPTS - attempts;
+            const counter = document.getElementById('attemptCounter');
+
+            if (attempts > 0 && remaining > 0) {
+                counter.textContent = TRANSLATIONS[currentLang].attemptsRemaining
+                    .replace('{count}', remaining);
+                counter.style.color = remaining <= 2 ? '#e74c3c' : '#7f8c8d';
+            } else {
+                counter.textContent = '';
+            }
+        }
+
+        /**
+         * Show error message
+         * 오류 메시지 표시
+         */
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            document.getElementById('errorMessage').textContent = message;
+            alert.classList.add('show');
+
+            const container = document.querySelector('.login-container');
+            container.classList.add('shake');
+            setTimeout(() => container.classList.remove('shake'), 500);
+        }
+
+        /**
+         * Hide error message
+         * 오류 메시지 숨기기
+         */
+        function hideError() {
+            document.getElementById('errorAlert').classList.remove('show');
+        }
+
+        /**
+         * Check and display lockout status
+         * 계정 잠금 상태 확인 및 표시
+         */
+        function checkLockoutStatus() {
+            const lockoutUntil = isLockedOut();
+            const lockoutAlert = document.getElementById('lockoutAlert');
+            const loginBtn = document.getElementById('loginBtn');
+            const passwordInput = document.getElementById('password');
+
+            if (lockoutUntil) {
+                const remainingMinutes = Math.ceil((lockoutUntil - now()) / 60000);
+                document.getElementById('lockoutMessage').textContent =
+                    TRANSLATIONS[currentLang].lockoutMessage.replace('{minutes}', remainingMinutes);
+                lockoutAlert.classList.add('show');
+                loginBtn.disabled = true;
+                passwordInput.disabled = true;
+
+                // Auto-refresh lockout status
+                setTimeout(checkLockoutStatus, 60000);
+            } else {
+                lockoutAlert.classList.remove('show');
+                loginBtn.disabled = false;
+                passwordInput.disabled = false;
+            }
+        }
+
+        // ============================================================
+        // Login Handler
+        // 로그인 핸들러
+        // ============================================================
+
+        /**
+         * Handle login form submission
+         * 로그인 폼 제출 처리
+         */
+        async function handleLogin(event) {
+            event.preventDefault();
+            hideError();
+
+            // Check lockout
+            if (isLockedOut()) {
+                checkLockoutStatus();
+                return false;
+            }
+
+            const password = document.getElementById('password').value;
+
+            // Validate input
+            if (!password || password.length === 0) {
+                showError(TRANSLATIONS[currentLang].errorMessage);
+                return false;
+            }
+
+            // Hash password and compare
+            const hashedPassword = await sha256(password);
+
+            if (hashedPassword === SECURITY_CONFIG.PASSWORD_HASH) {
+                // Successful login
+                resetAttempts();
+                createSession();
+
+                // Redirect to selector page
+                window.location.href = 'selector.html';
+            } else {
+                // Failed login
+                const attempts = incrementAttempts();
+
+                if (attempts >= SECURITY_CONFIG.MAX_ATTEMPTS) {
+                    setLockout();
+                    resetAttempts();
+                    checkLockoutStatus();
+                } else {
+                    showError(TRANSLATIONS[currentLang].errorMessage);
+                    updateAttemptCounter();
+                }
+            }
+
+            // Clear password field
+            document.getElementById('password').value = '';
+            return false;
+        }
+
+        // ============================================================
+        // Initialization
+        // 초기화
+        // ============================================================
+
+        /**
+         * Initialize page
+         * 페이지 초기화
+         */
+        function init() {
+            // Load saved language
+            const savedLang = localStorage.getItem(SECURITY_CONFIG.KEYS.LANGUAGE);
+            if (savedLang && TRANSLATIONS[savedLang]) {
+                currentLang = savedLang;
+                document.getElementById('langSelect').value = currentLang;
+            }
+
+            // Check if already authenticated
+            if (validateSession()) {
+                window.location.href = 'selector.html';
+                return;
+            }
+
+            updateUI();
+        }
+
+        // Run initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <title>HR Dashboard - Select Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: var(--bg-gradient);
+            padding: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-controls select {
+            border-radius: 8px;
+            padding: 8px 15px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .session-info {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-timer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #7f8c8d;
+        }
+
+        .session-timer.warning {
+            color: var(--warning-color);
+        }
+
+        .session-timer.danger {
+            color: var(--danger-color);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: var(--bg-gradient);
+            color: white;
+            padding: 25px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .card-header .date {
+            opacity: 0.9;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #95a5a6;
+        }
+
+        .card-footer {
+            padding: 15px 25px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-footer .updated {
+            font-size: 0.85rem;
+            color: #95a5a6;
+        }
+
+        .card-footer .view-btn {
+            color: var(--accent-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .session-info {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="bi bi-graph-up-arrow"></i> HR Dashboard
+            </span>
+            <div class="nav-controls">
+                <select id="langSelect" onchange="changeLanguage()">
+                    <option value="ko">한국어</option>
+                    <option value="en">English</option>
+                    <option value="vi">Tiếng Việt</option>
+                </select>
+                <button class="btn btn-logout" onclick="logout()">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span id="logoutText">로그아웃</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="page-header">
+            <h1 id="pageTitle">HR 대시보드 리포트</h1>
+            <p id="pageSubtitle">월별 인사 데이터 분석 보고서를 선택하세요</p>
+        </div>
+
+        <div class="session-info">
+            <div>
+                <strong id="welcomeText">환영합니다</strong>
+                <span id="sessionStatus"></span>
+            </div>
+            <div class="session-timer" id="sessionTimer">
+                <i class="bi bi-clock"></i>
+                <span id="timerText">세션 만료까지: <span id="timeRemaining">30:00</span></span>
+            </div>
+        </div>
+
+        <div id="dashboardContainer">
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // Configuration
+        // 설정
+        // ============================================================
+        const CONFIG = {
+            SESSION_TIMEOUT: 30 * 60 * 1000,  // 30 minutes
+            SESSION_KEY: 'hr_dashboard_session',
+            LANGUAGE_KEY: 'hr_language',
+            // Dashboard files pattern - will scan for these
+            DASHBOARD_PATTERN: /HR_Dashboard_Complete_(\d{4})_(\d{2})\.html/
+        };
+
+        // Available dashboards (will be populated dynamically or from config)
+        // 사용 가능한 대시보드 목록
+        let availableDashboards = [];
+
+        // ============================================================
+        // Translations
+        // 다국어 지원
+        // ============================================================
+        const TRANSLATIONS = {
+            ko: {
+                pageTitle: 'HR 대시보드 리포트',
+                pageSubtitle: '월별 인사 데이터 분석 보고서를 선택하세요',
+                welcomeText: '환영합니다',
+                logoutText: '로그아웃',
+                sessionExpires: '세션 만료까지:',
+                viewReport: '보고서 보기',
+                lastUpdated: '최종 업데이트:',
+                totalEmployees: '총 인원',
+                absenceRate: '결근율',
+                resignationRate: '퇴사율',
+                emptyTitle: '대시보드 없음',
+                emptyMessage: '표시할 대시보드 리포트가 없습니다.',
+                months: ['1월', '2월', '3월', '4월', '5월', '6월',
+                         '7월', '8월', '9월', '10월', '11월', '12월']
+            },
+            en: {
+                pageTitle: 'HR Dashboard Reports',
+                pageSubtitle: 'Select a monthly HR data analysis report',
+                welcomeText: 'Welcome',
+                logoutText: 'Logout',
+                sessionExpires: 'Session expires in:',
+                viewReport: 'View Report',
+                lastUpdated: 'Last updated:',
+                totalEmployees: 'Total',
+                absenceRate: 'Absence',
+                resignationRate: 'Turnover',
+                emptyTitle: 'No Dashboards',
+                emptyMessage: 'No dashboard reports available to display.',
+                months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            },
+            vi: {
+                pageTitle: 'Báo cáo bảng điều khiển HR',
+                pageSubtitle: 'Chọn báo cáo phân tích dữ liệu HR hàng tháng',
+                welcomeText: 'Chào mừng',
+                logoutText: 'Đăng xuất',
+                sessionExpires: 'Phiên hết hạn trong:',
+                viewReport: 'Xem báo cáo',
+                lastUpdated: 'Cập nhật lần cuối:',
+                totalEmployees: 'Tổng số',
+                absenceRate: 'Vắng mặt',
+                resignationRate: 'Nghỉ việc',
+                emptyTitle: 'Không có bảng điều khiển',
+                emptyMessage: 'Không có báo cáo bảng điều khiển để hiển thị.',
+                months: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6',
+                         'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12']
+            }
+        };
+
+        let currentLang = 'ko';
+        let sessionTimer = null;
+        let sessionExpiry = null;
+
+        // ============================================================
+        // Session Management
+        // 세션 관리
+        // ============================================================
+
+        function validateSession() {
+            try {
+                const sessionData = sessionStorage.getItem(CONFIG.SESSION_KEY);
+                if (!sessionData) return false;
+
+                const session = JSON.parse(sessionData);
+                if (Date.now() > session.expires) {
+                    sessionStorage.removeItem(CONFIG.SESSION_KEY);
+                    return false;
+                }
+                sessionExpiry = session.expires;
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem(CONFIG.SESSION_KEY);
+            window.location.href = 'auth.html';
+        }
+
+        function updateSessionTimer() {
+            if (!sessionExpiry) return;
+
+            const remaining = sessionExpiry - Date.now();
+            const timerElement = document.getElementById('sessionTimer');
+            const timeElement = document.getElementById('timeRemaining');
+
+            if (remaining <= 0) {
+                logout();
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            timeElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // Warning colors
+            timerElement.classList.remove('warning', 'danger');
+            if (remaining < 5 * 60 * 1000) {
+                timerElement.classList.add('danger');
+            } else if (remaining < 10 * 60 * 1000) {
+                timerElement.classList.add('warning');
+            }
+        }
+
+        // ============================================================
+        // Language Management
+        // 언어 관리
+        // ============================================================
+
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            localStorage.setItem(CONFIG.LANGUAGE_KEY, currentLang);
+            updateUI();
+            renderDashboards();
+        }
+
+        function updateUI() {
+            const t = TRANSLATIONS[currentLang];
+            document.getElementById('pageTitle').textContent = t.pageTitle;
+            document.getElementById('pageSubtitle').textContent = t.pageSubtitle;
+            document.getElementById('welcomeText').textContent = t.welcomeText;
+            document.getElementById('logoutText').textContent = t.logoutText;
+            document.getElementById('timerText').innerHTML =
+                `${t.sessionExpires} <span id="timeRemaining">30:00</span>`;
+        }
+
+        // ============================================================
+        // Dashboard Management
+        // 대시보드 관리
+        // ============================================================
+
+        async function loadDashboards() {
+            // In a real implementation, this would fetch from a manifest file
+            // or scan the directory. For GitHub Pages, we use a config file.
+            // 실제 구현에서는 매니페스트 파일에서 가져오거나 디렉토리를 스캔합니다.
+
+            try {
+                // Try to load from manifest
+                const response = await fetch('dashboards.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    availableDashboards = data.dashboards || [];
+                }
+            } catch (e) {
+                // Fallback to default list or empty
+                console.log('No manifest found, using defaults');
+                availableDashboards = [];
+            }
+
+            renderDashboards();
+        }
+
+        function renderDashboards() {
+            const container = document.getElementById('dashboardContainer');
+            const t = TRANSLATIONS[currentLang];
+
+            if (availableDashboards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-folder2-open"></i>
+                        <h3>${t.emptyTitle}</h3>
+                        <p>${t.emptyMessage}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="dashboard-grid">
+                    ${availableDashboards.map(dash => renderDashboardCard(dash, t)).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderDashboardCard(dashboard, t) {
+            const monthName = t.months[dashboard.month - 1];
+            const displayDate = `${dashboard.year}년 ${monthName}` ;
+
+            return `
+                <a href="${dashboard.file}" class="dashboard-card">
+                    <div class="card-header">
+                        <h3>${displayDate}</h3>
+                        <div class="date">HR 분석 리포트</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.total || '-'}</div>
+                                <div class="stat-label">${t.totalEmployees}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.absenceRate || '-'}</div>
+                                <div class="stat-label">${t.absenceRate}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${dashboard.stats?.resignationRate || '-'}</div>
+                                <div class="stat-label">${t.resignationRate}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="updated">${t.lastUpdated} ${dashboard.updated || '-'}</span>
+                        <span class="view-btn">
+                            ${t.viewReport} <i class="bi bi-arrow-right"></i>
+                        </span>
+                    </div>
+                </a>
+            `;
+        }
+
+        // ============================================================
+        // Initialization
+        // 초기화
+        // ============================================================
+
+        function init() {
+            // Validate session
+            if (!validateSession()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            // Load saved language
+            const savedLang = localStorage.getItem(CONFIG.LANGUAGE_KEY);
+            if (savedLang && TRANSLATIONS[savedLang]) {
+                currentLang = savedLang;
+                document.getElementById('langSelect').value = currentLang;
+            }
+
+            updateUI();
+            loadDashboards();
+
+            // Start session timer
+            sessionTimer = setInterval(updateSessionTimer, 1000);
+            updateSessionTimer();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

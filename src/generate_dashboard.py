@@ -90,6 +90,13 @@ Examples / 예시:
         help='Enable Google Drive synchronization (deprecated - not used in complete version) / Google Drive 동기화 활성화 (완전판에서는 사용 안 함)'
     )
 
+    parser.add_argument(
+        '--output-dir', '-o',
+        type=str,
+        default=None,
+        help='Output directory for dashboard file (default: output_files/) / 대시보드 파일 출력 디렉토리 (기본값: output_files/)'
+    )
+
     return parser.parse_args()
 
 
@@ -147,7 +154,10 @@ def main():
 
         # Save to output file
         # 출력 파일에 저장
-        output_dir = Path(__file__).parent.parent / "output_files"
+        if args.output_dir:
+            output_dir = Path(args.output_dir)
+        else:
+            output_dir = Path(__file__).parent.parent / "output_files"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         output_file = output_dir / f"HR_Dashboard_Complete_{args.year}_{args.month:02d}.html"
