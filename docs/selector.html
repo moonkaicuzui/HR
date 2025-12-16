@@ -51,6 +51,26 @@
             cursor: pointer;
         }
 
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .btn-nav:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            transform: translateY(-1px);
+        }
+
         .btn-logout {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -245,6 +265,10 @@
                 <i class="bi bi-graph-up-arrow"></i> HR Dashboard
             </span>
             <div class="nav-controls">
+                <a href="https://moonkaicuzui.github.io/qip-dashboard/auth.html" class="btn btn-nav" target="_blank">
+                    <i class="bi bi-award"></i>
+                    <span>QIP Dashboard</span>
+                </a>
                 <select id="langSelect" onchange="changeLanguage()">
                     <option value="ko">한국어</option>
                     <option value="en">English</option>
