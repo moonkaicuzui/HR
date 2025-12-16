@@ -95,15 +95,17 @@
 
     "recent_hires": {
       "id": "recent_hires",
-      "name_ko": "최근 30일 입사",
-      "name_en": "Recent 30-Day Hires",
-      "name_vi": "Tuyển dụng 30 ngày gần đây",
+      "name_ko": "이번달 입사자",
+      "name_en": "Monthly New Hires",
+      "name_vi": "Nhân viên mới trong tháng",
       "category": "recruitment",
-      "formula": "COUNT(employees WHERE entrance_date >= (current_date - 30 days))",
+      "formula": "COUNT(employees WHERE entrance_date IN target_month)",
+      "formula_description_ko": "해당 월에 입사한 직원 수",
+      "formula_description_en": "Employees who joined during the target month",
       "data_sources": ["basic_manpower"],
       "calculation_method": "count",
       "filters": {
-        "entrance_date_range": {"min": -30, "max": 0, "unit": "days"}
+        "entrance_date_in_month": true
       },
       "display_format": "{value}명",
       "card_number": 5,
@@ -113,21 +115,44 @@
 
     "recent_resignations": {
       "id": "recent_resignations",
-      "name_ko": "최근 30일 퇴사 (신입)",
-      "name_en": "Recent 30-Day Resignations (New Hires)",
-      "name_vi": "Nghỉ việc 30 ngày gần đây (Nhân viên mới)",
+      "name_ko": "이번달 퇴사자",
+      "name_en": "Monthly Resignations",
+      "name_vi": "Nghỉ việc trong tháng",
       "category": "turnover",
-      "formula": "COUNT(employees WHERE (stop_working_date - entrance_date) <= 30 days)",
+      "formula": "COUNT(employees WHERE stop_working_date IN target_month)",
+      "formula_description_ko": "해당 월에 퇴사한 직원 수",
+      "formula_description_en": "Employees who resigned during the target month",
       "data_sources": ["basic_manpower"],
       "calculation_method": "count",
       "filters": {
-        "tenure_max": 30,
-        "has_resignation_date": true
+        "resignation_date_in_month": true
       },
       "display_format": "{value}명",
       "card_number": 6,
       "show_rate": true,
-      "rate_formula": "recent_resignations / recent_hires * 100"
+      "rate_formula": "recent_resignations / total_employees * 100"
+    },
+
+    "early_turnover": {
+      "id": "early_turnover",
+      "name_ko": "조기 퇴사자 (30일 이내)",
+      "name_en": "Early Turnover (Within 30 Days)",
+      "name_vi": "Nghỉ việc sớm (trong 30 ngày)",
+      "category": "turnover",
+      "formula": "COUNT(employees WHERE (stop_working_date - entrance_date) <= 30 days AND stop_working_date IN target_month)",
+      "formula_description_ko": "입사 30일 이내에 퇴사한 직원 수 (해당 월 퇴사자 중)",
+      "formula_description_en": "Employees who resigned within 30 days of joining (among monthly resignations)",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "tenure_max": 30,
+        "resignation_date_in_month": true
+      },
+      "display_format": "{value}명",
+      "show_rate": true,
+      "rate_formula": "early_turnover / recent_resignations * 100",
+      "insight_ko": "조기 퇴사율이 높으면 채용/온보딩 프로세스 점검 필요",
+      "insight_en": "High early turnover indicates need to review recruitment/onboarding process"
     },
 
     "under_60_days": {
