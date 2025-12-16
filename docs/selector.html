@@ -469,8 +469,10 @@
             // 실제 구현에서는 매니페스트 파일에서 가져오거나 디렉토리를 스캔합니다.
 
             try {
-                // Try to load from manifest
-                const response = await fetch('dashboards.json');
+                // Try to load from manifest with cache-busting
+                // 캐시 방지를 위한 타임스탬프 추가
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`dashboards.json?_=${cacheBuster}`);
                 if (response.ok) {
                     const data = await response.json();
                     availableDashboards = data.dashboards || [];
