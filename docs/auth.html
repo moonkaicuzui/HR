@@ -187,6 +187,13 @@
 
         <form id="loginForm" onsubmit="return handleLogin(event)">
             <div class="form-floating">
+                <input type="text" class="form-control" id="username"
+                       placeholder="아이디" required autocomplete="off"
+                       maxlength="50">
+                <label for="username" id="usernameLabel">아이디</label>
+            </div>
+
+            <div class="form-floating">
                 <input type="password" class="form-control" id="password"
                        placeholder="비밀번호" required autocomplete="off"
                        maxlength="100">
@@ -211,9 +218,13 @@
         // 보안 설정
         // ============================================================
         const SECURITY_CONFIG = {
-            // SHA-256 hashed password (default: 'hr2025!')
-            // 비밀번호 SHA-256 해시 (기본값: 'hr2025!')
-            PASSWORD_HASH: '2e70b818e473c1eb4ea100d3e01703320fc29e856db5bd91615ecbc67f9feeda',
+            // SHA-256 hashed username (default: 'hwk')
+            // 아이디 SHA-256 해시 (기본값: 'hwk')
+            USERNAME_HASH: '85a84e034c5b9248758c500f6c1f2b8bb99c9818ce7902ee5bc702c07ecda5a0',
+
+            // SHA-256 hashed password (default: 'hwk')
+            // 비밀번호 SHA-256 해시 (기본값: 'hwk')
+            PASSWORD_HASH: '85a84e034c5b9248758c500f6c1f2b8bb99c9818ce7902ee5bc702c07ecda5a0',
 
             // Session timeout in milliseconds (30 minutes)
             // 세션 타임아웃 (30분)
@@ -245,33 +256,36 @@
             ko: {
                 title: 'HR 관리 대시보드',
                 subtitle: '인력 현황 및 데이터 분석',
+                username: '아이디',
                 password: '비밀번호',
                 login: '로그인',
                 lockoutTitle: '계정 잠금',
                 lockoutMessage: '너무 많은 로그인 시도가 감지되었습니다. {minutes}분 후에 다시 시도해주세요.',
-                errorMessage: '비밀번호가 올바르지 않습니다.',
+                errorMessage: '아이디 또는 비밀번호가 올바르지 않습니다.',
                 attemptsRemaining: '남은 시도 횟수: {count}회',
                 securityNotice: 'SHA-256 암호화로 보호됩니다'
             },
             en: {
                 title: 'HR Management Dashboard',
                 subtitle: 'Workforce Status & Data Analysis',
+                username: 'Username',
                 password: 'Password',
                 login: 'Login',
                 lockoutTitle: 'Account Locked',
                 lockoutMessage: 'Too many login attempts detected. Please try again in {minutes} minutes.',
-                errorMessage: 'Incorrect password.',
+                errorMessage: 'Incorrect username or password.',
                 attemptsRemaining: 'Attempts remaining: {count}',
                 securityNotice: 'Protected by SHA-256 encryption'
             },
             vi: {
                 title: 'Bảng điều khiển HR',
                 subtitle: 'Tình trạng nhân lực & Phân tích dữ liệu',
+                username: 'Tên đăng nhập',
                 password: 'Mật khẩu',
                 login: 'Đăng nhập',
                 lockoutTitle: 'Tài khoản bị khóa',
                 lockoutMessage: 'Phát hiện quá nhiều lần đăng nhập. Vui lòng thử lại sau {minutes} phút.',
-                errorMessage: 'Mật khẩu không chính xác.',
+                errorMessage: 'Tên đăng nhập hoặc mật khẩu không chính xác.',
                 attemptsRemaining: 'Số lần thử còn lại: {count}',
                 securityNotice: 'Được bảo vệ bằng mã hóa SHA-256'
             }
@@ -447,6 +461,7 @@
             const t = TRANSLATIONS[currentLang];
             document.getElementById('title').textContent = t.title;
             document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('usernameLabel').textContent = t.username;
             document.getElementById('passwordLabel').textContent = t.password;
             document.getElementById('loginText').textContent = t.login;
             document.getElementById('lockoutTitle').textContent = t.lockoutTitle;
@@ -504,6 +519,7 @@
             const lockoutUntil = isLockedOut();
             const lockoutAlert = document.getElementById('lockoutAlert');
             const loginBtn = document.getElementById('loginBtn');
+            const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
 
             if (lockoutUntil) {
@@ -512,6 +528,7 @@
                     TRANSLATIONS[currentLang].lockoutMessage.replace('{minutes}', remainingMinutes);
                 lockoutAlert.classList.add('show');
                 loginBtn.disabled = true;
+                usernameInput.disabled = true;
                 passwordInput.disabled = true;
 
                 // Auto-refresh lockout status
@@ -519,6 +536,7 @@
             } else {
                 lockoutAlert.classList.remove('show');
                 loginBtn.disabled = false;
+                usernameInput.disabled = false;
                 passwordInput.disabled = false;
             }
         }
@@ -542,18 +560,21 @@
                 return false;
             }
 
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             // Validate input
-            if (!password || password.length === 0) {
+            if (!username || username.length === 0 || !password || password.length === 0) {
                 showError(TRANSLATIONS[currentLang].errorMessage);
                 return false;
             }
 
-            // Hash password and compare
+            // Hash username and password, then compare
+            const hashedUsername = await sha256(username);
             const hashedPassword = await sha256(password);
 
-            if (hashedPassword === SECURITY_CONFIG.PASSWORD_HASH) {
+            if (hashedUsername === SECURITY_CONFIG.USERNAME_HASH &&
+                hashedPassword === SECURITY_CONFIG.PASSWORD_HASH) {
                 // Successful login
                 resetAttempts();
                 createSession();
