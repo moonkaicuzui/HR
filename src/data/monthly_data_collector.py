@@ -38,17 +38,19 @@ class MonthlyDataCollector:
         '9월': 9, '10월': 10, '11월': 11, '12월': 12
     }
 
-    def __init__(self, hr_root: Path):
+    def __init__(self, hr_root: Path, target_year: int = None):
         """
         Initialize MonthlyDataCollector
 
         Args:
             hr_root: Path to HR project root directory
+            target_year: Target year for data (defaults to current year)
         """
         self.hr_root = Path(hr_root)
         self.input_dir = self.hr_root / "input_files"
         self.available_months: List[str] = []
         self.month_data_map: Dict[str, Dict[str, Path]] = {}
+        self.target_year = target_year or datetime.now().year
 
     def detect_available_months(self, start_year: int = 2025, start_month: int = 7) -> List[str]:
         """
@@ -108,12 +110,14 @@ class MonthlyDataCollector:
                 if month_str:
                     detected_months.add(month_str)
 
-            # Try pattern: 1.HSRG AQL REPORT-{MONTH}.2025.csv
-            aql_pattern2 = str(aql_dir / "*.HSRG AQL REPORT-*.2025.csv")
-            for file_path in glob.glob(aql_pattern2):
-                month_str = self._extract_month_from_aql(file_path)
-                if month_str:
-                    detected_months.add(month_str)
+            # Try pattern: 1.HSRG AQL REPORT-{MONTH}.{YEAR}.csv
+            # 여러 연도 패턴 지원
+            for year in [self.target_year, 2024, 2025, 2023]:
+                aql_pattern2 = str(aql_dir / f"*.HSRG AQL REPORT-*.{year}.csv")
+                for file_path in glob.glob(aql_pattern2):
+                    month_str = self._extract_month_from_aql(file_path)
+                    if month_str:
+                        detected_months.add(month_str)
 
         # Pattern 4: 5PRS data files
         # 패턴 4: 5PRS 데이터 파일
@@ -149,8 +153,9 @@ class MonthlyDataCollector:
             # Try to parse as month name
             month_num = self.MONTH_NAMES.get(month_part.lower())
             if month_num:
-                # Assume 2025 for now (can be made dynamic later)
-                return f"2025-{month_num:02d}"
+                # Use target year from initialization
+                # 초기화 시 지정된 대상 연도 사용
+                return f"{self.target_year}-{month_num:02d}"
 
             return None
 
@@ -180,17 +185,22 @@ class MonthlyDataCollector:
         Extract month from AQL filename
         AQL 파일명에서 월 추출
 
-        Pattern: 1.HSRG AQL REPORT-{MONTH}.2025.csv
-        Example: 1.HSRG AQL REPORT-JULY.2025.csv → 2025-07
+        Pattern: 1.HSRG AQL REPORT-{MONTH}.{YEAR}.csv
+        Example: 1.HSRG AQL REPORT-JULY.2024.csv → 2024-07
         """
         try:
             filename = os.path.basename(file_path)
-            # Extract month part between '-' and '.2025'
-            if "REPORT-" in filename and ".2025" in filename:
-                month_part = filename.split("REPORT-")[1].split(".2025")[0]
-                month_num = self.MONTH_NAMES.get(month_part.lower())
-                if month_num:
-                    return f"2025-{month_num:02d}"
+            # Extract month part between '-' and '.YEAR'
+            # 다양한 연도 형식 지원
+            if "REPORT-" in filename:
+                # Find year in filename (could be 2024, 2025, etc.)
+                for year in [self.target_year, 2024, 2025, 2023]:
+                    year_pattern = f".{year}"
+                    if year_pattern in filename:
+                        month_part = filename.split("REPORT-")[1].split(year_pattern)[0]
+                        month_num = self.MONTH_NAMES.get(month_part.lower())
+                        if month_num:
+                            return f"{year}-{month_num:02d}"
             return None
         except Exception:
             return None
@@ -314,8 +324,9 @@ class MonthlyDataCollector:
                 paths['attendance'] = None
 
             # AQL - try multiple patterns
+            # AQL - 여러 패턴 시도 (연도 포함)
             aql_path1 = self.input_dir / "AQL history" / f"AQL history {month_name}.csv"
-            aql_path2 = self.input_dir / "AQL history" / f"1.HSRG AQL REPORT-{month_name.upper()}.2025.csv"
+            aql_path2 = self.input_dir / "AQL history" / f"1.HSRG AQL REPORT-{month_name.upper()}.{year}.csv"
 
             if aql_path1.exists():
                 paths['aql'] = aql_path1

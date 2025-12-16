@@ -135,8 +135,12 @@ class CompleteDashboardBuilder:
         self.hr_root = Path(__file__).parent.parent.parent
         self.report_date = report_date if report_date else datetime.now()
 
+        # Extract year from target_month (format: YYYY-MM)
+        # target_month에서 연도 추출
+        target_year = int(target_month.split('-')[0]) if '-' in target_month else datetime.now().year
+
         # Initialize components
-        self.collector = MonthlyDataCollector(self.hr_root)
+        self.collector = MonthlyDataCollector(self.hr_root, target_year=target_year)
         self.calculator = HRMetricCalculator(self.collector, self.report_date)
 
         # Initialize i18n and logger
