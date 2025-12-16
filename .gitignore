@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Node modules
+node_modules/
+
+# Playwright screenshots
+.playwright-mcp/
+
+# Credentials (sensitive data)
+credentials/
+*.json.bak
+service-account-key.json
+
+# Input data files (large/sensitive)
+input_files/
+
+# Output files (generated)
+output_files/
+output_reports/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Backup directories
+*_backup_*/
+
+# Generated HTML files in root
+*.html
+
+# Test images
+*.png
+
+# Config files with sensitive data
+config_files/

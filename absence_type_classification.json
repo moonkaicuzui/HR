@@ -1,0 +1,31 @@
+{
+  "TYPE-1": [
+    "AR2 - ốm ngắn ngày, tai nạn ngoài giờ lv",
+    "AR1 - Vắng không phép",
+    "AR1 - Gửi thư",
+    "AR1 - Họp kỷ luật"
+  ],
+  "TYPE-2": [
+    "Con dưới 3 tuổi bị bệnh"
+  ],
+  "TYPE-3": [
+    "Sinh thường 1 con (6 tháng)",
+    "Phép năm",
+    "Vắng có phép",
+    "Khám thai bình thường",
+    "Không quẹt thẻ",
+    "Ra giửa giờ",
+    "Đi làm không quẹt thẻ vào",
+    "Đi công tác",
+    "Công nhân viên mới",
+    "Sinh thường 2 con (7 tháng)",
+    "Đi làm không quẹt thẻ ra về",
+    "Phép cưới",
+    "Dưỡng sinh mổ tại nhà",
+    "Dưỡng sức sinh thường tại nhà",
+    "Nghĩa vụ quân sự",
+    "Nghỉ bù",
+    "Nghỉ không lương thỏa thuận"
+  ],
+  "MATERNITY": []
+}

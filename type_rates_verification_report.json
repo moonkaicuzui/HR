@@ -1,0 +1,18 @@
+{
+  "verification_date": "1760757654.2548704",
+  "latest_month": "2025-10",
+  "type_rates": {
+    "TYPE-1": 1.25,
+    "TYPE-2": 0.09,
+    "TYPE-3": 6.68
+  },
+  "unique_rate_count": 3,
+  "checklist": {
+    "TYPE별 결근율 데이터 계산": true,
+    "각 TYPE별 다른 값": true,
+    "대시보드에 데이터 포함": true,
+    "TYPE별 계산 로직 업데이트": true,
+    "차트 함수 구현": false,
+    "출산휴가 제외": true
+  },
+  "passed": 

@@ -1,0 +1,352 @@
+{
+  "ko": {
+    "dashboard_title": "HR 관리 대시보드",
+    "subtitle": "인력 현황 및 데이터 품질 분석",
+    "real_data_only": "실제 데이터만 사용",
+    "no_fake_data": "가짜 데이터 없음",
+
+    "sections": {
+      "hr_metrics": {
+        "title": "HR 핵심 지표"
+      }
+    },
+
+    "cards": {
+      "total_employees": "총 인원",
+      "data_errors": "데이터 오류 인원",
+      "absence_rate": "결근율",
+      "unauthorized_absence_rate": "무단결근율",
+      "resignation_rate": "퇴사율",
+      "recent_hires": "최근 30일 입사",
+      "recent_resignations": "최근 30일 퇴사",
+      "under_60_days": "입사 60일 미만",
+      "post_assignment_resignations": "보직 부여 후 퇴사",
+      "full_attendance": "만근자",
+      "long_term_employees": "장기근속자 (1년 이상)"
+    },
+
+    "metrics": {
+      "total_employees": "총 인원",
+      "data_errors": "데이터 오류 인원",
+      "absence_rate": "결근율",
+      "unauthorized_absence_rate": "무단결근율",
+      "resignation_rate": "퇴사율",
+      "recent_hires": "최근 30일 입사",
+      "recent_resignations": "최근 30일 퇴사",
+      "under_60_days": "입사 60일 미만",
+      "post_assignment_resignations": "보직 부여 후 퇴사",
+      "full_attendance": "만근자",
+      "long_term_employees": "장기근속자 (1년 이상)",
+      "total": "총계",
+      "type1": "TYPE-1",
+      "type2": "TYPE-2",
+      "type3": "TYPE-3",
+      "count": "명",
+      "rate": "율",
+      "percentage": "%",
+      "vs_last_month": "전월 대비",
+      "increase": "증가",
+      "decrease": "감소",
+      "no_change": "변화 없음",
+      "no_previous_data": "이전 데이터 없음"
+    },
+
+    "team_analysis": {
+      "title": "팀별 분석",
+      "team_name": "팀명",
+      "member_count": "인원수",
+      "attendance_rate": "출근율",
+      "full_attendance_rate": "만근율",
+      "resignations": "퇴사",
+      "new_hires": "신규",
+      "unidentified": "미분류 팀"
+    },
+
+    "trends": {
+      "weekly_trend": "주차별 추세",
+      "monthly_trend": "월별 추세",
+      "week": "주차",
+      "overall": "전체",
+      "by_team": "팀별",
+      "by_position": "직급별"
+    },
+
+    "modals": {
+      "close": "닫기",
+      "employee_list": "직원 목록",
+      "details": "상세 정보",
+      "name": "이름",
+      "employee_no": "사번",
+      "position": "직급",
+      "team": "팀",
+      "entrance_date": "입사일",
+      "working_days": "근무일",
+      "actual_days": "실제 근무일",
+      "total_days": "총 근무일"
+    },
+
+    "errors": {
+      "title": "데이터 오류 상세",
+      "temporal_errors": "시간 관련 오류",
+      "type_errors": "TYPE 분류 오류",
+      "position_errors": "직급 오류",
+      "team_errors": "팀 할당 오류",
+      "attendance_errors": "출근 데이터 오류",
+      "duplicate_errors": "중복 오류",
+      "severity": {
+        "critical": "심각",
+        "warning": "경고",
+        "info": "정보"
+      }
+    },
+
+    "actions": {
+      "view_details": "상세보기",
+      "export": "내보내기",
+      "refresh": "새로고침",
+      "change_language": "언어 변경"
+    },
+
+    "common": {
+      "loading": "로딩 중...",
+      "error": "오류",
+      "success": "성공",
+      "warning": "경고",
+      "info": "정보"
+    }
+  },
+
+  "en": {
+    "dashboard_title": "HR Management Dashboard",
+    "subtitle": "Workforce Status and Data Quality Analysis",
+    "real_data_only": "Real Data Only",
+    "no_fake_data": "No Fake Data",
+
+    "sections": {
+      "hr_metrics": {
+        "title": "HR Key Metrics"
+      }
+    },
+
+    "cards": {
+      "total_employees": "Total Employees",
+      "data_errors": "Data Error Personnel",
+      "absence_rate": "Absence Rate",
+      "unauthorized_absence_rate": "Unauthorized Absence Rate",
+      "resignation_rate": "Resignation Rate",
+      "recent_hires": "Recent 30-Day Hires",
+      "recent_resignations": "Recent 30-Day Resignations",
+      "under_60_days": "Under 60 Days",
+      "post_assignment_resignations": "Post-Assignment Resignations",
+      "full_attendance": "Full Attendance",
+      "long_term_employees": "Long-term Employees (1+ year)"
+    },
+
+    "metrics": {
+      "total_employees": "Total Employees",
+      "data_errors": "Data Error Personnel",
+      "absence_rate": "Absence Rate",
+      "unauthorized_absence_rate": "Unauthorized Absence Rate",
+      "resignation_rate": "Resignation Rate",
+      "recent_hires": "Recent 30-Day Hires",
+      "recent_resignations": "Recent 30-Day Resignations",
+      "under_60_days": "Under 60 Days",
+      "post_assignment_resignations": "Post-Assignment Resignations",
+      "full_attendance": "Full Attendance",
+      "long_term_employees": "Long-term Employees (1+ year)",
+      "total": "Total",
+      "type1": "TYPE-1",
+      "type2": "TYPE-2",
+      "type3": "TYPE-3",
+      "count": "people",
+      "rate": "rate",
+      "percentage": "%",
+      "vs_last_month": "vs Last Month",
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "no_change": "No Change",
+      "no_previous_data": "No Previous Data"
+    },
+
+    "team_analysis": {
+      "title": "Team Analysis",
+      "team_name": "Team",
+      "member_count": "Members",
+      "attendance_rate": "Attendance Rate",
+      "full_attendance_rate": "Full Attendance Rate",
+      "resignations": "Resignations",
+      "new_hires": "New Hires",
+      "unidentified": "Unidentified Team"
+    },
+
+    "trends": {
+      "weekly_trend": "Weekly Trend",
+      "monthly_trend": "Monthly Trend",
+      "week": "Week",
+      "overall": "Overall",
+      "by_team": "By Team",
+      "by_position": "By Position"
+    },
+
+    "modals": {
+      "close": "Close",
+      "employee_list": "Employee List",
+      "details": "Details",
+      "name": "Name",
+      "employee_no": "Employee No",
+      "position": "Position",
+      "team": "Team",
+      "entrance_date": "Entrance Date",
+      "working_days": "Working Days",
+      "actual_days": "Actual Days",
+      "total_days": "Total Days"
+    },
+
+    "errors": {
+      "title": "Data Error Details",
+      "temporal_errors": "Temporal Errors",
+      "type_errors": "TYPE Classification Errors",
+      "position_errors": "Position Errors",
+      "team_errors": "Team Assignment Errors",
+      "attendance_errors": "Attendance Data Errors",
+      "duplicate_errors": "Duplicate Errors",
+      "severity": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info"
+      }
+    },
+
+    "actions": {
+      "view_details": "View Details",
+      "export": "Export",
+      "refresh": "Refresh",
+      "change_language": "Change Language"
+    },
+
+    "common": {
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  },
+
+  "vi": {
+    "dashboard_title": "Bảng điều khiển quản lý HR",
+    "subtitle": "Phân tích tình trạng nhân lực và chất lượng dữ liệu",
+    "real_data_only": "Chỉ dữ liệu thực",
+    "no_fake_data": "Không có dữ liệu giả",
+
+    "sections": {
+      "hr_metrics": {
+        "title": "Chỉ số HR chính"
+      }
+    },
+
+    "cards": {
+      "total_employees": "Tổng số nhân viên",
+      "data_errors": "Nhân viên có lỗi dữ liệu",
+      "absence_rate": "Tỷ lệ vắng mặt",
+      "unauthorized_absence_rate": "Tỷ lệ vắng mặt không phép",
+      "resignation_rate": "Tỷ lệ nghỉ việc",
+      "recent_hires": "Tuyển dụng 30 ngày gần đây",
+      "recent_resignations": "Nghỉ việc 30 ngày gần đây",
+      "under_60_days": "Dưới 60 ngày",
+      "post_assignment_resignations": "Nghỉ việc sau khi phân công",
+      "full_attendance": "Chuyên cần đầy đủ",
+      "long_term_employees": "Nhân viên lâu năm (1+ năm)"
+    },
+
+    "metrics": {
+      "total_employees": "Tổng số nhân viên",
+      "data_errors": "Nhân viên có lỗi dữ liệu",
+      "absence_rate": "Tỷ lệ vắng mặt",
+      "unauthorized_absence_rate": "Tỷ lệ vắng mặt không phép",
+      "resignation_rate": "Tỷ lệ nghỉ việc",
+      "recent_hires": "Tuyển dụng 30 ngày gần đây",
+      "recent_resignations": "Nghỉ việc 30 ngày gần đây",
+      "under_60_days": "Dưới 60 ngày",
+      "post_assignment_resignations": "Nghỉ việc sau khi phân công",
+      "full_attendance": "Chuyên cần đầy đủ",
+      "long_term_employees": "Nhân viên lâu năm (1+ năm)",
+      "total": "Tổng cộng",
+      "type1": "LOẠI-1",
+      "type2": "LOẠI-2",
+      "type3": "LOẠI-3",
+      "count": "người",
+      "rate": "tỷ lệ",
+      "percentage": "%",
+      "vs_last_month": "so với tháng trước",
+      "increase": "Tăng",
+      "decrease": "Giảm",
+      "no_change": "Không thay đổi",
+      "no_previous_data": "Không có dữ liệu trước đó"
+    },
+
+    "team_analysis": {
+      "title": "Phân tích theo nhóm",
+      "team_name": "Tên nhóm",
+      "member_count": "Số thành viên",
+      "attendance_rate": "Tỷ lệ chuyên cần",
+      "full_attendance_rate": "Tỷ lệ chuyên cần đầy đủ",
+      "resignations": "Nghỉ việc",
+      "new_hires": "Tuyển mới",
+      "unidentified": "Nhóm chưa xác định"
+    },
+
+    "trends": {
+      "weekly_trend": "Xu hướng hàng tuần",
+      "monthly_trend": "Xu hướng hàng tháng",
+      "week": "Tuần",
+      "overall": "Tổng thể",
+      "by_team": "Theo nhóm",
+      "by_position": "Theo vị trí"
+    },
+
+    "modals": {
+      "close": "Đóng",
+      "employee_list": "Danh sách nhân viên",
+      "details": "Chi tiết",
+      "name": "Tên",
+      "employee_no": "Số nhân viên",
+      "position": "Vị trí",
+      "team": "Nhóm",
+      "entrance_date": "Ngày vào làm",
+      "working_days": "Ngày làm việc",
+      "actual_days": "Ngày thực tế",
+      "total_days": "Tổng số ngày"
+    },
+
+    "errors": {
+      "title": "Chi tiết lỗi dữ liệu",
+      "temporal_errors": "Lỗi thời gian",
+      "type_errors": "Lỗi phân loại LOẠI",
+      "position_errors": "Lỗi vị trí",
+      "team_errors": "Lỗi phân công nhóm",
+      "attendance_errors": "Lỗi dữ liệu chuyên cần",
+      "duplicate_errors": "Lỗi trùng lặp",
+      "severity": {
+        "critical": "Nghiêm trọng",
+        "warning": "Cảnh báo",
+        "info": "Thông tin"
+      }
+    },
+
+    "actions": {
+      "view_details": "Xem chi tiết",
+      "export": "Xuất",
+      "refresh": "Làm mới",
+      "change_language": "Đổi ngôn ngữ"
+    },
+
+    "common": {
+      "loading": "Đang tải...",
+      "error": "Lỗi",
+      "success": "Thành công",
+      "warning": "Cảnh báo",
+      "info": "Thông tin"
+    }
+  }
+}

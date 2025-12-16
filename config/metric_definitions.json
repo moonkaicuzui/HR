@@ -1,0 +1,283 @@
+{
+  "version": "1.0.0",
+  "description": "HR Dashboard Metric Definitions - Configuration-driven metrics with NO HARDCODING",
+
+  "metrics": {
+    "total_employees": {
+      "id": "total_employees",
+      "name_ko": "총 인원",
+      "name_en": "Total Employees",
+      "name_vi": "Tổng số nhân viên",
+      "category": "headcount",
+      "formula": "COUNT(active_employees)",
+      "formula_description_ko": "보고서 생성일 기준 재직자 수",
+      "formula_description_en": "Active employees on report generation date",
+      "reference_date": "report_date",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "active_only": true,
+        "exclude_resigned": true
+      },
+      "display_format": "{value}명",
+      "card_number": 1,
+      "show_type_breakdown": true
+    },
+
+    "absence_rate": {
+      "id": "absence_rate",
+      "name_ko": "결근율",
+      "name_en": "Absence Rate",
+      "name_vi": "Tỷ lệ vắng mặt",
+      "category": "attendance",
+      "formula": "100 - (SUM(actual_working_days) / SUM(total_working_days) * 100)",
+      "data_sources": ["attendance", "basic_manpower"],
+      "calculation_method": "percentage",
+      "thresholds": {
+        "excellent": {"max": 3, "color": "#28a745"},
+        "good": {"min": 3, "max": 5, "color": "#17a2b8"},
+        "warning": {"min": 5, "max": 10, "color": "#ffc107"},
+        "critical": {"min": 10, "color": "#dc3545"}
+      },
+      "display_format": "{value:.1f}%",
+      "card_number": 3,
+      "trend_enabled": true,
+      "reusable": true
+    },
+
+    "unauthorized_absence_rate": {
+      "id": "unauthorized_absence_rate",
+      "name_ko": "무단결근율",
+      "name_en": "Unauthorized Absence Rate",
+      "name_vi": "Tỷ lệ nghỉ không phép",
+      "category": "attendance",
+      "formula": "SUM(unapproved_absence_days) / SUM(total_working_days) * 100",
+      "data_sources": ["attendance", "basic_manpower"],
+      "calculation_method": "percentage",
+      "thresholds": {
+        "excellent": {"max": 1, "color": "#28a745"},
+        "good": {"min": 1, "max": 2, "color": "#17a2b8"},
+        "warning": {"min": 2, "max": 5, "color": "#ffc107"},
+        "critical": {"min": 5, "color": "#dc3545"}
+      },
+      "display_format": "{value:.1f}%",
+      "trend_enabled": true,
+      "reusable": true
+    },
+
+    "resignation_rate": {
+      "id": "resignation_rate",
+      "name_ko": "퇴사율",
+      "name_en": "Resignation Rate",
+      "name_vi": "Tỷ lệ nghỉ việc",
+      "category": "turnover",
+      "formula": "(monthly_resignations / average_monthly_headcount) * 100",
+      "formula_description_ko": "월 중 퇴사자 수 / 월평균 인원 * 100",
+      "formula_description_en": "Monthly resignations / Average monthly headcount * 100",
+      "reference_date": "month_average",
+      "denominator": "average_monthly_headcount",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "percentage",
+      "filters": {
+        "resignation_date_in_month": true
+      },
+      "thresholds": {
+        "excellent": {"max": 2, "color": "#28a745"},
+        "good": {"min": 2, "max": 5, "color": "#17a2b8"},
+        "warning": {"min": 5, "max": 10, "color": "#ffc107"},
+        "critical": {"min": 10, "color": "#dc3545"}
+      },
+      "display_format": "{value:.1f}%",
+      "card_number": 4,
+      "trend_enabled": true,
+      "reusable": true
+    },
+
+    "recent_hires": {
+      "id": "recent_hires",
+      "name_ko": "최근 30일 입사",
+      "name_en": "Recent 30-Day Hires",
+      "name_vi": "Tuyển dụng 30 ngày gần đây",
+      "category": "recruitment",
+      "formula": "COUNT(employees WHERE entrance_date >= (current_date - 30 days))",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "entrance_date_range": {"min": -30, "max": 0, "unit": "days"}
+      },
+      "display_format": "{value}명",
+      "card_number": 5,
+      "show_rate": true,
+      "rate_formula": "recent_hires / total_employees * 100"
+    },
+
+    "recent_resignations": {
+      "id": "recent_resignations",
+      "name_ko": "최근 30일 퇴사 (신입)",
+      "name_en": "Recent 30-Day Resignations (New Hires)",
+      "name_vi": "Nghỉ việc 30 ngày gần đây (Nhân viên mới)",
+      "category": "turnover",
+      "formula": "COUNT(employees WHERE (stop_working_date - entrance_date) <= 30 days)",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "tenure_max": 30,
+        "has_resignation_date": true
+      },
+      "display_format": "{value}명",
+      "card_number": 6,
+      "show_rate": true,
+      "rate_formula": "recent_resignations / recent_hires * 100"
+    },
+
+    "under_60_days": {
+      "id": "under_60_days",
+      "name_ko": "입사 60일 미만",
+      "name_en": "Under 60 Days Tenure",
+      "name_vi": "Dưới 60 ngày",
+      "category": "recruitment",
+      "formula": "COUNT(employees WHERE (current_date - entrance_date) < 60 days)",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "tenure_max": 60,
+        "active_only": true
+      },
+      "display_format": "{value}명",
+      "card_number": 7,
+      "show_rate": true,
+      "rate_formula": "under_60_days / total_employees * 100"
+    },
+
+    "post_assignment_resignations": {
+      "id": "post_assignment_resignations",
+      "name_ko": "보직 부여 후 퇴사",
+      "name_en": "Post-Assignment Resignations",
+      "name_vi": "Nghỉ việc sau khi phân công",
+      "category": "turnover",
+      "formula": "COUNT(employees WHERE 30 < (stop_working_date - entrance_date) <= 60 days)",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "tenure_min": 30,
+        "tenure_max": 60,
+        "has_resignation_date": true
+      },
+      "display_format": "{value}명",
+      "card_number": 8,
+      "show_rate": true,
+      "rate_formula": "post_assignment_resignations / under_60_days * 100"
+    },
+
+    "full_attendance": {
+      "id": "full_attendance",
+      "name_ko": "만근자",
+      "name_en": "Full Attendance",
+      "name_vi": "Chuyên cần đầy đủ",
+      "category": "attendance",
+      "formula": "COUNT(employees WHERE actual_working_days == total_working_days AND total_working_days > 0)",
+      "data_sources": ["attendance", "basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "full_attendance_only": true
+      },
+      "display_format": "{value}명",
+      "card_number": 9,
+      "show_rate": true,
+      "rate_formula": "full_attendance / total_employees * 100",
+      "trend_enabled": true,
+      "reusable": true
+    },
+
+    "long_term_employees": {
+      "id": "long_term_employees",
+      "name_ko": "장기근속자 (1년 이상)",
+      "name_en": "Long-term Employees (1+ year)",
+      "name_vi": "Nhân viên lâu năm (1+ năm)",
+      "category": "retention",
+      "formula": "COUNT(employees WHERE (current_date - entrance_date) >= 365 days)",
+      "data_sources": ["basic_manpower"],
+      "calculation_method": "count",
+      "filters": {
+        "tenure_min": 365,
+        "active_only": true
+      },
+      "display_format": "{value}명",
+      "card_number": 10,
+      "show_rate": true,
+      "rate_formula": "long_term_employees / total_employees * 100"
+    },
+
+    "data_errors": {
+      "id": "data_errors",
+      "name_ko": "데이터 오류",
+      "name_en": "Data Errors",
+      "name_vi": "Lỗi dữ liệu",
+      "category": "quality",
+      "formula": "COUNT(errors FROM error_detector)",
+      "data_sources": ["error_report"],
+      "calculation_method": "count",
+      "severity_levels": ["critical", "warning", "info"],
+      "display_format": "{value}명",
+      "card_number": 2,
+      "is_error_metric": true
+    }
+  },
+
+  "team_metrics": {
+    "team_attendance_rate": {
+      "id": "team_attendance_rate",
+      "name_ko": "팀별 출근율",
+      "name_en": "Team Attendance Rate",
+      "name_vi": "Tỷ lệ chuyên cần theo nhóm",
+      "category": "attendance",
+      "formula": "100 - (SUM(actual_working_days) / SUM(total_working_days) * 100) GROUP BY team",
+      "group_by": "team",
+      "reusable": true,
+      "chart_enabled": true
+    },
+
+    "team_resignation_rate": {
+      "id": "team_resignation_rate",
+      "name_ko": "팀별 퇴사율",
+      "name_en": "Team Resignation Rate",
+      "name_vi": "Tỷ lệ nghỉ việc theo nhóm",
+      "category": "turnover",
+      "formula": "COUNT(resignations) / COUNT(total_employees) * 100 GROUP BY team",
+      "group_by": "team",
+      "reusable": true,
+      "chart_enabled": true
+    },
+
+    "team_headcount": {
+      "id": "team_headcount",
+      "name_ko": "팀별 인원수",
+      "name_en": "Team Headcount",
+      "name_vi": "Số lượng nhân viên theo nhóm",
+      "category": "headcount",
+      "formula": "COUNT(employees) GROUP BY team",
+      "group_by": "team",
+      "reusable": true,
+      "chart_enabled": true,
+      "chart_type": "treemap"
+    }
+  },
+
+  "calculation_settings": {
+    "date_format": "YYYY-MM-DD",
+    "percentage_decimals": 1,
+    "count_decimals": 0,
+    "currency_symbol": "VND",
+    "threshold_comparison_operator": ">=",
+    "missing_data_handling": "zero",
+    "zero_division_handling": 0
+  },
+
+  "data_source_mapping": {
+    "basic_manpower": "input_files/basic manpower data {month}.csv",
+    "attendance": "input_files/attendance/converted/attendance data {month}_converted.csv",
+    "aql_history": "input_files/AQL history/1.HSRG AQL REPORT-{MONTH}.{year}.csv",
+    "5prs": "input_files/5prs data {month}.csv",
+    "incentive_detail": "input_files/{year}년 {month} 인센티브 지급 세부 정보.csv"
+  }
+}

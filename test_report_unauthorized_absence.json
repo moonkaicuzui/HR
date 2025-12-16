@@ -1,0 +1,29 @@
+{
+  "test_date": "1760750841.9777837",
+  "target_month": "2025-10",
+  "checklist": {
+    "1. 데이터 완전성 (Data Completeness)": true,
+    "2. 팀별 차별화된 무단결근율 (Team-specific Rates)": true,
+    "3. 언어 일관성 (Language Consistency)": true,
+    "4. 시각화 요소 (Visualization Elements)": true,
+    "5. 데이터 신뢰도 (Data Reliability)": true
+  },
+  "team_rates": {
+    "ASSEMBLY": 0.0,
+    "STITCHING": 0.37,
+    "CUTTING": 0.0,
+    "LASTING": 0.0,
+    "STOCKFITTING": 0.0,
+    "BOTTOM": 0.0,
+    "QSC": 0.0,
+    "MTL": 0.0,
+    "NEW": 4.17,
+    "REPACKING": 0.79,
+    "AQL": 0.0,
+    "QA": 0.0,
+    "QIP_MANAGER_OFFICE_OCPT": 0.64
+  },
+  "overall_rate": 0.5,
+  "passed": 5,
+  "total": 5
+}

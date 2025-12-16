@@ -1,0 +1,12 @@
+# HR Dashboard System - Python Dependencies
+# HR 대시보드 시스템 - Python 의존성
+
+# Core Data Processing / 핵심 데이터 처리
+pandas>=1.3.0
+numpy>=1.21.0
+openpyxl>=3.0.9  # Excel file support / Excel 파일 지원
+
+# Optional: Google Drive Integration / 선택사항: Google Drive 통합
+google-auth>=2.16.0
+google-auth-oauthlib>=0.8.0
+google-api-python-client>=2.80.0

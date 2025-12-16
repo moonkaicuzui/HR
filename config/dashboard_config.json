@@ -1,0 +1,228 @@
+{
+  "version": "1.0.0",
+  "dashboard_name": "HR Management Dashboard",
+  "description": "Standalone HR Dashboard with NO FAKE DATA policy",
+
+  "layout": {
+    "grid_columns": 3,
+    "card_height": "auto",
+    "spacing": "20px",
+    "responsive_breakpoints": {
+      "mobile": 768,
+      "tablet": 1024,
+      "desktop": 1920
+    }
+  },
+
+  "cards": {
+    "enabled_cards": [
+      "total_employees",
+      "data_errors",
+      "absence_rate",
+      "resignation_rate",
+      "recent_hires",
+      "recent_resignations",
+      "under_60_days",
+      "post_assignment_resignations",
+      "full_attendance",
+      "long_term_employees"
+    ],
+    "card_order": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "cards_per_row": 3,
+    "show_prev_comparison": true,
+    "show_trend_indicator": true,
+    "clickable": true
+  },
+
+  "sections": {
+    "hr_metrics": {
+      "enabled": true,
+      "title_ko": "HR 주요 지표",
+      "title_en": "HR Key Metrics",
+      "title_vi": "Chỉ số HR chính",
+      "order": 1
+    },
+    "team_analysis": {
+      "enabled": true,
+      "title_ko": "팀별 분석",
+      "title_en": "Team Analysis",
+      "title_vi": "Phân tích theo nhóm",
+      "order": 2,
+      "show_team_cards": true,
+      "show_team_chart": true,
+      "chart_type": "treemap"
+    },
+    "trend_analysis": {
+      "enabled": true,
+      "title_ko": "추세 분석",
+      "title_en": "Trend Analysis",
+      "title_vi": "Phân tích xu hướng",
+      "order": 3,
+      "time_periods": ["weekly", "monthly"],
+      "default_period": "weekly"
+    }
+  },
+
+  "charts": {
+    "weekly_trend": {
+      "enabled": true,
+      "type": "line",
+      "title_ko": "주차별 인원 추세",
+      "title_en": "Weekly Headcount Trend",
+      "title_vi": "Xu hướng nhân sự hàng tuần",
+      "metrics": ["total_employees"],
+      "weeks": 5,
+      "show_previous_month": true,
+      "continuous_timeline": true
+    },
+    "team_treemap": {
+      "enabled": true,
+      "type": "treemap",
+      "title_ko": "팀별 인원 분포",
+      "title_en": "Team Headcount Distribution",
+      "title_vi": "Phân bố nhân sự theo nhóm",
+      "metric": "team_headcount",
+      "min_cell_height": 50,
+      "aspect_ratio": 1.6
+    },
+    "comparison_chart": {
+      "enabled": true,
+      "type": "bar",
+      "title_ko": "팀별 비교",
+      "title_en": "Team Comparison",
+      "title_vi": "So sánh theo nhóm",
+      "metrics": ["attendance_rate", "resignation_rate"],
+      "orientation": "horizontal"
+    }
+  },
+
+  "colors": {
+    "primary": "#6366f1",
+    "primary_dark": "#4f46e5",
+    "primary_light": "#818cf8",
+    "secondary": "#64748b",
+    "success": "#10b981",
+    "danger": "#ef4444",
+    "warning": "#f59e0b",
+    "info": "#3b82f6",
+    "background": "#f8fafc",
+    "background_secondary": "#ffffff",
+    "text": "#0f172a",
+    "text_secondary": "#64748b",
+    "border": "#e2e8f0",
+    "card_hover": "#f1f5f9",
+    "error_card_bg": "#fef2f2",
+    "error_card_border": "#fca5a5",
+    "gradient_primary": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    "gradient_success": "linear-gradient(135deg, #10b981 0%, #34d399 100%)",
+    "gradient_danger": "linear-gradient(135deg, #ef4444 0%, #f87171 100%)",
+    "gradient_warning": "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
+    "gradient_info": "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
+    "shadow_sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "shadow_md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    "shadow_lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    "shadow_xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    "chart_colors": [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E2",
+      "#FF9FF3",
+      "#54A0FF",
+      "#48DBFB",
+      "#00D2D3",
+      "#1ABC9C"
+    ]
+  },
+
+  "typography": {
+    "font_family": "'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif",
+    "title_size": "32px",
+    "subtitle_size": "18px",
+    "card_title_size": "14px",
+    "card_value_size": "28px",
+    "body_size": "14px"
+  },
+
+  "modals": {
+    "enabled": true,
+    "backdrop_color": "rgba(0, 0, 0, 0.5)",
+    "max_width": "900px",
+    "animation": "fade",
+    "close_on_backdrop_click": true,
+    "table_sortable": true,
+    "table_searchable": true
+  },
+
+  "data_refresh": {
+    "auto_refresh": false,
+    "refresh_interval_minutes": 30,
+    "show_last_updated": true
+  },
+
+  "export": {
+    "enabled": false,
+    "formats": ["excel", "pdf", "json"],
+    "include_charts": true
+  },
+
+  "language": {
+    "default": "ko",
+    "supported": ["ko", "en", "vi"],
+    "persist_selection": true,
+    "storage_key": "hr_dashboard_language"
+  },
+
+  "data_quality": {
+    "show_error_card": true,
+    "error_categories": [
+      "temporal_errors",
+      "type_errors",
+      "position_errors",
+      "team_errors",
+      "attendance_errors",
+      "duplicate_errors"
+    ],
+    "severity_display": {
+      "critical": {"icon": "🔴", "color": "#dc3545"},
+      "warning": {"icon": "⚠️", "color": "#ffc107"},
+      "info": {"icon": "ℹ️", "color": "#17a2b8"}
+    }
+  },
+
+  "team_mapping": {
+    "source": "HR info/team_structure_updated.json",
+    "fallback_team": "Team Unidentified",
+    "priority_order": [
+      "position_combo",
+      "position_3rd",
+      "position_2nd",
+      "position_1st"
+    ],
+    "special_cases": {
+      "A.MANAGER": "use_position_3rd",
+      "NEW QIP MEMBER": "NEW"
+    }
+  },
+
+  "filters": {
+    "active_employees_only": true,
+    "exclude_future_hires": true,
+    "data_latest_date_source": "attendance",
+    "generation_date": "current"
+  },
+
+  "performance": {
+    "lazy_load_charts": false,
+    "cache_data": true,
+    "cache_ttl_minutes": 60,
+    "optimize_large_datasets": true,
+    "large_dataset_threshold": 1000
+  }
+}

@@ -1,0 +1,262 @@
+{
+  "version": "1.0.0",
+  "description": "Reusable chart templates for trend analysis - Subject/Object agnostic",
+
+  "templates": {
+    "line_trend": {
+      "type": "line",
+      "description": "Generic line chart for trends (재활용 가능 - Reusable)",
+      "applicable_to": ["absence_rate", "attendance_rate", "resignation_rate", "team_metrics", "any_percentage_metric"],
+      "config": {
+        "responsive": true,
+        "maintainAspectRatio": false,
+        "plugins": {
+          "legend": {
+            "display": true,
+            "position": "top"
+          },
+          "tooltip": {
+            "enabled": true,
+            "mode": "index",
+            "intersect": false
+          }
+        },
+        "scales": {
+          "y": {
+            "beginAtZero": true,
+            "ticks": {
+              "callback": "function(value) { return value + '%'; }"
+            }
+          },
+          "x": {
+            "grid": {
+              "display": false
+            }
+          }
+        },
+        "animation": {
+          "duration": 750,
+          "easing": "easeInOutQuad"
+        }
+      },
+      "colors": {
+        "line": "#4ECDC4",
+        "background": "rgba(78, 205, 196, 0.1)",
+        "border_width": 2,
+        "point_radius": 4,
+        "point_hover_radius": 6
+      }
+    },
+
+    "bar_comparison": {
+      "type": "bar",
+      "description": "Generic bar chart for comparisons (재활용 가능 - Reusable)",
+      "applicable_to": ["team_attendance", "team_resignation", "position_comparison", "any_group_comparison"],
+      "config": {
+        "responsive": true,
+        "indexAxis": "y",
+        "plugins": {
+          "legend": {
+            "display": false
+          },
+          "tooltip": {
+            "enabled": true
+          }
+        },
+        "scales": {
+          "x": {
+            "beginAtZero": true,
+            "ticks": {
+              "callback": "function(value) { return value + '%'; }"
+            }
+          }
+        }
+      },
+      "colors": {
+        "default": "#45B7D1",
+        "hover": "#3498DB"
+      }
+    },
+
+    "treemap": {
+      "type": "treemap",
+      "description": "Treemap for hierarchical data (재활용 가능 - Reusable)",
+      "applicable_to": ["team_headcount", "position_distribution", "any_hierarchical_data"],
+      "config": {
+        "responsive": true,
+        "plugins": {
+          "tooltip": {
+            "enabled": true,
+            "callbacks": {
+              "title": "function(context) { return context[0].raw._data.label; }",
+              "label": "function(context) { return context.raw.v + '명'; }"
+            }
+          },
+          "legend": {
+            "display": false
+          }
+        },
+        "tree": {
+          "key": "value",
+          "groups": ["team"],
+          "spacing": 1,
+          "borderWidth": 2,
+          "borderColor": "#ffffff"
+        }
+      },
+      "color_scheme": "auto"
+    },
+
+    "multi_line_trend": {
+      "type": "line",
+      "description": "Multiple lines for comparison (재활용 가능 - Reusable)",
+      "applicable_to": ["team_trends", "month_over_month", "multi_metric_comparison"],
+      "config": {
+        "responsive": true,
+        "plugins": {
+          "legend": {
+            "display": true,
+            "position": "top",
+            "labels": {
+              "usePointStyle": true,
+              "padding": 15
+            }
+          },
+          "tooltip": {
+            "mode": "index",
+            "intersect": false
+          }
+        },
+        "scales": {
+          "y": {
+            "beginAtZero": true
+          }
+        }
+      },
+      "colors": [
+        "#FF6B6B",
+        "#4ECDC4",
+        "#45B7D1",
+        "#96CEB4",
+        "#FFEAA7"
+      ]
+    },
+
+    "stacked_bar": {
+      "type": "bar",
+      "description": "Stacked bar for composition analysis (재활용 가능 - Reusable)",
+      "applicable_to": ["type_distribution", "team_composition", "any_stacked_comparison"],
+      "config": {
+        "responsive": true,
+        "plugins": {
+          "legend": {
+            "display": true
+          },
+          "tooltip": {
+            "mode": "index"
+          }
+        },
+        "scales": {
+          "x": {
+            "stacked": true
+          },
+          "y": {
+            "stacked": true,
+            "beginAtZero": true
+          }
+        }
+      },
+      "colors": {
+        "TYPE-1": "#FF6B6B",
+        "TYPE-2": "#4ECDC4",
+        "TYPE-3": "#96CEB4"
+      }
+    },
+
+    "doughnut": {
+      "type": "doughnut",
+      "description": "Doughnut chart for proportions (재활용 가능 - Reusable)",
+      "applicable_to": ["type_distribution", "team_proportion", "any_proportion"],
+      "config": {
+        "responsive": true,
+        "plugins": {
+          "legend": {
+            "display": true,
+            "position": "right"
+          },
+          "tooltip": {
+            "callbacks": {
+              "label": "function(context) { return context.label + ': ' + context.formattedValue + '명'; }"
+            }
+          }
+        },
+        "cutout": "60%"
+      },
+      "colors": [
+        "#FF6B6B",
+        "#4ECDC4",
+        "#45B7D1",
+        "#96CEB4",
+        "#FFEAA7",
+        "#DDA0DD",
+        "#98D8C8",
+        "#F7DC6F"
+      ]
+    }
+  },
+
+  "usage_examples": {
+    "example_1": {
+      "description": "전체 결근율 주차별 추세 / Overall absence rate weekly trend",
+      "template": "line_trend",
+      "subject": "전체 / Overall",
+      "metric": "absence_rate",
+      "time_period": "weekly"
+    },
+    "example_2": {
+      "description": "ASSEMBLY 팀 출근율 추세 / ASSEMBLY team attendance rate trend",
+      "template": "line_trend",
+      "subject": "ASSEMBLY 팀 / ASSEMBLY Team",
+      "metric": "attendance_rate",
+      "time_period": "weekly"
+    },
+    "example_3": {
+      "description": "팀별 퇴사율 비교 / Team resignation rate comparison",
+      "template": "bar_comparison",
+      "subject": "팀별 / By Team",
+      "metric": "resignation_rate",
+      "group_by": "team"
+    },
+    "example_4": {
+      "description": "팀별 인원 분포 / Team headcount distribution",
+      "template": "treemap",
+      "subject": "팀별 / By Team",
+      "metric": "headcount",
+      "group_by": "team"
+    }
+  },
+
+  "cdn_resources": {
+    "chartjs": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
+    "chartjs_treemap": "https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.2.2/dist/chartjs-chart-treemap.min.js",
+    "chartjs_adapter_date": "https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"
+  },
+
+  "animation_presets": {
+    "smooth": {
+      "duration": 750,
+      "easing": "easeInOutQuad"
+    },
+    "fast": {
+      "duration": 300,
+      "easing": "easeOutQuart"
+    },
+    "slow": {
+      "duration": 1500,
+      "easing": "easeInOutCubic"
+    },
+    "none": {
+      "duration": 0
+    }
+  }
+}

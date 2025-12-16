@@ -1,0 +1,548 @@
+{
+  "ALL B-GRADE CONTROL & PACKING": {
+    "team": "REPACKING",
+    "reason": "Repacking/Packing/창고 관련",
+    "count": 2,
+    "employees": [
+      {
+        "Employee No": 621030280,
+        "Full Name": "NGUYỄN THỊ THỦY QUỲNH",
+        "QIP POSITION 1ST  NAME": "ASSEMBLY INSPECTOR",
+        "QIP POSITION 2ND  NAME": "B-GRADE TEAM / TEST SAMPLE HANDLING TEAM"
+      },
+      {
+        "Employee No": 622050265,
+        "Full Name": "LÊ THỊ BẾN",
+        "QIP POSITION 1ST  NAME": "ASSEMBLY INSPECTOR",
+        "QIP POSITION 2ND  NAME": "B-GRADE TEAM / TEST SAMPLE HANDLING TEAM"
+      }
+    ]
+  },
+  "AUDIT & TRAINING TEAM LEADER": {
+    "team": "QA",
+    "reason": "QA/Audit/Training 관련",
+    "count": 1,
+    "employees": [
+      {
+        "Employee No": 620080295,
+        "Full Name": "VÕ THỊ THÙY LINH",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      }
+    ]
+  },
+  "AUDITOR & TRAININER": {
+    "team": "QA",
+    "reason": "QA/Audit/Training 관련",
+    "count": 7,
+    "employees": [
+      {
+        "Employee No": 618060092,
+        "Full Name": "CAO THỊ TỐ NGUYÊN",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      },
+      {
+        "Employee No": 618110087,
+        "Full Name": "NGUYỄN THÚY HẰNG",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      },
+      {
+        "Employee No": 619070185,
+        "Full Name": "DANH THỊ KIM ANH",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      },
+      {
+        "Employee No": 620070013,
+        "Full Name": "NGUYỄN THANH TRÚC",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      },
+      {
+        "Employee No": 620070020,
+        "Full Name": "PHẠM MỸ HUYỀN",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      },
+      {
+        "Employee No": 621060154,
+        "Full Name": "LÝ DĨ CƯỜNG",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      },
+      {
+        "Employee No": 623080475,
+        "Full Name": "SẦM TRÍ THÀNH",
+        "QIP POSITION 1ST  NAME": "AUDIT & TRAINING TEAM",
+        "QIP POSITION 2ND  NAME": "AUDIT & TRAINING TEAM"
+      }
+    ]
+  },
+  "FG WH CARTON PACKING TQC": {
+    "team": "REPACKING",
+    "reason": "Repacking/Packing/창고 관련",
+    "count": 3,
+    "employees": [
+      {
+        "Employee No": 622030489,
+        "Full Name": "VŨ HOÀNG KHA",
+        "QIP POSITION 1ST  NAME": "AQL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "QIP PACKING TEAM"
+      },
+      {
+        "Employee No": 622050246,
+        "Full Name": "NGUYỄN THANH HÀO",
+        "QIP POSITION 1ST  NAME": "AQL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "QIP PACKING TEAM"
+      },
+      {
+        "Employee No": 624020479,
+        "Full Name": "CAO VĂN PHẨM",
+        "QIP POSITION 1ST  NAME": "AQL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "QIP PACKING TEAM"
+      }
+    ]
+  },
+  "FG WH INPUT-OUTPUT CARTON RQC": {
+    "team": "REPACKING",
+    "reason": "Repacking/Packing/창고 관련",
+    "count": 1,
+    "employees": [
+      {
+        "Employee No": 621040472,
+        "Full Name": "NGUYỄN TẤN THÀNH",
+        "QIP POSITION 1ST  NAME": "AQL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "QIP PACKING TEAM"
+      }
+    ]
+  },
+  "HAPPO TQC": {
+    "team": "MTL",
+    "reason": "MTL 관련 키워드 포함 (Material/Leather/Textile/Subsi/Happo)",
+    "count": 3,
+    "employees": [
+      {
+        "Employee No": 622021632,
+        "Full Name": "TRƯƠNG YẾN MY",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "HAPPO TQC"
+      },
+      {
+        "Employee No": 622080448,
+        "Full Name": "HUỲNH ANH THƯ",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "HAPPO TQC"
+      },
+      {
+        "Employee No": 624100230,
+        "Full Name": "LƯƠNG THỊ KIM THOA",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "HAPPO TQC"
+      }
+    ]
+  },
+  "INHOUSE HF/ NO-SEW INSPECTION RQC": {
+    "team": "ASSEMBLY",
+    "reason": "Inhouse HF/No-Sew → Assembly 공정",
+    "count": 1,
+    "employees": [
+      {
+        "Employee No": 619080060,
+        "Full Name": "DANH THỊ ANH THƯ",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      }
+    ]
+  },
+  "INHOUSE HF/ NO-SEW INSPECTION TQC": {
+    "team": "ASSEMBLY",
+    "reason": "Inhouse HF/No-Sew → Assembly 공정",
+    "count": 11,
+    "employees": [
+      {
+        "Employee No": 621110751,
+        "Full Name": "CHÂU THỊ CHÚC LY",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 623110250,
+        "Full Name": "DANH VIỆT NGHI",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624070225,
+        "Full Name": "SƠN THỊ MỪNG",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624020087,
+        "Full Name": "THỊ HUYỀN",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624070394,
+        "Full Name": "NGUYỄN THỊ MỘNG MI",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624080126,
+        "Full Name": "DANH THỊ CHANH ĐA",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624080234,
+        "Full Name": "LÝ THỊ MỸ AN",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624080354,
+        "Full Name": "LÊ THỊ MỸ NGỌC",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624090271,
+        "Full Name": "THỊ THU THẢO",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 625070145,
+        "Full Name": "PHẠM THỊ NHƯ Ý",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 624090012,
+        "Full Name": "ĐẶNG THỊ MỸ HẠNH",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      }
+    ]
+  },
+  "INHOUSE PRINTING INSPECTION RQC": {
+    "team": "ASSEMBLY",
+    "reason": "Inhouse Printing → Assembly 공정",
+    "count": 1,
+    "employees": [
+      {
+        "Employee No": 621030380,
+        "Full Name": "TRẦN NHÃ LINH",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      }
+    ]
+  },
+  "INHOUSE PRINTING INSPECTION TQC": {
+    "team": "ASSEMBLY",
+    "reason": "Inhouse Printing → Assembly 공정",
+    "count": 2,
+    "employees": [
+      {
+        "Employee No": 624090178,
+        "Full Name": "LÂM THỊ NHƯ Ý",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      },
+      {
+        "Employee No": 625020507,
+        "Full Name": "THỊ BÁCH HỢP",
+        "QIP POSITION 1ST  NAME": "OSC INSPECTOR",
+        "QIP POSITION 2ND  NAME": "OSC INSPECTOR"
+      }
+    ]
+  },
+  "LEATHER TQC": {
+    "team": "MTL",
+    "reason": "MTL 관련 키워드 포함 (Material/Leather/Textile/Subsi/Happo)",
+    "count": 8,
+    "employees": [
+      {
+        "Employee No": 620090070,
+        "Full Name": "NGUYỄN THỊ MAI LAN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 623100203,
+        "Full Name": "HỒ THỊ TỐ TRINH",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 623100209,
+        "Full Name": "XÀ THỊ NGÂN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 624020155,
+        "Full Name": "HUỲNH THIỆN THUYỀN NGỌC",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 624090131,
+        "Full Name": "DƯƠNG KIỀU TIÊN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 624090320,
+        "Full Name": "NGUYỄN KIM MINH NGỌC",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 624090373,
+        "Full Name": "NGUYỄN NGỌC TUYỀN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      },
+      {
+        "Employee No": 624090502,
+        "Full Name": "NGUYỄN NGỌC HÂN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "LEATHER TQC"
+      }
+    ]
+  },
+  "LINE LEADER(GROUP LEADER SUCCESSOR)": {
+    "team": "OFFICE & OCPT",
+    "reason": "Line Leader (관리직)",
+    "count": 1,
+    "employees": [
+      {
+        "Employee No": 618100175,
+        "Full Name": "THỊ BÍCH NGÀ",
+        "QIP POSITION 1ST  NAME": "LINE LEADER",
+        "QIP POSITION 2ND  NAME": "LINE LEADER(GROUP LEADER SUCCESSOR)"
+      }
+    ]
+  },
+  "MODEL MASTER": {
+    "team": "QA",
+    "reason": "Model Master → QA (품질 샘플 관리)",
+    "count": 3,
+    "employees": [
+      {
+        "Employee No": 618030241,
+        "Full Name": "TRẦN THỊ THÚY ANH",
+        "QIP POSITION 1ST  NAME": "MODEL MASTER",
+        "QIP POSITION 2ND  NAME": "MODEL MASTER"
+      },
+      {
+        "Employee No": 618110097,
+        "Full Name": "DANH THỊ ANH ĐÀO",
+        "QIP POSITION 1ST  NAME": "MODEL MASTER",
+        "QIP POSITION 2ND  NAME": "MODEL MASTER"
+      },
+      {
+        "Employee No": 620120386,
+        "Full Name": "NGUYỄN NGỌC TUẤN",
+        "QIP POSITION 1ST  NAME": "MODEL MASTER",
+        "QIP POSITION 2ND  NAME": "MODEL MASTER"
+      }
+    ]
+  },
+  "QIP SAP & INCOMING QUALITY REPORT ": {
+    "team": "OSC",
+    "reason": "OSC/Incoming 관련",
+    "count": 1,
+    "employees": [
+      {
+        "Employee No": 622090015,
+        "Full Name": "THỊ THÚY",
+        "QIP POSITION 1ST  NAME": "GROUP LEADER",
+        "QIP POSITION 2ND  NAME": "REPORT TEAM"
+      }
+    ]
+  },
+  "SCAN PACK AREA TQC": {
+    "team": "REPACKING",
+    "reason": "Scan Pack → Repacking 공정",
+    "count": 2,
+    "employees": [
+      {
+        "Employee No": 619020144,
+        "Full Name": "LÊ THỊ THOẢNG",
+        "QIP POSITION 1ST  NAME": "ASSEMBLY INSPECTOR",
+        "QIP POSITION 2ND  NAME": "QIP PACKING TEAM"
+      },
+      {
+        "Employee No": 624020044,
+        "Full Name": "DANH VÀNG",
+        "QIP POSITION 1ST  NAME": "ASSEMBLY INSPECTOR",
+        "QIP POSITION 2ND  NAME": "QIP PACKING TEAM"
+      }
+    ]
+  },
+  "SUBSI TQC": {
+    "team": "MTL",
+    "reason": "MTL 관련 키워드 포함 (Material/Leather/Textile/Subsi/Happo)",
+    "count": 11,
+    "employees": [
+      {
+        "Employee No": 620120056,
+        "Full Name": "NGUYỄN THỊ ANH NHƯ",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 621020289,
+        "Full Name": "HUỲNH THIỆN YẾN PHƯƠNG",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 622060302,
+        "Full Name": "CHÂU THỊ LỆ TUYỀN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 622080451,
+        "Full Name": "NGUYỄN NGỌC TRÂN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 623080378,
+        "Full Name": "DANH THỊ NHƯ Ý",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 624020210,
+        "Full Name": "NGUYỄN THỊ KIM ANH",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 624090222,
+        "Full Name": "THỊ BÍCH KIỀU",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 625020481,
+        "Full Name": "PHẠM TẤN ĐẠT",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 625080008,
+        "Full Name": "ĐOÀN THỊ THU TRANG",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 625080083,
+        "Full Name": "THỊ HỒNG XUÂN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      },
+      {
+        "Employee No": 625080163,
+        "Full Name": "DANH THỊ DIỄM HẰNG",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "SUBSI TQC"
+      }
+    ]
+  },
+  "TEAM OPERATION MANAGEMENT": {
+    "team": "OFFICE & OCPT",
+    "reason": "Office/Report 관련",
+    "count": 2,
+    "employees": [
+      {
+        "Employee No": 617100049,
+        "Full Name": "ĐINH KIM NGOAN",
+        "QIP POSITION 1ST  NAME": "GROUP LEADER",
+        "QIP POSITION 2ND  NAME": "REPORT TEAM"
+      },
+      {
+        "Employee No": 619020343,
+        "Full Name": "THỊ KIM THO",
+        "QIP POSITION 1ST  NAME": "GROUP LEADER",
+        "QIP POSITION 2ND  NAME": "REPORT TEAM"
+      }
+    ]
+  },
+  "TEXTILE TQC": {
+    "team": "MTL",
+    "reason": "MTL 관련 키워드 포함 (Material/Leather/Textile/Subsi/Happo)",
+    "count": 10,
+    "employees": [
+      {
+        "Employee No": 621031025,
+        "Full Name": "NGUYỄN THỊ THU HÀ",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 621110165,
+        "Full Name": "PHẠM NGỌC CHĂM",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 622021707,
+        "Full Name": "THỊ YẾN NHI",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 622030533,
+        "Full Name": "TRẦN PHỤNG KIỀU",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 624020107,
+        "Full Name": "TRẦN QUỐC KIỆT",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 624070226,
+        "Full Name": "LÊ THỊ KIM TUYỀN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 624070227,
+        "Full Name": "TRẦN NGỌC TIỀN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 624070250,
+        "Full Name": "NGUYỄN THÚY VY",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 624080032,
+        "Full Name": "NGUYỄN NGỌC HIỀN NGOAN",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      },
+      {
+        "Employee No": 625020354,
+        "Full Name": "TÔ NGUYỄN THÙY LINH",
+        "QIP POSITION 1ST  NAME": "MTL INSPECTOR",
+        "QIP POSITION 2ND  NAME": "TEXTILE TQC"
+      }
+    ]
+  }
+}

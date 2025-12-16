@@ -1,0 +1,84 @@
+{
+  "google_drive": {
+    "root_folder_id": "1PwmT0di7w2_iz-iA8Llza_h0oT4l4Q9D",
+    "folder_structure": {
+      "monthly_data": {
+        "id": "1yFbEIjfpLgPKB7CQhTWyrdKLkn55NlXv",
+        "naming_pattern": "{year}_{month:02d}"
+      },
+      "aql_history": {
+        "id": "18yWygciJczt7fnEKjzGCAC21VVPWmlVi",
+        "file_pattern": "AQL_REPORT_{month}_{year}.csv"
+      },
+      "configs": {
+        "id": "1rQ0atIZ-8FxY7fW9wZGBQ7us2-oJl67S"
+      }
+    }
+  },
+  "sync_settings": {
+    "auto_sync_enabled": true,
+    "sync_interval_minutes": 60,
+    "retry_attempts": 3,
+    "cache_duration_hours": 24,
+    "validate_after_sync": true
+  },
+  "local_paths": {
+    "data_root": "./input_files",
+    "cache_dir": "./.cache/drive_sync",
+    "logs_dir": "./logs/drive_sync"
+  },
+  "file_mappings": [
+    {
+      "drive_pattern": "monthly_data/{year}_{month:02d}/basic_manpower_data.csv",
+      "local_path": "input_files/basic manpower data {month_name}.csv",
+      "required": true,
+      "description": "HR basic manpower data"
+    },
+    {
+      "drive_pattern": "monthly_data/{year}_{month:02d}/attendance_data.csv",
+      "local_path": "input_files/attendance/original/attendance data {month_name}.csv",
+      "required": true,
+      "post_sync_action": "convert_attendance",
+      "description": "Employee attendance records"
+    },
+    {
+      "drive_pattern": "monthly_data/{year}_{month:02d}/5prs_data.csv",
+      "local_path": "input_files/5prs data {month_name}.csv",
+      "required": true,
+      "description": "5PRS quality data"
+    },
+    {
+      "drive_pattern": "aql_history/AQL_REPORT_{MONTH}_{year}.csv",
+      "local_path": "input_files/AQL history/1.HSRG AQL REPORT-{month:02d}.{year}.csv",
+      "required": true,
+      "months_to_sync": 3,
+      "description": "AQL inspection history"
+    }
+  ],
+  "month_name_mapping": {
+    "1": "january",
+    "2": "february",
+    "3": "march",
+    "4": "april",
+    "5": "may",
+    "6": "june",
+    "7": "july",
+    "8": "august",
+    "9": "september",
+    "10": "october",
+    "11": "november",
+    "12": "december"
+  },
+  "validation_rules": {
+    "csv_files": {
+      "max_size_mb": 50,
+      "encoding": "utf-8",
+      "required_columns": {
+        "basic_manpower": ["사번", "이름", "직급", "TYPE"],
+        "attendance": ["사번", "근무일", "결근일"],
+        "5prs": ["사번", "5PRS_PASS"],
+        "aql": ["AREA", "PASS", "FAIL"]
+      }
+    }
+  }
+}
