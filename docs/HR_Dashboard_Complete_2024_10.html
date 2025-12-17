@@ -1206,6 +1206,12 @@ if (typeof module !== 'undefined' && module.exports) {
         content: '▼';
     }
 
+    /* Sorted column highlight / 정렬된 컬럼 강조 */
+    .employee-table thead th.sorted {
+        background-color: #e3f2fd !important;
+        border-bottom: 3px solid #2196f3;
+    }
+
     .employee-table tbody tr {
         transition: all 0.2s;
     }
@@ -1279,7 +1285,7 @@ if (typeof module !== 'undefined' && module.exports) {
         outline-offset: 2px;
     }
 
-    /* Mobile Responsiveness */
+    /* Mobile Responsiveness - Enhanced / 모바일 반응형 - 개선됨 */
     @media (max-width: 768px) {
         .btn-toolbar {
             flex-direction: column;
@@ -1288,22 +1294,120 @@ if (typeof module !== 'undefined' && module.exports) {
         .btn-toolbar .btn-group {
             width: 100%;
             margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-toolbar .btn-group .btn {
+            flex: 1 1 auto;
+            min-width: calc(50% - 2px);
+            font-size: 0.75rem;
+            padding: 0.35rem 0.5rem;
         }
 
         .employee-table {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+        }
+
+        .employee-table thead th {
+            font-size: 0.7rem;
+            padding: 0.4rem 0.25rem !important;
+            white-space: nowrap;
+        }
+
+        .employee-table tbody td {
+            padding: 0.35rem 0.25rem !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
         }
 
         .employee-table tbody tr:hover {
             transform: none;
         }
 
+        /* Hide less important columns on mobile / 모바일에서 덜 중요한 컬럼 숨기기 */
+        .employee-table th:nth-child(5),
+        .employee-table td:nth-child(5),
+        .employee-table th:nth-child(6),
+        .employee-table td:nth-child(6),
+        .employee-table th:nth-child(7),
+        .employee-table td:nth-child(7),
+        .employee-table th:nth-child(9),
+        .employee-table td:nth-child(9) {
+            display: none !important;
+        }
+
+        /* Smaller badges on mobile / 모바일에서 작은 배지 */
+        .badge-status {
+            font-size: 0.6rem !important;
+            padding: 0.15rem 0.3rem !important;
+        }
+
+        /* Compact search / 컴팩트 검색 */
+        #employeeSearch {
+            font-size: 0.85rem;
+        }
+
+        /* Quick stats panel / 빠른 통계 패널 */
         #quickStatsPanel .stat-value {
-            font-size: 1.2rem !important;
+            font-size: 1rem !important;
         }
 
         #quickStatsPanel .stat-label {
-            font-size: 0.7rem !important;
+            font-size: 0.65rem !important;
+        }
+
+        #quickStatsPanel .stat-item {
+            padding: 0.5rem !important;
+        }
+
+        /* Pagination controls / 페이지네이션 컨트롤 */
+        .pagination .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        #pageInfo {
+            font-size: 0.75rem;
+        }
+
+        /* Column visibility dropdown / 컬럼 표시 드롭다운 */
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    }
+
+    /* Extra small devices / 매우 작은 기기 */
+    @media (max-width: 480px) {
+        .employee-table {
+            font-size: 0.65rem;
+        }
+
+        .employee-table thead th {
+            font-size: 0.6rem;
+        }
+
+        .employee-table tbody td {
+            max-width: 70px;
+        }
+
+        /* Hide even more columns / 더 많은 컬럼 숨기기 */
+        .employee-table th:nth-child(4),
+        .employee-table td:nth-child(4),
+        .employee-table th:nth-child(8),
+        .employee-table td:nth-child(8) {
+            display: none !important;
+        }
+
+        .badge-status {
+            font-size: 0.55rem !important;
+        }
+
+        .btn-toolbar .btn-group .btn {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.4rem;
         }
     }
 
@@ -2067,11 +2171,11 @@ if (typeof module !== 'undefined' && module.exports) {
         <div class="col-md-6">
             <div class="position-relative">
                 <input type="text" class="form-control" id="employeeSearch"
-                       placeholder="🔍 사번, 이름, 직급, 건물, 라인으로 검색..."
+                       placeholder="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
                        onkeyup="handleSearchInput()"
-                       data-ko="🔍 사번, 이름, 직급, 건물, 라인으로 검색..."
-                       data-en="🔍 Search by ID, Name, Position, Building, Line..."
-                       data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây...">
+                       data-ko="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
+                       data-en="🔍 Search by ID, Name, Position, Building, Line, Boss..."
+                       data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây, Cấp trên...">
                 <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
             </div>
         </div>
@@ -36499,7 +36603,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "TYPE-1": 135,
         "TYPE-2": 11
       }
-    }
+    },
+    "position_1st": "ASSEMBLY INSPECTOR"
   },
   "STITCHING": {
     "name": "STITCHING",
@@ -41439,7 +41544,8 @@ if (typeof module !== 'undefined' && module.exports) {
       "type_distribution": {
         "TYPE-2": 120
       }
-    }
+    },
+    "position_1st": "STITCHING INSPECTOR"
   },
   "OSC": {
     "name": "OSC",
@@ -42945,7 +43051,8 @@ if (typeof module !== 'undefined' && module.exports) {
       "type_distribution": {
         "TYPE-2": 33
       }
-    }
+    },
+    "position_1st": "OSC INSPECTOR"
   },
   "MTL": {
     "name": "MTL",
@@ -44485,7 +44592,8 @@ if (typeof module !== 'undefined' && module.exports) {
       "type_distribution": {
         "TYPE-2": 35
       }
-    }
+    },
+    "position_1st": "MTL INSPECTOR"
   },
   "BOTTOM": {
     "name": "BOTTOM",
@@ -46362,7 +46470,8 @@ if (typeof module !== 'undefined' && module.exports) {
       "type_distribution": {
         "TYPE-2": 44
       }
-    }
+    },
+    "position_1st": "BOTTOM INSPECTOR"
   },
   "AQL": {
     "name": "AQL",
@@ -47417,7 +47526,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "TYPE-1": 6,
         "TYPE-2": 18
       }
-    }
+    },
+    "position_1st": "AQL INSPECTOR"
   },
   "REPACKING": {
     "name": "REPACKING",
@@ -48735,7 +48845,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "TYPE-2": 26,
         "TYPE-1": 4
       }
-    }
+    },
+    "position_1st": "ASSEMBLY INSPECTOR"
   },
   "QA": {
     "name": "QA",
@@ -49733,7 +49844,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "TYPE-1": 11,
         "TYPE-2": 11
       }
-    }
+    },
+    "position_1st": "QA TEAM"
   },
   "CUTTING": {
     "name": "CUTTING",
@@ -50124,7 +50236,8 @@ if (typeof module !== 'undefined' && module.exports) {
       "type_distribution": {
         "TYPE-2": 8
       }
-    }
+    },
+    "position_1st": "CUTTING INSPECTOR"
   },
   "QIP MANAGER & OFFICE & OCPT": {
     "name": "QIP MANAGER & OFFICE & OCPT",
@@ -50482,7 +50595,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "TYPE-2": 5,
         "TYPE-1": 1
       }
-    }
+    },
+    "position_1st": "GROUP LEADER"
   },
   "NEW": {
     "name": "NEW",
@@ -53050,7 +53164,8 @@ if (typeof module !== 'undefined' && module.exports) {
       "type_distribution": {
         "TYPE-3": 63
       }
-    }
+    },
+    "position_1st": "NEW"
   }
 }
 ;
@@ -53063,6 +53178,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618030049",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "A.MANAGER",
         "is_active": true,
         "entrance_date": "3/8/2018",
         "stop_date": "nan",
@@ -53073,6 +53189,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618040412",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "4/26/2018",
         "stop_date": "nan",
@@ -53083,6 +53200,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618110042",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "11/5/2018",
         "stop_date": "nan",
@@ -53093,6 +53211,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030996",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/15/2021",
         "stop_date": "nan",
@@ -53103,6 +53222,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621040446",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/22/2021",
         "stop_date": "nan",
@@ -53113,6 +53233,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619020468",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "2/28/2019",
         "stop_date": "nan",
@@ -53123,6 +53244,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619030390",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "3/23/2019",
         "stop_date": "nan",
@@ -53133,6 +53255,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621060243",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/14/2021",
         "stop_date": "nan",
@@ -53143,6 +53266,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619070072",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "7/5/2019",
         "stop_date": "nan",
@@ -53153,6 +53277,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619080327",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "8/23/2019",
         "stop_date": "nan",
@@ -53163,6 +53288,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020174",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/10/2022",
         "stop_date": "09/16/2025",
@@ -53173,6 +53299,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619100392",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "10/25/2019",
         "stop_date": "nan",
@@ -53183,6 +53310,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620020691",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "2/14/2020",
         "stop_date": "nan",
@@ -53193,6 +53321,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020703",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/15/2022",
         "stop_date": "nan",
@@ -53203,6 +53332,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021407",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2022",
         "stop_date": "nan",
@@ -53213,6 +53343,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620060128",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "6/29/2020",
         "stop_date": "nan",
@@ -53223,6 +53354,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620080271",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/25/2020",
         "stop_date": "08/15/2025",
@@ -53233,6 +53365,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030320",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/8/2022",
         "stop_date": "nan",
@@ -53243,6 +53376,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620090386",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "9/18/2020",
         "stop_date": "nan",
@@ -53253,6 +53387,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620110124",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/6/2020",
         "stop_date": "05/22/2025",
@@ -53263,6 +53398,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030777",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/22/2022",
         "stop_date": "nan",
@@ -53273,6 +53409,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620110408",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "11/20/2020",
         "stop_date": "nan",
@@ -53283,6 +53420,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050636",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/27/2022",
         "stop_date": "nan",
@@ -53293,6 +53431,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070194",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/11/2022",
         "stop_date": "nan",
@@ -53303,6 +53442,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080458",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2022",
         "stop_date": "nan",
@@ -53313,6 +53453,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623030007",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/2/2023",
         "stop_date": "nan",
@@ -53323,6 +53464,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080380",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/25/2023",
         "stop_date": "nan",
@@ -53333,6 +53475,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090032",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/4/2023",
         "stop_date": "nan",
@@ -53343,6 +53486,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090063",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/5/2023",
         "stop_date": "nan",
@@ -53353,6 +53497,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090139",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/8/2023",
         "stop_date": "nan",
@@ -53363,6 +53508,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090194",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/12/2023",
         "stop_date": "nan",
@@ -53373,6 +53519,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030759",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "3/10/2021",
         "stop_date": "nan",
@@ -53383,6 +53530,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090198",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/12/2023",
         "stop_date": "nan",
@@ -53393,6 +53541,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100210",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/18/2023",
         "stop_date": "nan",
@@ -53403,6 +53552,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100234",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/23/2023",
         "stop_date": "nan",
@@ -53413,6 +53563,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623110220",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/15/2023",
         "stop_date": "nan",
@@ -53423,6 +53574,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621050282",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/12/2021",
         "stop_date": "07/31/2025",
@@ -53433,6 +53585,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623120136",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "12/25/2023",
         "stop_date": "nan",
@@ -53443,6 +53596,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020086",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/21/2024",
         "stop_date": "nan",
@@ -53453,6 +53607,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020152",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2024",
         "stop_date": "nan",
@@ -53463,6 +53618,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030105",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/5/2024",
         "stop_date": "nan",
@@ -53473,6 +53629,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110013",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "11/1/2021",
         "stop_date": "nan",
@@ -53483,6 +53640,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030271",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/8/2024",
         "stop_date": "nan",
@@ -53493,6 +53651,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030533",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/20/2024",
         "stop_date": "nan",
@@ -53503,6 +53662,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030608",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/25/2024",
         "stop_date": "nan",
@@ -53513,6 +53673,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040282",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/17/2024",
         "stop_date": "nan",
@@ -53523,6 +53684,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040283",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/17/2024",
         "stop_date": "nan",
@@ -53533,6 +53695,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040410",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/26/2024",
         "stop_date": "nan",
@@ -53543,6 +53706,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624050200",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/13/2024",
         "stop_date": "nan",
@@ -53553,6 +53717,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624050450",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/27/2024",
         "stop_date": "nan",
@@ -53563,6 +53728,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060040",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/3/2024",
         "stop_date": "nan",
@@ -53573,6 +53739,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060316",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2024",
         "stop_date": "nan",
@@ -53583,6 +53750,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060318",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2024",
         "stop_date": "nan",
@@ -53593,6 +53761,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021338",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2022",
         "stop_date": "09/03/2025",
@@ -53603,6 +53772,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060331",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2024",
         "stop_date": "nan",
@@ -53613,6 +53783,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030022",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "3/1/2022",
         "stop_date": "nan",
@@ -53623,6 +53794,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060384",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/26/2024",
         "stop_date": "nan",
@@ -53633,6 +53805,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070020",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/1/2024",
         "stop_date": "nan",
@@ -53643,6 +53816,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070060",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/3/2024",
         "stop_date": "nan",
@@ -53653,6 +53827,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070252",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/17/2024",
         "stop_date": "nan",
@@ -53663,6 +53838,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070393",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/26/2024",
         "stop_date": "nan",
@@ -53673,6 +53849,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080082",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/7/2024",
         "stop_date": "nan",
@@ -53683,6 +53860,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080083",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/7/2024",
         "stop_date": "nan",
@@ -53693,6 +53871,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080127",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/9/2024",
         "stop_date": "nan",
@@ -53703,6 +53882,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080430",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/28/2024",
         "stop_date": "nan",
@@ -53713,6 +53893,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624100065",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/4/2024",
         "stop_date": "nan",
@@ -53723,6 +53904,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090218",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/12/2023",
         "stop_date": "04/04/2025",
@@ -53733,6 +53915,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020170",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2024",
         "stop_date": "04/11/2025",
@@ -53743,6 +53926,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020551",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/29/2024",
         "stop_date": "05/08/2025",
@@ -53753,6 +53937,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619060201",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2019",
         "stop_date": "nan",
@@ -53763,6 +53948,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620030032",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/3/2020",
         "stop_date": "nan",
@@ -53773,6 +53959,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620060084",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/24/2020",
         "stop_date": "nan",
@@ -53783,6 +53970,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030607",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/25/2024",
         "stop_date": "06/12/2025",
@@ -53793,6 +53981,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620080362",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/27/2020",
         "stop_date": "nan",
@@ -53803,6 +53992,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040270",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/17/2024",
         "stop_date": "06/06/2025",
@@ -53813,6 +54003,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620120148",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "12/11/2020",
         "stop_date": "nan",
@@ -53823,6 +54014,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030280",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/3/2021",
         "stop_date": "nan",
@@ -53833,6 +54025,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030557",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/6/2021",
         "stop_date": "nan",
@@ -53843,6 +54036,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621070084",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/13/2021",
         "stop_date": "nan",
@@ -53853,6 +54047,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621100361",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/30/2021",
         "stop_date": "nan",
@@ -53863,6 +54058,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624050331",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/20/2024",
         "stop_date": "06/25/2025",
@@ -53873,6 +54069,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110258",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/4/2021",
         "stop_date": "nan",
@@ -53883,6 +54080,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110407",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/8/2021",
         "stop_date": "nan",
@@ -53893,6 +54091,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110412",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/8/2021",
         "stop_date": "nan",
@@ -53903,6 +54102,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621120120",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "12/6/2021",
         "stop_date": "nan",
@@ -53913,6 +54113,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621120400",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "12/20/2021",
         "stop_date": "nan",
@@ -53923,6 +54124,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020056",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/9/2022",
         "stop_date": "nan",
@@ -53933,6 +54135,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021048",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/18/2022",
         "stop_date": "nan",
@@ -53943,6 +54146,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021050",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/18/2022",
         "stop_date": "nan",
@@ -53953,6 +54157,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030023",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/1/2022",
         "stop_date": "nan",
@@ -53963,6 +54168,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050542",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/23/2022",
         "stop_date": "nan",
@@ -53973,6 +54179,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070156",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/8/2022",
         "stop_date": "nan",
@@ -53983,6 +54190,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080015",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/2/2024",
         "stop_date": "08/23/2025",
@@ -53993,6 +54201,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080106",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/5/2022",
         "stop_date": "nan",
@@ -54003,6 +54212,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020153",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2024",
         "stop_date": "nan",
@@ -54013,6 +54223,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080236",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "8/16/2024",
         "stop_date": "06/06/2025",
@@ -54023,6 +54234,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090322",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/20/2024",
         "stop_date": "07/16/2025",
@@ -54033,6 +54245,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090346",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/20/2024",
         "stop_date": "07/17/2025",
@@ -54043,6 +54256,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619100381",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/25/2019",
         "stop_date": "nan",
@@ -54053,6 +54267,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030474",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/5/2021",
         "stop_date": "nan",
@@ -54063,6 +54278,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621031108",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/18/2021",
         "stop_date": "nan",
@@ -54073,6 +54289,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110916",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/29/2021",
         "stop_date": "nan",
@@ -54083,6 +54300,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620110399",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/20/2020",
         "stop_date": "nan",
@@ -54093,6 +54311,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050244",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/11/2022",
         "stop_date": "nan",
@@ -54103,6 +54322,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624120070",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "12/9/2024",
         "stop_date": "06/27/2025",
@@ -54113,6 +54333,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623060090",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "6/8/2023",
         "stop_date": "nan",
@@ -54123,6 +54344,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050265",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "5/12/2022",
         "stop_date": "nan",
@@ -54133,6 +54355,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619020144",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/16/2019",
         "stop_date": "nan",
@@ -54143,6 +54366,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020044",
         "name": "",
         "team": "ASSEMBLY",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/19/2024",
         "stop_date": "nan",
@@ -54168,7 +54392,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 109
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "ASSEMBLY INSPECTOR"
   },
   "STITCHING": {
     "name": "STITCHING",
@@ -54177,6 +54402,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619040194",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "4/18/2019",
         "stop_date": "nan",
@@ -54187,6 +54413,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619050317",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/20/2019",
         "stop_date": "nan",
@@ -54197,6 +54424,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619050074",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "5/6/2019",
         "stop_date": "nan",
@@ -54207,6 +54435,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619070140",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/12/2019",
         "stop_date": "nan",
@@ -54217,6 +54446,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620120027",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "12/2/2020",
         "stop_date": "nan",
@@ -54227,6 +54457,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020636",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/15/2022",
         "stop_date": "nan",
@@ -54237,6 +54468,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619080083",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "8/7/2019",
         "stop_date": "nan",
@@ -54247,6 +54479,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020914",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/17/2022",
         "stop_date": "nan",
@@ -54257,6 +54490,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619090315",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "9/20/2019",
         "stop_date": "nan",
@@ -54267,6 +54501,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619120117",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "12/25/2019",
         "stop_date": "05/13/2025",
@@ -54277,6 +54512,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050074",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/5/2022",
         "stop_date": "nan",
@@ -54287,6 +54523,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620020636",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/13/2020",
         "stop_date": "08/13/2025",
@@ -54297,6 +54534,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620020705",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "2/15/2020",
         "stop_date": "nan",
@@ -54307,6 +54545,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620030340",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "3/16/2020",
         "stop_date": "nan",
@@ -54317,6 +54556,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620060085",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "6/24/2020",
         "stop_date": "nan",
@@ -54327,6 +54567,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620080023",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/4/2020",
         "stop_date": "04/25/2025",
@@ -54337,6 +54578,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620090168",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "9/7/2020",
         "stop_date": "nan",
@@ -54347,6 +54589,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620110075",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "11/4/2020",
         "stop_date": "nan",
@@ -54357,6 +54600,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620110267",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "11/16/2020",
         "stop_date": "05/05/2025",
@@ -54367,6 +54611,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620110439",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "A.MANAGER",
         "is_active": true,
         "entrance_date": "11/23/2020",
         "stop_date": "nan",
@@ -54377,6 +54622,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050496",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/20/2022",
         "stop_date": "nan",
@@ -54387,6 +54633,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030556",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "3/6/2021",
         "stop_date": "nan",
@@ -54397,6 +54644,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070133",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/8/2022",
         "stop_date": "nan",
@@ -54407,6 +54655,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623030244",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/15/2023",
         "stop_date": "nan",
@@ -54417,6 +54666,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623040397",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "4/26/2023",
         "stop_date": "nan",
@@ -54427,6 +54677,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080377",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/25/2023",
         "stop_date": "nan",
@@ -54437,6 +54688,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090019",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "9/4/2023",
         "stop_date": "nan",
@@ -54447,6 +54699,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020912",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/17/2022",
         "stop_date": "06/23/2025",
@@ -54457,6 +54710,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090021",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "9/4/2023",
         "stop_date": "nan",
@@ -54467,6 +54721,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100170",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "10/16/2023",
         "stop_date": "nan",
@@ -54477,6 +54732,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623110211",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "11/15/2023",
         "stop_date": "nan",
@@ -54487,6 +54743,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623120027",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "12/4/2023",
         "stop_date": "09/25/2025",
@@ -54497,6 +54754,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020085",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/21/2024",
         "stop_date": "nan",
@@ -54507,6 +54765,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020214",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/23/2024",
         "stop_date": "nan",
@@ -54517,6 +54776,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050171",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/9/2022",
         "stop_date": "04/24/2025",
@@ -54527,6 +54787,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030016",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/1/2024",
         "stop_date": "nan",
@@ -54537,6 +54798,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060009",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "6/1/2024",
         "stop_date": "nan",
@@ -54547,6 +54809,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070476",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/25/2022",
         "stop_date": "05/16/2025",
@@ -54557,6 +54820,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060317",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2024",
         "stop_date": "nan",
@@ -54567,6 +54831,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080455",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2022",
         "stop_date": "08/11/2025",
@@ -54577,6 +54842,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070010",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/1/2024",
         "stop_date": "nan",
@@ -54587,6 +54853,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070011",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/1/2024",
         "stop_date": "nan",
@@ -54597,6 +54864,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070084",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/5/2024",
         "stop_date": "nan",
@@ -54607,6 +54875,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080352",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/23/2024",
         "stop_date": "nan",
@@ -54617,6 +54886,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080417",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/28/2023",
         "stop_date": "06/06/2025",
@@ -54627,6 +54897,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624110084",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "11/6/2024",
         "stop_date": "nan",
@@ -54637,6 +54908,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623110209",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "11/15/2023",
         "stop_date": "06/28/2025",
@@ -54647,6 +54919,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030038",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/2/2024",
         "stop_date": "04/12/2025",
@@ -54657,6 +54930,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030257",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/8/2024",
         "stop_date": "07/10/2025",
@@ -54667,6 +54941,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030609",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/25/2024",
         "stop_date": "07/02/2025",
@@ -54677,6 +54952,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060059",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "6/5/2024",
         "stop_date": "06/25/2025",
@@ -54687,6 +54963,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080351",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/23/2024",
         "stop_date": "05/12/2025",
@@ -54697,6 +54974,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619020320",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/23/2019",
         "stop_date": "nan",
@@ -54707,6 +54985,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619070186",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "7/15/2019",
         "stop_date": "nan",
@@ -54717,6 +54996,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619080448",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/30/2019",
         "stop_date": "nan",
@@ -54727,6 +55007,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620020555",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/12/2020",
         "stop_date": "nan",
@@ -54737,6 +55018,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030642",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/8/2021",
         "stop_date": "nan",
@@ -54747,6 +55029,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110318",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "11/5/2021",
         "stop_date": "nan",
@@ -54757,6 +55040,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621120205",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "12/10/2021",
         "stop_date": "nan",
@@ -54767,6 +55051,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020633",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/15/2022",
         "stop_date": "nan",
@@ -54777,6 +55062,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021557",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/24/2022",
         "stop_date": "nan",
@@ -54787,6 +55073,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021749",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/28/2022",
         "stop_date": "nan",
@@ -54797,6 +55084,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030226",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/5/2022",
         "stop_date": "nan",
@@ -54807,6 +55095,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030504",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "3/14/2022",
         "stop_date": "nan",
@@ -54817,6 +55106,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622060369",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "6/24/2022",
         "stop_date": "nan",
@@ -54827,6 +55117,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080450",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2022",
         "stop_date": "nan",
@@ -54837,6 +55128,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623040186",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "4/14/2023",
         "stop_date": "nan",
@@ -54847,6 +55139,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623050010",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/3/2023",
         "stop_date": "nan",
@@ -54857,6 +55150,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080455",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2023",
         "stop_date": "nan",
@@ -54867,6 +55161,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090163",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "9/11/2023",
         "stop_date": "nan",
@@ -54877,6 +55172,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090227",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "9/14/2023",
         "stop_date": "nan",
@@ -54887,6 +55183,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020369",
         "name": "",
         "team": "STITCHING",
+        "position_1st": "STITCHING INSPECTOR",
         "is_active": true,
         "entrance_date": "2/26/2024",
         "stop_date": "nan",
@@ -54912,7 +55209,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 72
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "STITCHING INSPECTOR"
   },
   "OSC": {
     "name": "OSC",
@@ -54921,6 +55219,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618030024",
         "name": "",
         "team": "OSC",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "3/5/2018",
         "stop_date": "nan",
@@ -54931,6 +55230,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619070107",
         "name": "",
         "team": "OSC",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "7/10/2019",
         "stop_date": "nan",
@@ -54941,6 +55241,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030380",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "3/4/2021",
         "stop_date": "nan",
@@ -54951,6 +55252,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621020329",
         "name": "",
         "team": "OSC",
+        "position_1st": "RQC",
         "is_active": true,
         "entrance_date": "2/25/2021",
         "stop_date": "nan",
@@ -54961,6 +55263,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090178",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "9/13/2024",
         "stop_date": "nan",
@@ -54971,6 +55274,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619080060",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/5/2019",
         "stop_date": "nan",
@@ -54981,6 +55285,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020079",
         "name": "",
         "team": "OSC",
+        "position_1st": "RQC",
         "is_active": true,
         "entrance_date": "2/9/2022",
         "stop_date": "nan",
@@ -54991,6 +55296,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110751",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "11/18/2021",
         "stop_date": "nan",
@@ -55001,6 +55307,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070536",
         "name": "",
         "team": "OSC",
+        "position_1st": "RQC",
         "is_active": true,
         "entrance_date": "7/27/2022",
         "stop_date": "nan",
@@ -55011,6 +55318,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623110250",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "11/17/2023",
         "stop_date": "nan",
@@ -55021,6 +55329,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070225",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "7/15/2024",
         "stop_date": "nan",
@@ -55031,6 +55340,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020087",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "2/21/2024",
         "stop_date": "06/11/2025",
@@ -55041,6 +55351,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070394",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "7/26/2024",
         "stop_date": "nan",
@@ -55051,6 +55362,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080126",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/9/2024",
         "stop_date": "nan",
@@ -55061,6 +55373,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080234",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/16/2024",
         "stop_date": "nan",
@@ -55071,6 +55384,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080354",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/23/2024",
         "stop_date": "nan",
@@ -55081,6 +55395,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090271",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "9/18/2024",
         "stop_date": "nan",
@@ -55091,6 +55406,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030477",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "3/5/2021",
         "stop_date": "nan",
@@ -55101,6 +55417,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090012",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "9/4/2024",
         "stop_date": "06/28/2025",
@@ -55111,6 +55428,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070311",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "7/18/2022",
         "stop_date": "nan",
@@ -55121,6 +55439,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080452",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2022",
         "stop_date": "nan",
@@ -55131,6 +55450,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080235",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/16/2024",
         "stop_date": "nan",
@@ -55141,6 +55461,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080310",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "8/21/2024",
         "stop_date": "nan",
@@ -55151,6 +55472,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090058",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "9/6/2024",
         "stop_date": "nan",
@@ -55161,6 +55483,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624100015",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "10/2/2024",
         "stop_date": "nan",
@@ -55171,6 +55494,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624110015",
         "name": "",
         "team": "OSC",
+        "position_1st": "OSC INSPECTOR",
         "is_active": true,
         "entrance_date": "11/1/2024",
         "stop_date": "nan",
@@ -55196,7 +55520,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 26
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "OSC INSPECTOR"
   },
   "MTL": {
     "name": "MTL",
@@ -55205,6 +55530,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618100175",
         "name": "",
         "team": "MTL",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "10/11/2018",
         "stop_date": "nan",
@@ -55215,6 +55541,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620090070",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "9/4/2020",
         "stop_date": "nan",
@@ -55225,6 +55552,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620120056",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "12/4/2020",
         "stop_date": "07/04/2025",
@@ -55235,6 +55563,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621020289",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/25/2021",
         "stop_date": "nan",
@@ -55245,6 +55574,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621031025",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "3/16/2021",
         "stop_date": "nan",
@@ -55255,6 +55585,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110165",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "11/3/2021",
         "stop_date": "nan",
@@ -55265,6 +55596,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021632",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/25/2022",
         "stop_date": "nan",
@@ -55275,6 +55607,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622021707",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/26/2022",
         "stop_date": "nan",
@@ -55285,6 +55618,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030533",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "3/15/2022",
         "stop_date": "nan",
@@ -55295,6 +55629,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622060302",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2022",
         "stop_date": "nan",
@@ -55305,6 +55640,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080448",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2022",
         "stop_date": "nan",
@@ -55315,6 +55651,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622080451",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "8/29/2022",
         "stop_date": "nan",
@@ -55325,6 +55662,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080378",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "8/25/2023",
         "stop_date": "07/04/2025",
@@ -55335,6 +55673,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100203",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "10/18/2023",
         "stop_date": "09/03/2025",
@@ -55345,6 +55684,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100209",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "10/18/2023",
         "stop_date": "nan",
@@ -55355,6 +55695,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020107",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/21/2024",
         "stop_date": "nan",
@@ -55365,6 +55706,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020155",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2024",
         "stop_date": "nan",
@@ -55375,6 +55717,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020210",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/23/2024",
         "stop_date": "nan",
@@ -55385,6 +55728,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070226",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "7/15/2024",
         "stop_date": "nan",
@@ -55395,6 +55739,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070227",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "7/15/2024",
         "stop_date": "nan",
@@ -55405,6 +55750,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070250",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "7/17/2024",
         "stop_date": "nan",
@@ -55415,6 +55761,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080032",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "8/2/2024",
         "stop_date": "nan",
@@ -55425,6 +55772,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090222",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "9/16/2024",
         "stop_date": "07/09/2025",
@@ -55435,6 +55783,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090320",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "9/20/2024",
         "stop_date": "nan",
@@ -55445,6 +55794,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090373",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "9/23/2024",
         "stop_date": "nan",
@@ -55455,6 +55805,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090502",
         "name": "",
         "team": "MTL",
+        "position_1st": "MTL INSPECTOR",
         "is_active": true,
         "entrance_date": "9/30/2024",
         "stop_date": "nan",
@@ -55480,7 +55831,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 26
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "MTL INSPECTOR"
   },
   "BOTTOM": {
     "name": "BOTTOM",
@@ -55489,6 +55841,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618030189",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "3/19/2018",
         "stop_date": "nan",
@@ -55499,6 +55852,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620030052",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "3/3/2020",
         "stop_date": "nan",
@@ -55509,6 +55863,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621050241",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "LINE LEADER",
         "is_active": true,
         "entrance_date": "5/11/2021",
         "stop_date": "nan",
@@ -55519,6 +55874,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621060393",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2021",
         "stop_date": "nan",
@@ -55529,6 +55885,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110050",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "11/2/2021",
         "stop_date": "nan",
@@ -55539,6 +55896,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110093",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "11/2/2021",
         "stop_date": "nan",
@@ -55549,6 +55907,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621120401",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "12/20/2021",
         "stop_date": "nan",
@@ -55559,6 +55918,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621120402",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "12/20/2021",
         "stop_date": "nan",
@@ -55569,6 +55929,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020340",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "2/11/2022",
         "stop_date": "nan",
@@ -55579,6 +55940,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020578",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "2/14/2022",
         "stop_date": "nan",
@@ -55589,6 +55951,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050158",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "5/9/2022",
         "stop_date": "nan",
@@ -55599,6 +55962,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622060307",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "6/21/2022",
         "stop_date": "nan",
@@ -55609,6 +55973,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070609",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "7/29/2022",
         "stop_date": "nan",
@@ -55619,6 +55984,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080447",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "8/28/2023",
         "stop_date": "04/21/2025",
@@ -55629,6 +55995,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090280",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "9/19/2023",
         "stop_date": "05/29/2025",
@@ -55639,6 +56006,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623110235",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "11/15/2023",
         "stop_date": "08/22/2025",
@@ -55649,6 +56017,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020499",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "2/28/2024",
         "stop_date": "nan",
@@ -55659,6 +56028,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020552",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "2/29/2024",
         "stop_date": "nan",
@@ -55669,6 +56039,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030362",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "3/13/2024",
         "stop_date": "04/21/2025",
@@ -55679,6 +56050,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624030671",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "3/27/2024",
         "stop_date": "08/07/2025",
@@ -55689,6 +56061,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040035",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "4/1/2024",
         "stop_date": "nan",
@@ -55699,6 +56072,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624050492",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "5/29/2024",
         "stop_date": "nan",
@@ -55709,6 +56083,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060028",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "6/3/2024",
         "stop_date": "nan",
@@ -55719,6 +56094,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060254",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "6/17/2024",
         "stop_date": "nan",
@@ -55729,6 +56105,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090037",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "9/4/2024",
         "stop_date": "nan",
@@ -55739,6 +56116,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090444",
         "name": "",
         "team": "BOTTOM",
+        "position_1st": "BOTTOM INSPECTOR",
         "is_active": true,
         "entrance_date": "9/25/2024",
         "stop_date": "nan",
@@ -55764,7 +56142,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 26
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "BOTTOM INSPECTOR"
   },
   "AQL": {
     "name": "AQL",
@@ -55773,6 +56152,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618110077",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "11/8/2018",
         "stop_date": "nan",
@@ -55783,6 +56163,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619100307",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "10/21/2019",
         "stop_date": "nan",
@@ -55793,6 +56174,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620020923",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/20/2020",
         "stop_date": "nan",
@@ -55803,6 +56185,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620120306",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "12/21/2020",
         "stop_date": "nan",
@@ -55813,6 +56196,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110376",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "11/6/2021",
         "stop_date": "nan",
@@ -55823,6 +56207,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030225",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "3/5/2022",
         "stop_date": "nan",
@@ -55833,6 +56218,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621040472",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "4/22/2021",
         "stop_date": "nan",
@@ -55843,6 +56229,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620090241",
         "name": "",
         "team": "AQL",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "9/11/2020",
         "stop_date": "nan",
@@ -55853,6 +56240,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624080340",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "8/21/2024",
         "stop_date": "nan",
@@ -55863,6 +56251,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622030489",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "3/12/2022",
         "stop_date": "nan",
@@ -55873,6 +56262,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050246",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "5/11/2022",
         "stop_date": "nan",
@@ -55883,6 +56273,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020479",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/27/2024",
         "stop_date": "nan",
@@ -55893,6 +56284,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619020209",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/20/2019",
         "stop_date": "nan",
@@ -55903,6 +56295,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619030228",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "3/12/2019",
         "stop_date": "nan",
@@ -55913,6 +56306,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619050431",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "5/29/2019",
         "stop_date": "nan",
@@ -55923,6 +56317,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620020520",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/12/2020",
         "stop_date": "nan",
@@ -55933,6 +56328,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621050490",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "5/20/2021",
         "stop_date": "nan",
@@ -55943,6 +56339,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624020037",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "2/19/2024",
         "stop_date": "nan",
@@ -55953,6 +56350,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070231",
         "name": "",
         "team": "AQL",
+        "position_1st": "AQL INSPECTOR",
         "is_active": true,
         "entrance_date": "7/15/2024",
         "stop_date": "nan",
@@ -55978,7 +56376,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 19
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "AQL INSPECTOR"
   },
   "REPACKING": {
     "name": "REPACKING",
@@ -55987,6 +56386,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090325",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/21/2023",
         "stop_date": "07/17/2025",
@@ -55997,6 +56397,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090362",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/28/2023",
         "stop_date": "07/04/2025",
@@ -56007,6 +56408,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100186",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/16/2023",
         "stop_date": "05/03/2025",
@@ -56017,6 +56419,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040238",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/15/2024",
         "stop_date": "04/10/2025",
@@ -56027,6 +56430,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622020913",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/17/2022",
         "stop_date": "nan",
@@ -56037,6 +56441,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621020445",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/27/2021",
         "stop_date": "nan",
@@ -56047,6 +56452,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621020118",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/22/2021",
         "stop_date": "nan",
@@ -56057,6 +56463,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623100187",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/16/2023",
         "stop_date": "nan",
@@ -56067,6 +56474,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619020207",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/20/2019",
         "stop_date": "nan",
@@ -56077,6 +56485,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621020323",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/25/2021",
         "stop_date": "nan",
@@ -56087,6 +56496,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621030755",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "3/10/2021",
         "stop_date": "nan",
@@ -56097,6 +56507,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621110051",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "11/2/2021",
         "stop_date": "nan",
@@ -56107,6 +56518,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622040679",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/27/2022",
         "stop_date": "nan",
@@ -56117,6 +56529,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622070130",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/8/2022",
         "stop_date": "nan",
@@ -56127,6 +56540,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623090111",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "9/7/2023",
         "stop_date": "nan",
@@ -56137,6 +56551,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070278",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "7/19/2024",
         "stop_date": "nan",
@@ -56147,6 +56562,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621020156",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "2/23/2021",
         "stop_date": "nan",
@@ -56157,6 +56573,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621040440",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "4/22/2021",
         "stop_date": "nan",
@@ -56167,6 +56584,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621100149",
         "name": "",
         "team": "REPACKING",
+        "position_1st": "ASSEMBLY INSPECTOR",
         "is_active": true,
         "entrance_date": "10/27/2021",
         "stop_date": "nan",
@@ -56192,7 +56610,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 19
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "ASSEMBLY INSPECTOR"
   },
   "QA": {
     "name": "QA",
@@ -56201,6 +56620,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618030241",
         "name": "",
         "team": "QA",
+        "position_1st": "MODEL MASTER",
         "is_active": true,
         "entrance_date": "3/19/2018",
         "stop_date": "nan",
@@ -56211,6 +56631,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618060092",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "6/26/2018",
         "stop_date": "nan",
@@ -56221,6 +56642,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618110087",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "11/12/2018",
         "stop_date": "nan",
@@ -56231,6 +56653,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "618110097",
         "name": "",
         "team": "QA",
+        "position_1st": "MODEL MASTER",
         "is_active": true,
         "entrance_date": "11/12/2018",
         "stop_date": "nan",
@@ -56241,6 +56664,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619070185",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "7/15/2019",
         "stop_date": "nan",
@@ -56251,6 +56675,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620070013",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "7/1/2020",
         "stop_date": "nan",
@@ -56261,6 +56686,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620070020",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "7/2/2020",
         "stop_date": "nan",
@@ -56271,6 +56697,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620080295",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "8/25/2020",
         "stop_date": "nan",
@@ -56281,6 +56708,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620090101",
         "name": "",
         "team": "QA",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "9/4/2020",
         "stop_date": "nan",
@@ -56291,6 +56719,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620120386",
         "name": "",
         "team": "QA",
+        "position_1st": "MODEL MASTER",
         "is_active": true,
         "entrance_date": "12/25/2020",
         "stop_date": "nan",
@@ -56301,6 +56730,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621060154",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "6/8/2021",
         "stop_date": "04/16/2025",
@@ -56311,6 +56741,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "621060451",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "6/23/2021",
         "stop_date": "nan",
@@ -56321,6 +56752,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623060116",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "6/22/2023",
         "stop_date": "nan",
@@ -56331,6 +56763,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623080475",
         "name": "",
         "team": "QA",
+        "position_1st": "AUDIT & TRAINING TEAM",
         "is_active": true,
         "entrance_date": "8/29/2023",
         "stop_date": "nan",
@@ -56341,6 +56774,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070337",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "7/23/2024",
         "stop_date": "09/20/2025",
@@ -56351,6 +56785,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070338",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "7/23/2024",
         "stop_date": "nan",
@@ -56361,6 +56796,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624070339",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "7/23/2024",
         "stop_date": "nan",
@@ -56371,6 +56807,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090048",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "9/5/2024",
         "stop_date": "nan",
@@ -56381,6 +56818,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090210",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "9/14/2024",
         "stop_date": "nan",
@@ -56391,6 +56829,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090323",
         "name": "",
         "team": "QA",
+        "position_1st": "QA TEAM",
         "is_active": true,
         "entrance_date": "9/20/2024",
         "stop_date": "nan",
@@ -56416,7 +56855,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 20
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "AUDIT & TRAINING TEAM"
   },
   "CUTTING": {
     "name": "CUTTING",
@@ -56425,6 +56865,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050263",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "CUTTING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/12/2022",
         "stop_date": "nan",
@@ -56435,6 +56876,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622050461",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "CUTTING INSPECTOR",
         "is_active": true,
         "entrance_date": "5/19/2022",
         "stop_date": "nan",
@@ -56445,6 +56887,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "623110084",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "11/6/2023",
         "stop_date": "nan",
@@ -56455,6 +56898,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040011",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "CUTTING INSPECTOR",
         "is_active": true,
         "entrance_date": "4/1/2024",
         "stop_date": "nan",
@@ -56465,6 +56909,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040330",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "CUTTING INSPECTOR",
         "is_active": true,
         "entrance_date": "4/22/2024",
         "stop_date": "nan",
@@ -56475,6 +56920,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624040331",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "CUTTING INSPECTOR",
         "is_active": true,
         "entrance_date": "4/22/2024",
         "stop_date": "nan",
@@ -56485,6 +56931,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624090059",
         "name": "",
         "team": "CUTTING",
+        "position_1st": "CUTTING INSPECTOR",
         "is_active": true,
         "entrance_date": "9/6/2024",
         "stop_date": "nan",
@@ -56510,7 +56957,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 7
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "CUTTING INSPECTOR"
   },
   "QIP MANAGER & OFFICE & OCPT": {
     "name": "QIP MANAGER & OFFICE & OCPT",
@@ -56519,6 +56967,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "617100049",
         "name": "",
         "team": "QIP MANAGER & OFFICE & OCPT",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "10/24/2017",
         "stop_date": "nan",
@@ -56529,6 +56978,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "619020343",
         "name": "",
         "team": "QIP MANAGER & OFFICE & OCPT",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "2/26/2019",
         "stop_date": "nan",
@@ -56539,6 +56989,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620070012",
         "name": "",
         "team": "QIP MANAGER & OFFICE & OCPT",
+        "position_1st": "MANAGER",
         "is_active": true,
         "entrance_date": "7/1/2020",
         "stop_date": "nan",
@@ -56549,6 +57000,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "620070050",
         "name": "",
         "team": "QIP MANAGER & OFFICE & OCPT",
+        "position_1st": "(V) SUPERVISOR",
         "is_active": true,
         "entrance_date": "7/6/2020",
         "stop_date": "nan",
@@ -56559,6 +57011,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "622090015",
         "name": "",
         "team": "QIP MANAGER & OFFICE & OCPT",
+        "position_1st": "GROUP LEADER",
         "is_active": true,
         "entrance_date": "9/19/2022",
         "stop_date": "05/10/2025",
@@ -56569,6 +57022,7 @@ if (typeof module !== 'undefined' && module.exports) {
         "employee_no": "624060087",
         "name": "",
         "team": "QIP MANAGER & OFFICE & OCPT",
+        "position_1st": "OCPT STFF",
         "is_active": true,
         "entrance_date": "6/6/2024",
         "stop_date": "nan",
@@ -56594,7 +57048,8 @@ if (typeof module !== 'undefined' && module.exports) {
         "Unknown": 6
       }
     },
-    "sub_teams": {}
+    "sub_teams": {},
+    "position_1st": "GROUP LEADER"
   }
 }
 ;
@@ -72257,11 +72712,80 @@ let selectedEmployees = new Set();
 let columnVisibility = Array(11).fill(true); // All columns visible by default
 let filteredEmployees = [];
 
+// Column field mapping for sorting
+// 정렬을 위한 컬럼 필드 매핑
+const sortColumnMap = [
+    'employee_id',    // Column 0: 사번/ID
+    'employee_name',  // Column 1: 이름/Name
+    'position',       // Column 2: 직급/Position
+    'role_type',      // Column 3: 유형/Type
+    'building',       // Column 4: 건물/Building
+    'line',           // Column 5: 라인/Line
+    'boss_name',      // Column 6: 상사/Boss
+    'entrance_date',  // Column 7: 입사일/Entrance
+    'stop_date',      // Column 8: 퇴사일/Stop
+    'tenure_days'     // Column 9: 재직기간/Tenure (numeric sort)
+];
+
+// Apply sorting to employee array
+// 직원 배열에 정렬 적용
+function applySortToData(employees) {
+    if (currentSortColumn < 0 || currentSortColumn >= sortColumnMap.length) {
+        return employees;
+    }
+
+    const field = sortColumnMap[currentSortColumn];
+    const sorted = [...employees].sort((a, b) => {
+        let aVal = a[field] || '';
+        let bVal = b[field] || '';
+
+        // Numeric sort for tenure_days
+        // tenure_days는 숫자 정렬
+        if (field === 'tenure_days') {
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
+            return currentSortAsc ? aVal - bVal : bVal - aVal;
+        }
+
+        // String sort for other fields
+        // 다른 필드는 문자열 정렬
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        return currentSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+
+    return sorted;
+}
+
+// Update sort indicator visuals
+// 정렬 표시 시각적 업데이트
+function updateSortIndicators() {
+    document.querySelectorAll('.sort-indicator').forEach((el, idx) => {
+        if (idx === currentSortColumn) {
+            el.textContent = currentSortAsc ? ' ↑' : ' ↓';
+        } else {
+            el.textContent = '';
+        }
+    });
+
+    document.querySelectorAll('th.sortable').forEach((th, idx) => {
+        if (idx === currentSortColumn) {
+            th.classList.add('sorted');
+        } else {
+            th.classList.remove('sorted');
+        }
+    });
+}
+
 function renderEmployeeTable(employees = null) {
     const tbody = document.getElementById('employeeTableBody');
     if (!tbody) return;
 
     let displayEmployees = employees || employeeDetails;
+
+    // Apply sorting BEFORE pagination
+    // 페이지네이션 전에 정렬 적용
+    displayEmployees = applySortToData(displayEmployees);
 
     // Apply pagination
     filteredEmployees = displayEmployees;
@@ -72301,23 +72825,33 @@ function renderEmployeeTable(employees = null) {
             rowClass += ' row-selected';
         }
 
+        // Status badges with multilingual support (uses currentLanguage)
+        // 다국어 지원 상태 배지 (currentLanguage 사용)
+        const badgeText = (ko, en, vi) => {
+            const texts = { ko, en, vi };
+            return texts[currentLanguage] || ko;
+        };
+
         let statusBadges = [];
         if (emp.is_active) {
-            statusBadges.push('<span class="badge bg-success badge-status">재직</span>');
+            statusBadges.push(`<span class="badge bg-success badge-status lang-badge" data-ko="재직" data-en="Active" data-vi="Đang làm">${badgeText('재직', 'Active', 'Đang làm')}</span>`);
         } else {
-            statusBadges.push('<span class="badge bg-secondary badge-status">퇴사</span>');
+            statusBadges.push(`<span class="badge bg-secondary badge-status lang-badge" data-ko="퇴사" data-en="Resigned" data-vi="Nghỉ việc">${badgeText('퇴사', 'Resigned', 'Nghỉ việc')}</span>`);
         }
         if (emp.hired_this_month) {
-            statusBadges.push('<span class="badge bg-info badge-status">신입</span>');
+            statusBadges.push(`<span class="badge bg-info badge-status lang-badge" data-ko="신입" data-en="New" data-vi="Mới">${badgeText('신입', 'New', 'Mới')}</span>`);
         }
         if (emp.perfect_attendance) {
-            statusBadges.push('<span class="badge bg-primary badge-status">개근</span>');
+            statusBadges.push(`<span class="badge bg-primary badge-status lang-badge" data-ko="개근" data-en="Perfect" data-vi="Hoàn hảo">${badgeText('개근', 'Perfect', 'Hoàn hảo')}</span>`);
         }
         if (emp.long_term) {
-            statusBadges.push('<span class="badge bg-warning badge-status">장기</span>');
+            statusBadges.push(`<span class="badge bg-warning text-dark badge-status lang-badge" data-ko="장기" data-en="Long-term" data-vi="Lâu năm">${badgeText('장기', 'Long-term', 'Lâu năm')}</span>`);
         }
         if (emp.is_pregnant) {
-            statusBadges.push('<span class="badge bg-warning badge-status">임신</span>');
+            statusBadges.push(`<span class="badge bg-danger badge-status lang-badge" data-ko="임신" data-en="Pregnant" data-vi="Mang thai">${badgeText('임신', 'Pregnant', 'Mang thai')}</span>`);
+        }
+        if (emp.under_60_days) {
+            statusBadges.push(`<span class="badge bg-light text-dark badge-status lang-badge" data-ko="60일미만" data-en="<60 Days" data-vi="<60 Ngày">${badgeText('60일미만', '<60 Days', '<60 Ngày')}</span>`);
         }
 
         const isChecked = selectedEmployees.has(emp.employee_id) ? 'checked' : '';
@@ -72396,6 +72930,8 @@ function updateFilterCounts() {
 }
 
 function searchEmployees() {
+    // Search employees by multiple fields (ID, Name, Position, Type, Building, Line)
+    // 여러 필드로 직원 검색 (사번, 이름, 직급, 유형, 건물, 라인)
     const searchTerm = document.getElementById('employeeSearch').value.toLowerCase();
 
     if (!searchTerm) {
@@ -72408,7 +72944,10 @@ function searchEmployees() {
             (emp.employee_id && emp.employee_id.toLowerCase().includes(searchTerm)) ||
             (emp.employee_name && emp.employee_name.toLowerCase().includes(searchTerm)) ||
             (emp.position && emp.position.toLowerCase().includes(searchTerm)) ||
-            (emp.role_type && emp.role_type.toLowerCase().includes(searchTerm))
+            (emp.role_type && emp.role_type.toLowerCase().includes(searchTerm)) ||
+            (emp.building && emp.building.toLowerCase().includes(searchTerm)) ||
+            (emp.line && emp.line.toLowerCase().includes(searchTerm)) ||
+            (emp.boss_name && emp.boss_name.toLowerCase().includes(searchTerm))
         );
     });
 
@@ -72416,9 +72955,8 @@ function searchEmployees() {
 }
 
 function sortTable(columnIndex) {
-    const tbody = document.getElementById('employeeTableBody');
-    const rows = Array.from(tbody.getElementsByTagName('tr'));
-
+    // Toggle sort direction if clicking same column, otherwise reset to ascending
+    // 같은 컬럼 클릭시 방향 토글, 그렇지 않으면 오름차순으로 초기화
     if (currentSortColumn === columnIndex) {
         currentSortAsc = !currentSortAsc;
     } else {
@@ -72426,14 +72964,17 @@ function sortTable(columnIndex) {
         currentSortAsc = true;
     }
 
-    rows.sort((a, b) => {
-        const aText = a.getElementsByTagName('td')[columnIndex].textContent.trim();
-        const bText = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+    // Re-render table with current filter applied (sorting happens in renderEmployeeTable)
+    // 현재 필터 적용된 상태로 테이블 다시 렌더링 (정렬은 renderEmployeeTable에서 수행)
+    filterEmployees(currentFilter);
 
-        return currentSortAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
-    });
+    // Update sort indicators after rendering
+    // 렌더링 후 정렬 표시 업데이트
+    updateSortIndicators();
 
-    rows.forEach(row => tbody.appendChild(row));
+    // Save preferences to localStorage
+    // localStorage에 환경설정 저장
+    savePreferencesToStorage();
 }
 
 function updateEmployeeCount(count) {
@@ -72591,6 +73132,123 @@ function toggleColumn(colIndex) {
             row.querySelectorAll('td')[actualColIndex]?.classList.add('column-hidden');
         });
     }
+
+    // Save to localStorage
+    // localStorage에 저장
+    savePreferencesToStorage();
+}
+
+// Save preferences to localStorage
+// localStorage에 환경설정 저장
+function savePreferencesToStorage() {
+    try {
+        const prefs = {
+            columnVisibility: columnVisibility,
+            sortColumn: currentSortColumn,
+            sortAsc: currentSortAsc,
+            pageSize: pageSize,
+            language: currentLanguage
+        };
+        localStorage.setItem('hrDashboardPrefs', JSON.stringify(prefs));
+    } catch (e) {
+        console.warn('Failed to save preferences to localStorage:', e);
+    }
+}
+
+// Load preferences from localStorage
+// localStorage에서 환경설정 로드
+function loadPreferencesFromStorage() {
+    try {
+        const saved = localStorage.getItem('hrDashboardPrefs');
+        if (saved) {
+            const prefs = JSON.parse(saved);
+
+            // Restore column visibility
+            // 컬럼 표시 복원
+            if (prefs.columnVisibility && Array.isArray(prefs.columnVisibility)) {
+                columnVisibility = prefs.columnVisibility;
+                applyColumnVisibility();
+            }
+
+            // Restore sort settings
+            // 정렬 설정 복원
+            if (typeof prefs.sortColumn === 'number') {
+                currentSortColumn = prefs.sortColumn;
+                currentSortAsc = prefs.sortAsc !== false;
+                updateSortIndicators();
+            }
+
+            // Restore page size
+            // 페이지 크기 복원
+            if (typeof prefs.pageSize === 'number') {
+                pageSize = prefs.pageSize;
+                const pageSizeSelect = document.getElementById('pageSizeSelect');
+                if (pageSizeSelect) {
+                    pageSizeSelect.value = pageSize.toString();
+                }
+            }
+
+            // Restore language (if different from default)
+            // 언어 복원 (기본값과 다른 경우)
+            if (prefs.language && ['ko', 'en', 'vi'].includes(prefs.language)) {
+                currentLanguage = prefs.language;
+                updateLanguageSelector();
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to load preferences from localStorage:', e);
+    }
+}
+
+// Apply saved column visibility
+// 저장된 컬럼 표시 적용
+function applyColumnVisibility() {
+    const table = document.getElementById('employeeTable');
+    if (!table) return;
+
+    const headers = table.querySelectorAll('thead th');
+    const rows = table.querySelectorAll('tbody tr');
+
+    columnVisibility.forEach((visible, colIndex) => {
+        const actualColIndex = colIndex + 1; // +1 for checkbox column
+
+        // Update header
+        if (headers[actualColIndex]) {
+            if (visible) {
+                headers[actualColIndex].classList.remove('column-hidden');
+            } else {
+                headers[actualColIndex].classList.add('column-hidden');
+            }
+        }
+
+        // Update rows
+        rows.forEach(row => {
+            const td = row.querySelectorAll('td')[actualColIndex];
+            if (td) {
+                if (visible) {
+                    td.classList.remove('column-hidden');
+                } else {
+                    td.classList.add('column-hidden');
+                }
+            }
+        });
+
+        // Update dropdown checkbox
+        const checkbox = document.querySelector(`input[data-column="${colIndex}"]`);
+        if (checkbox) {
+            checkbox.checked = visible;
+        }
+    });
+}
+
+// Update language selector to match loaded preference
+// 로드된 환경설정에 맞게 언어 선택기 업데이트
+function updateLanguageSelector() {
+    const langBtn = document.getElementById('langDropdownBtn');
+    const langNames = { ko: '한국어', en: 'English', vi: 'Tiếng Việt' };
+    if (langBtn && langNames[currentLanguage]) {
+        langBtn.textContent = langNames[currentLanguage];
+    }
 }
 
 function changePage(direction) {
@@ -72679,6 +73337,10 @@ function populateTeamFilter() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Load saved preferences from localStorage first
+    // localStorage에서 저장된 환경설정 먼저 로드
+    loadPreferencesFromStorage();
+
     const detailsTab = document.getElementById('details-tab');
     if (detailsTab) {
         detailsTab.addEventListener('shown.bs.tab', function() {
@@ -72686,6 +73348,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateFilterCounts();
             populateTeamFilter();
             updateQuickStats(employeeDetails);
+            // Apply column visibility after table renders
+            // 테이블 렌더링 후 컬럼 표시 적용
+            setTimeout(applyColumnVisibility, 100);
         });
     }
 
@@ -74002,12 +74667,16 @@ function showToast(title, message, type = 'info') {
     }, 5000);
 }
 
-// Initialize org chart on tab switch
-document.getElementById('orgchart-tab').addEventListener('shown.bs.tab', function() {
-    if (currentOrgView === 'tree') {
-        renderOrgChartTree();
-    }
-});
+// Initialize org chart on tab switch (null check to prevent error)
+// 조직도 탭 전환시 초기화 (오류 방지를 위한 null 체크)
+const orgchartTab = document.getElementById('orgchart-tab');
+if (orgchartTab) {
+    orgchartTab.addEventListener('shown.bs.tab', function() {
+        if (currentOrgView === 'tree') {
+            renderOrgChartTree();
+        }
+    });
+}
 
 // ============================================
 // Team Analysis Functions
@@ -74296,10 +74965,14 @@ function exportTeamAnalysis() {
     // TODO: Implement export functionality
 }
 
-// Initialize team analysis on tab switch
-document.getElementById('teamanalysis-tab').addEventListener('shown.bs.tab', function() {
-    initTeamAnalysis();
-});
+// Initialize team analysis on tab switch (null check to prevent error)
+// 팀 분석 탭 전환시 초기화 (오류 방지를 위한 null 체크)
+const teamanalysisTab = document.getElementById('teamanalysis-tab');
+if (teamanalysisTab) {
+    teamanalysisTab.addEventListener('shown.bs.tab', function() {
+        initTeamAnalysis();
+    });
+}
 
 console.log('✅ Dashboard initialized');
 console.log('📊 Months:', availableMonths);

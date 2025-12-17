@@ -876,6 +876,18 @@ class CompleteDashboardBuilder:
                 attendance_df
             )
 
+            # Derive position_1st from most common value among members
+            # 멤버들 중 가장 흔한 position_1st 값으로 팀의 position_1st 설정
+            pos1_counts = {}
+            for member in team_info['members']:
+                pos1 = member.get('position_1st', 'Unknown')
+                pos1_counts[pos1] = pos1_counts.get(pos1, 0) + 1
+
+            if pos1_counts:
+                team_info['position_1st'] = max(pos1_counts, key=pos1_counts.get)
+            else:
+                team_info['position_1st'] = 'Unknown'
+
             # Calculate metrics for sub-teams
             for sub_team_name, sub_team_info in team_info.get('sub_teams', {}).items():
                 sub_team_info['metrics'] = self._calculate_team_metrics(
@@ -981,10 +993,12 @@ class CompleteDashboardBuilder:
                 # Calculate tenure
                 tenure_days = (prev_report_date - entrance_date).days if pd.notna(entrance_date) else 0
 
+                pos1 = str(row.get('QIP POSITION 1ST  NAME', ''))
                 employee_info = {
                     'employee_no': str(row.get('Employee No', '')),
                     'name': str(row.get('Name', '')),
                     'team': team_name,
+                    'position_1st': pos1,
                     'is_active': is_active,
                     'entrance_date': str(entrance_date_str),
                     'stop_date': str(stop_date_str),
@@ -1004,6 +1018,18 @@ class CompleteDashboardBuilder:
                     team_info['members'],
                     attendance_df
                 )
+
+                # Derive position_1st from most common value among members
+                # 멤버들 중 가장 흔한 position_1st 값으로 팀의 position_1st 설정
+                pos1_counts = {}
+                for member in team_info['members']:
+                    pos1 = member.get('position_1st', 'Unknown')
+                    pos1_counts[pos1] = pos1_counts.get(pos1, 0) + 1
+
+                if pos1_counts:
+                    team_info['position_1st'] = max(pos1_counts, key=pos1_counts.get)
+                else:
+                    team_info['position_1st'] = 'Unknown'
 
         # Remove empty teams
         team_data = {k: v for k, v in team_data.items() if v['members']}
@@ -1937,6 +1963,12 @@ class CompleteDashboardBuilder:
         content: '▼';
     }
 
+    /* Sorted column highlight / 정렬된 컬럼 강조 */
+    .employee-table thead th.sorted {
+        background-color: #e3f2fd !important;
+        border-bottom: 3px solid #2196f3;
+    }
+
     .employee-table tbody tr {
         transition: all 0.2s;
     }
@@ -2010,7 +2042,7 @@ class CompleteDashboardBuilder:
         outline-offset: 2px;
     }
 
-    /* Mobile Responsiveness */
+    /* Mobile Responsiveness - Enhanced / 모바일 반응형 - 개선됨 */
     @media (max-width: 768px) {
         .btn-toolbar {
             flex-direction: column;
@@ -2019,22 +2051,120 @@ class CompleteDashboardBuilder:
         .btn-toolbar .btn-group {
             width: 100%;
             margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-toolbar .btn-group .btn {
+            flex: 1 1 auto;
+            min-width: calc(50% - 2px);
+            font-size: 0.75rem;
+            padding: 0.35rem 0.5rem;
         }
 
         .employee-table {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+        }
+
+        .employee-table thead th {
+            font-size: 0.7rem;
+            padding: 0.4rem 0.25rem !important;
+            white-space: nowrap;
+        }
+
+        .employee-table tbody td {
+            padding: 0.35rem 0.25rem !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
         }
 
         .employee-table tbody tr:hover {
             transform: none;
         }
 
+        /* Hide less important columns on mobile / 모바일에서 덜 중요한 컬럼 숨기기 */
+        .employee-table th:nth-child(5),
+        .employee-table td:nth-child(5),
+        .employee-table th:nth-child(6),
+        .employee-table td:nth-child(6),
+        .employee-table th:nth-child(7),
+        .employee-table td:nth-child(7),
+        .employee-table th:nth-child(9),
+        .employee-table td:nth-child(9) {
+            display: none !important;
+        }
+
+        /* Smaller badges on mobile / 모바일에서 작은 배지 */
+        .badge-status {
+            font-size: 0.6rem !important;
+            padding: 0.15rem 0.3rem !important;
+        }
+
+        /* Compact search / 컴팩트 검색 */
+        #employeeSearch {
+            font-size: 0.85rem;
+        }
+
+        /* Quick stats panel / 빠른 통계 패널 */
         #quickStatsPanel .stat-value {
-            font-size: 1.2rem !important;
+            font-size: 1rem !important;
         }
 
         #quickStatsPanel .stat-label {
-            font-size: 0.7rem !important;
+            font-size: 0.65rem !important;
+        }
+
+        #quickStatsPanel .stat-item {
+            padding: 0.5rem !important;
+        }
+
+        /* Pagination controls / 페이지네이션 컨트롤 */
+        .pagination .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        #pageInfo {
+            font-size: 0.75rem;
+        }
+
+        /* Column visibility dropdown / 컬럼 표시 드롭다운 */
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    }
+
+    /* Extra small devices / 매우 작은 기기 */
+    @media (max-width: 480px) {
+        .employee-table {
+            font-size: 0.65rem;
+        }
+
+        .employee-table thead th {
+            font-size: 0.6rem;
+        }
+
+        .employee-table tbody td {
+            max-width: 70px;
+        }
+
+        /* Hide even more columns / 더 많은 컬럼 숨기기 */
+        .employee-table th:nth-child(4),
+        .employee-table td:nth-child(4),
+        .employee-table th:nth-child(8),
+        .employee-table td:nth-child(8) {
+            display: none !important;
+        }
+
+        .badge-status {
+            font-size: 0.55rem !important;
+        }
+
+        .btn-toolbar .btn-group .btn {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.4rem;
         }
     }
 
@@ -2727,11 +2857,11 @@ class CompleteDashboardBuilder:
         <div class="col-md-6">
             <div class="position-relative">
                 <input type="text" class="form-control" id="employeeSearch"
-                       placeholder="🔍 사번, 이름, 직급, 건물, 라인으로 검색..."
+                       placeholder="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
                        onkeyup="handleSearchInput()"
-                       data-ko="🔍 사번, 이름, 직급, 건물, 라인으로 검색..."
-                       data-en="🔍 Search by ID, Name, Position, Building, Line..."
-                       data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây...">
+                       data-ko="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
+                       data-en="🔍 Search by ID, Name, Position, Building, Line, Boss..."
+                       data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây, Cấp trên...">
                 <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
             </div>
         </div>
@@ -12539,11 +12669,80 @@ let selectedEmployees = new Set();
 let columnVisibility = Array(11).fill(true); // All columns visible by default
 let filteredEmployees = [];
 
+// Column field mapping for sorting
+// 정렬을 위한 컬럼 필드 매핑
+const sortColumnMap = [
+    'employee_id',    // Column 0: 사번/ID
+    'employee_name',  // Column 1: 이름/Name
+    'position',       // Column 2: 직급/Position
+    'role_type',      // Column 3: 유형/Type
+    'building',       // Column 4: 건물/Building
+    'line',           // Column 5: 라인/Line
+    'boss_name',      // Column 6: 상사/Boss
+    'entrance_date',  // Column 7: 입사일/Entrance
+    'stop_date',      // Column 8: 퇴사일/Stop
+    'tenure_days'     // Column 9: 재직기간/Tenure (numeric sort)
+];
+
+// Apply sorting to employee array
+// 직원 배열에 정렬 적용
+function applySortToData(employees) {{
+    if (currentSortColumn < 0 || currentSortColumn >= sortColumnMap.length) {{
+        return employees;
+    }}
+
+    const field = sortColumnMap[currentSortColumn];
+    const sorted = [...employees].sort((a, b) => {{
+        let aVal = a[field] || '';
+        let bVal = b[field] || '';
+
+        // Numeric sort for tenure_days
+        // tenure_days는 숫자 정렬
+        if (field === 'tenure_days') {{
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
+            return currentSortAsc ? aVal - bVal : bVal - aVal;
+        }}
+
+        // String sort for other fields
+        // 다른 필드는 문자열 정렬
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        return currentSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    }});
+
+    return sorted;
+}}
+
+// Update sort indicator visuals
+// 정렬 표시 시각적 업데이트
+function updateSortIndicators() {{
+    document.querySelectorAll('.sort-indicator').forEach((el, idx) => {{
+        if (idx === currentSortColumn) {{
+            el.textContent = currentSortAsc ? ' ↑' : ' ↓';
+        }} else {{
+            el.textContent = '';
+        }}
+    }});
+
+    document.querySelectorAll('th.sortable').forEach((th, idx) => {{
+        if (idx === currentSortColumn) {{
+            th.classList.add('sorted');
+        }} else {{
+            th.classList.remove('sorted');
+        }}
+    }});
+}}
+
 function renderEmployeeTable(employees = null) {
     const tbody = document.getElementById('employeeTableBody');
     if (!tbody) return;
 
     let displayEmployees = employees || employeeDetails;
+
+    // Apply sorting BEFORE pagination
+    // 페이지네이션 전에 정렬 적용
+    displayEmployees = applySortToData(displayEmployees);
 
     // Apply pagination
     filteredEmployees = displayEmployees;
@@ -12583,24 +12782,34 @@ function renderEmployeeTable(employees = null) {
             rowClass += ' row-selected';
         }
 
+        // Status badges with multilingual support (uses currentLanguage)
+        // 다국어 지원 상태 배지 (currentLanguage 사용)
+        const badgeText = (ko, en, vi) => {{
+            const texts = {{ ko, en, vi }};
+            return texts[currentLanguage] || ko;
+        }};
+
         let statusBadges = [];
-        if (emp.is_active) {
-            statusBadges.push('<span class="badge bg-success badge-status">재직</span>');
-        } else {
-            statusBadges.push('<span class="badge bg-secondary badge-status">퇴사</span>');
-        }
-        if (emp.hired_this_month) {
-            statusBadges.push('<span class="badge bg-info badge-status">신입</span>');
-        }
-        if (emp.perfect_attendance) {
-            statusBadges.push('<span class="badge bg-primary badge-status">개근</span>');
-        }
-        if (emp.long_term) {
-            statusBadges.push('<span class="badge bg-warning badge-status">장기</span>');
-        }
-        if (emp.is_pregnant) {
-            statusBadges.push('<span class="badge bg-warning badge-status">임신</span>');
-        }
+        if (emp.is_active) {{
+            statusBadges.push(`<span class="badge bg-success badge-status lang-badge" data-ko="재직" data-en="Active" data-vi="Đang làm">${{badgeText('재직', 'Active', 'Đang làm')}}</span>`);
+        }} else {{
+            statusBadges.push(`<span class="badge bg-secondary badge-status lang-badge" data-ko="퇴사" data-en="Resigned" data-vi="Nghỉ việc">${{badgeText('퇴사', 'Resigned', 'Nghỉ việc')}}</span>`);
+        }}
+        if (emp.hired_this_month) {{
+            statusBadges.push(`<span class="badge bg-info badge-status lang-badge" data-ko="신입" data-en="New" data-vi="Mới">${{badgeText('신입', 'New', 'Mới')}}</span>`);
+        }}
+        if (emp.perfect_attendance) {{
+            statusBadges.push(`<span class="badge bg-primary badge-status lang-badge" data-ko="개근" data-en="Perfect" data-vi="Hoàn hảo">${{badgeText('개근', 'Perfect', 'Hoàn hảo')}}</span>`);
+        }}
+        if (emp.long_term) {{
+            statusBadges.push(`<span class="badge bg-warning text-dark badge-status lang-badge" data-ko="장기" data-en="Long-term" data-vi="Lâu năm">${{badgeText('장기', 'Long-term', 'Lâu năm')}}</span>`);
+        }}
+        if (emp.is_pregnant) {{
+            statusBadges.push(`<span class="badge bg-danger badge-status lang-badge" data-ko="임신" data-en="Pregnant" data-vi="Mang thai">${{badgeText('임신', 'Pregnant', 'Mang thai')}}</span>`);
+        }}
+        if (emp.under_60_days) {{
+            statusBadges.push(`<span class="badge bg-light text-dark badge-status lang-badge" data-ko="60일미만" data-en="<60 Days" data-vi="<60 Ngày">${{badgeText('60일미만', '<60 Days', '<60 Ngày')}}</span>`);
+        }}
 
         const isChecked = selectedEmployees.has(emp.employee_id) ? 'checked' : '';
 
@@ -12678,6 +12887,8 @@ function updateFilterCounts() {
 }
 
 function searchEmployees() {
+    // Search employees by multiple fields (ID, Name, Position, Type, Building, Line)
+    // 여러 필드로 직원 검색 (사번, 이름, 직급, 유형, 건물, 라인)
     const searchTerm = document.getElementById('employeeSearch').value.toLowerCase();
 
     if (!searchTerm) {
@@ -12685,22 +12896,24 @@ function searchEmployees() {
         return;
     }
 
-    const filtered = employeeDetails.filter(emp => {
+    const filtered = employeeDetails.filter(emp => {{
         return (
             (emp.employee_id && emp.employee_id.toLowerCase().includes(searchTerm)) ||
             (emp.employee_name && emp.employee_name.toLowerCase().includes(searchTerm)) ||
             (emp.position && emp.position.toLowerCase().includes(searchTerm)) ||
-            (emp.role_type && emp.role_type.toLowerCase().includes(searchTerm))
+            (emp.role_type && emp.role_type.toLowerCase().includes(searchTerm)) ||
+            (emp.building && emp.building.toLowerCase().includes(searchTerm)) ||
+            (emp.line && emp.line.toLowerCase().includes(searchTerm)) ||
+            (emp.boss_name && emp.boss_name.toLowerCase().includes(searchTerm))
         );
-    });
+    }});
 
     renderEmployeeTable(filtered);
 }
 
 function sortTable(columnIndex) {
-    const tbody = document.getElementById('employeeTableBody');
-    const rows = Array.from(tbody.getElementsByTagName('tr'));
-
+    // Toggle sort direction if clicking same column, otherwise reset to ascending
+    // 같은 컬럼 클릭시 방향 토글, 그렇지 않으면 오름차순으로 초기화
     if (currentSortColumn === columnIndex) {
         currentSortAsc = !currentSortAsc;
     } else {
@@ -12708,14 +12921,17 @@ function sortTable(columnIndex) {
         currentSortAsc = true;
     }
 
-    rows.sort((a, b) => {
-        const aText = a.getElementsByTagName('td')[columnIndex].textContent.trim();
-        const bText = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+    // Re-render table with current filter applied (sorting happens in renderEmployeeTable)
+    // 현재 필터 적용된 상태로 테이블 다시 렌더링 (정렬은 renderEmployeeTable에서 수행)
+    filterEmployees(currentFilter);
 
-        return currentSortAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
-    });
+    // Update sort indicators after rendering
+    // 렌더링 후 정렬 표시 업데이트
+    updateSortIndicators();
 
-    rows.forEach(row => tbody.appendChild(row));
+    // Save preferences to localStorage
+    // localStorage에 환경설정 저장
+    savePreferencesToStorage();
 }
 
 function updateEmployeeCount(count) {
@@ -12873,7 +13089,124 @@ function toggleColumn(colIndex) {
             row.querySelectorAll('td')[actualColIndex]?.classList.add('column-hidden');
         });
     }
+
+    // Save to localStorage
+    // localStorage에 저장
+    savePreferencesToStorage();
 }
+
+// Save preferences to localStorage
+// localStorage에 환경설정 저장
+function savePreferencesToStorage() {{
+    try {{
+        const prefs = {{
+            columnVisibility: columnVisibility,
+            sortColumn: currentSortColumn,
+            sortAsc: currentSortAsc,
+            pageSize: pageSize,
+            language: currentLanguage
+        }};
+        localStorage.setItem('hrDashboardPrefs', JSON.stringify(prefs));
+    }} catch (e) {{
+        console.warn('Failed to save preferences to localStorage:', e);
+    }}
+}}
+
+// Load preferences from localStorage
+// localStorage에서 환경설정 로드
+function loadPreferencesFromStorage() {{
+    try {{
+        const saved = localStorage.getItem('hrDashboardPrefs');
+        if (saved) {{
+            const prefs = JSON.parse(saved);
+
+            // Restore column visibility
+            // 컬럼 표시 복원
+            if (prefs.columnVisibility && Array.isArray(prefs.columnVisibility)) {{
+                columnVisibility = prefs.columnVisibility;
+                applyColumnVisibility();
+            }}
+
+            // Restore sort settings
+            // 정렬 설정 복원
+            if (typeof prefs.sortColumn === 'number') {{
+                currentSortColumn = prefs.sortColumn;
+                currentSortAsc = prefs.sortAsc !== false;
+                updateSortIndicators();
+            }}
+
+            // Restore page size
+            // 페이지 크기 복원
+            if (typeof prefs.pageSize === 'number') {{
+                pageSize = prefs.pageSize;
+                const pageSizeSelect = document.getElementById('pageSizeSelect');
+                if (pageSizeSelect) {{
+                    pageSizeSelect.value = pageSize.toString();
+                }}
+            }}
+
+            // Restore language (if different from default)
+            // 언어 복원 (기본값과 다른 경우)
+            if (prefs.language && ['ko', 'en', 'vi'].includes(prefs.language)) {{
+                currentLanguage = prefs.language;
+                updateLanguageSelector();
+            }}
+        }}
+    }} catch (e) {{
+        console.warn('Failed to load preferences from localStorage:', e);
+    }}
+}}
+
+// Apply saved column visibility
+// 저장된 컬럼 표시 적용
+function applyColumnVisibility() {{
+    const table = document.getElementById('employeeTable');
+    if (!table) return;
+
+    const headers = table.querySelectorAll('thead th');
+    const rows = table.querySelectorAll('tbody tr');
+
+    columnVisibility.forEach((visible, colIndex) => {{
+        const actualColIndex = colIndex + 1; // +1 for checkbox column
+
+        // Update header
+        if (headers[actualColIndex]) {{
+            if (visible) {{
+                headers[actualColIndex].classList.remove('column-hidden');
+            }} else {{
+                headers[actualColIndex].classList.add('column-hidden');
+            }}
+        }}
+
+        // Update rows
+        rows.forEach(row => {{
+            const td = row.querySelectorAll('td')[actualColIndex];
+            if (td) {{
+                if (visible) {{
+                    td.classList.remove('column-hidden');
+                }} else {{
+                    td.classList.add('column-hidden');
+                }}
+            }}
+        }});
+
+        // Update dropdown checkbox
+        const checkbox = document.querySelector(`input[data-column="${{colIndex}}"]`);
+        if (checkbox) {{
+            checkbox.checked = visible;
+        }}
+    }});
+}}
+
+// Update language selector to match loaded preference
+// 로드된 환경설정에 맞게 언어 선택기 업데이트
+function updateLanguageSelector() {{
+    const langBtn = document.getElementById('langDropdownBtn');
+    const langNames = {{ ko: '한국어', en: 'English', vi: 'Tiếng Việt' }};
+    if (langBtn && langNames[currentLanguage]) {{
+        langBtn.textContent = langNames[currentLanguage];
+    }}
+}}
 
 function changePage(direction) {
     currentPage += direction;
@@ -12961,6 +13294,10 @@ function populateTeamFilter() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Load saved preferences from localStorage first
+    // localStorage에서 저장된 환경설정 먼저 로드
+    loadPreferencesFromStorage();
+
     const detailsTab = document.getElementById('details-tab');
     if (detailsTab) {
         detailsTab.addEventListener('shown.bs.tab', function() {
@@ -12968,6 +13305,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateFilterCounts();
             populateTeamFilter();
             updateQuickStats(employeeDetails);
+            // Apply column visibility after table renders
+            // 테이블 렌더링 후 컬럼 표시 적용
+            setTimeout(applyColumnVisibility, 100);
         });
     }
 
@@ -14284,12 +14624,16 @@ function showToast(title, message, type = 'info') {{
     }}, 5000);
 }}
 
-// Initialize org chart on tab switch
-document.getElementById('orgchart-tab').addEventListener('shown.bs.tab', function() {{
-    if (currentOrgView === 'tree') {{
-        renderOrgChartTree();
-    }}
-}});
+// Initialize org chart on tab switch (null check to prevent error)
+// 조직도 탭 전환시 초기화 (오류 방지를 위한 null 체크)
+const orgchartTab = document.getElementById('orgchart-tab');
+if (orgchartTab) {{
+    orgchartTab.addEventListener('shown.bs.tab', function() {{
+        if (currentOrgView === 'tree') {{
+            renderOrgChartTree();
+        }}
+    }});
+}}
 
 // ============================================
 // Team Analysis Functions
@@ -14578,10 +14922,14 @@ function exportTeamAnalysis() {{
     // TODO: Implement export functionality
 }}
 
-// Initialize team analysis on tab switch
-document.getElementById('teamanalysis-tab').addEventListener('shown.bs.tab', function() {{
-    initTeamAnalysis();
-}});
+// Initialize team analysis on tab switch (null check to prevent error)
+// 팀 분석 탭 전환시 초기화 (오류 방지를 위한 null 체크)
+const teamanalysisTab = document.getElementById('teamanalysis-tab');
+if (teamanalysisTab) {{
+    teamanalysisTab.addEventListener('shown.bs.tab', function() {{
+        initTeamAnalysis();
+    }});
+}}
 
 console.log('✅ Dashboard initialized');
 console.log('📊 Months:', availableMonths);
