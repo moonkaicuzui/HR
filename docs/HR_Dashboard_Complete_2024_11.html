@@ -1418,6 +1418,116 @@ if (typeof module !== 'undefined' && module.exports) {
         display: none !important;
     }
 
+    /* Column Toggle Dropdown - Enhanced Design / 열 표시 드롭다운 - 개선된 디자인 */
+    .column-toggle-menu {
+        min-width: 280px;
+        padding: 0.75rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        border: 1px solid #e9ecef;
+    }
+
+    .column-toggle-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .column-toggle-actions .btn {
+        flex: 1;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+    }
+
+    .column-category {
+        margin-bottom: 0.75rem;
+    }
+
+    .column-category:last-child {
+        margin-bottom: 0;
+    }
+
+    .category-header {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.25rem 0.5rem;
+        margin-bottom: 0.25rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 6px;
+    }
+
+    .column-item {
+        display: flex;
+        align-items: center;
+        padding: 0.4rem 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 2px;
+    }
+
+    .column-item:hover {
+        background-color: #e7f1ff;
+    }
+
+    .column-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin-right: 0.5rem;
+        accent-color: #0d6efd;
+        cursor: pointer;
+    }
+
+    .column-item .column-icon {
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .column-item .column-name {
+        font-size: 0.85rem;
+        color: #495057;
+    }
+
+    /* Bulk Actions - Enhanced Design / 대량 작업 - 개선된 디자인 */
+    .bulk-actions-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .bulk-actions-group .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .bulk-actions-group .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .bulk-actions-group .btn:disabled {
+        opacity: 0.5;
+    }
+
+    .bulk-actions-group .btn-icon {
+        font-size: 1rem;
+    }
+
+    .bulk-actions-group .btn-text {
+        font-size: 0.8rem;
+    }
+
     /* Accessibility */
     .btn:focus, .form-control:focus, .form-select:focus {
         outline: 2px solid #4285f4;
@@ -1515,6 +1625,37 @@ if (typeof module !== 'undefined' && module.exports) {
         .dropdown-menu {
             max-height: 300px;
             overflow-y: auto;
+        }
+
+        /* Column toggle mobile / 열 표시 모바일 */
+        .column-toggle-menu {
+            min-width: 260px;
+        }
+
+        .column-toggle-actions .btn {
+            padding: 0.25rem 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        .category-header {
+            font-size: 0.65rem;
+        }
+
+        .column-item {
+            padding: 0.3rem 0.4rem;
+        }
+
+        .column-item .column-name {
+            font-size: 0.8rem;
+        }
+
+        /* Bulk actions mobile - icon only / 대량 작업 모바일 - 아이콘만 */
+        .bulk-actions-group .btn-text {
+            display: none;
+        }
+
+        .bulk-actions-group .btn {
+            padding: 0.35rem 0.5rem;
         }
     }
 
@@ -2325,24 +2466,58 @@ if (typeof module !== 'undefined' && module.exports) {
                 <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 text-end">
             <div class="dropdown d-inline-block">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="columnToggleBtn" data-bs-toggle="dropdown">
-                    <span class="lang-btn" data-ko="열 표시" data-en="Columns" data-vi="Cột">열 표시</span>
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="columnToggleBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="d-none d-md-inline lang-btn" data-ko="📊 열 표시" data-en="📊 Columns" data-vi="📊 Cột">📊 열 표시</span>
+                    <span class="d-md-none">📊</span>
                 </button>
-                <ul class="dropdown-menu p-2" id="columnToggleMenu" style="min-width: 200px;">
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="0" onchange="toggleColumn(0)"> <span class="lang-label" data-ko="사번" data-en="ID" data-vi="Mã">사번</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="1" onchange="toggleColumn(1)"> <span class="lang-label" data-ko="이름" data-en="Name" data-vi="Tên">이름</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="2" onchange="toggleColumn(2)"> <span class="lang-label" data-ko="직급" data-en="Position" data-vi="Vị trí">직급</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="3" onchange="toggleColumn(3)"> <span class="lang-label" data-ko="유형" data-en="Type" data-vi="Loại">유형</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="4" onchange="toggleColumn(4)"> <span class="lang-label" data-ko="건물" data-en="Building" data-vi="Tòa">건물</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="5" onchange="toggleColumn(5)"> <span class="lang-label" data-ko="라인" data-en="Line" data-vi="Dây">라인</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="6" onchange="toggleColumn(6)"> <span class="lang-label" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="7" onchange="toggleColumn(7)"> <span class="lang-label" data-ko="입사일" data-en="Entrance" data-vi="Ngày vào">입사일</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="8" onchange="toggleColumn(8)"> <span class="lang-label" data-ko="퇴사일" data-en="Stop" data-vi="Ngày nghỉ">퇴사일</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="9" onchange="toggleColumn(9)"> <span class="lang-label" data-ko="재직기간" data-en="Tenure" data-vi="Thâm niên">재직기간</span></label></li>
-                    <li><label class="dropdown-item mb-0"><input type="checkbox" checked data-column="10" onchange="toggleColumn(10)"> <span class="lang-label" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></label></li>
-                </ul>
+                <div class="dropdown-menu column-toggle-menu" id="columnToggleMenu">
+                    <!-- Quick Actions / 빠른 작업 -->
+                    <div class="column-toggle-actions">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleAllColumns(true)" title="Select All">
+                            <span class="lang-btn" data-ko="전체" data-en="All" data-vi="Tất cả">전체</span>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAllColumns(false)" title="Deselect All">
+                            <span class="lang-btn" data-ko="해제" data-en="None" data-vi="Bỏ">해제</span>
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="resetColumnVisibility()" title="Reset to Default">
+                            <span class="lang-btn" data-ko="기본값" data-en="Reset" data-vi="Mặc định">기본값</span>
+                        </button>
+                    </div>
+
+                    <!-- Category: Basic Info / 기본정보 -->
+                    <div class="column-category">
+                        <div class="category-header">
+                            <span class="lang-label" data-ko="👤 기본정보" data-en="👤 Basic Info" data-vi="👤 Thông tin cơ bản">👤 기본정보</span>
+                        </div>
+                        <label class="column-item"><input type="checkbox" checked data-column="0" onchange="toggleColumn(0)"><span class="column-icon">🔢</span><span class="column-name lang-label" data-ko="사번" data-en="ID" data-vi="Mã">사번</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="1" onchange="toggleColumn(1)"><span class="column-icon">👤</span><span class="column-name lang-label" data-ko="이름" data-en="Name" data-vi="Tên">이름</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="2" onchange="toggleColumn(2)"><span class="column-icon">📊</span><span class="column-name lang-label" data-ko="직급" data-en="Position" data-vi="Vị trí">직급</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="3" onchange="toggleColumn(3)"><span class="column-icon">🏷️</span><span class="column-name lang-label" data-ko="유형" data-en="Type" data-vi="Loại">유형</span></label>
+                    </div>
+
+                    <!-- Category: Work Info / 근무정보 -->
+                    <div class="column-category">
+                        <div class="category-header">
+                            <span class="lang-label" data-ko="🏢 근무정보" data-en="🏢 Work Info" data-vi="🏢 Thông tin công việc">🏢 근무정보</span>
+                        </div>
+                        <label class="column-item"><input type="checkbox" checked data-column="4" onchange="toggleColumn(4)"><span class="column-icon">🏢</span><span class="column-name lang-label" data-ko="건물" data-en="Building" data-vi="Tòa">건물</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="5" onchange="toggleColumn(5)"><span class="column-icon">📍</span><span class="column-name lang-label" data-ko="라인" data-en="Line" data-vi="Dây">라인</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="6" onchange="toggleColumn(6)"><span class="column-icon">👔</span><span class="column-name lang-label" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span></label>
+                    </div>
+
+                    <!-- Category: Date Info / 날짜정보 -->
+                    <div class="column-category">
+                        <div class="category-header">
+                            <span class="lang-label" data-ko="📅 날짜정보" data-en="📅 Date Info" data-vi="📅 Thông tin ngày">📅 날짜정보</span>
+                        </div>
+                        <label class="column-item"><input type="checkbox" checked data-column="7" onchange="toggleColumn(7)"><span class="column-icon">📥</span><span class="column-name lang-label" data-ko="입사일" data-en="Start Date" data-vi="Ngày vào">입사일</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="8" onchange="toggleColumn(8)"><span class="column-icon">📤</span><span class="column-name lang-label" data-ko="퇴사일" data-en="End Date" data-vi="Ngày nghỉ">퇴사일</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="9" onchange="toggleColumn(9)"><span class="column-icon">⏱️</span><span class="column-name lang-label" data-ko="재직기간" data-en="Tenure" data-vi="Thâm niên">재직기간</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="10" onchange="toggleColumn(10)"><span class="column-icon">🔵</span><span class="column-name lang-label" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2406,19 +2581,24 @@ if (typeof module !== 'undefined' && module.exports) {
     <!-- Bulk Actions and Export Buttons -->
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
-            <div class="btn-group" role="group">
-                <label class="btn btn-sm btn-outline-secondary">
+            <div class="bulk-actions-group">
+                <label class="btn btn-sm btn-outline-secondary" title="Select All">
                     <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" autocomplete="off">
-                    <span class="lang-btn" data-ko="전체 선택" data-en="Select All" data-vi="Chọn tất">전체 선택</span>
+                    <span class="btn-icon">☑️</span>
+                    <span class="btn-text lang-btn" data-ko="전체 선택" data-en="Select All" data-vi="Chọn tất">전체 선택</span>
                 </label>
-                <button type="button" class="btn btn-sm btn-outline-success" id="exportSelectedBtn" onclick="exportSelected('csv')" disabled>
-                    <span class="lang-btn" data-ko="선택 내보내기" data-en="Export Selected" data-vi="Xuất đã chọn">선택 내보내기</span>
+                <button type="button" class="btn btn-sm btn-outline-success" id="exportSelectedBtn" onclick="exportSelected('csv')" disabled title="Export Selected">
+                    <span class="btn-icon">📥</span>
+                    <span class="btn-text lang-btn" data-ko="선택 내보내기" data-en="Export Selected" data-vi="Xuất đã chọn">선택 내보내기</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="printSelectedBtn" onclick="printSelected()" disabled>
-                    <span class="lang-btn" data-ko="선택 인쇄" data-en="Print Selected" data-vi="In đã chọn">선택 인쇄</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="printSelectedBtn" onclick="printSelected()" disabled title="Print Selected">
+                    <span class="btn-icon">🖨️</span>
+                    <span class="btn-text lang-btn" data-ko="선택 인쇄" data-en="Print Selected" data-vi="In đã chọn">선택 인쇄</span>
                 </button>
+                <span class="badge bg-secondary" id="selectedCount">
+                    <span class="lang-label" data-ko="0 선택됨" data-en="0 selected" data-vi="Đã chọn 0">0 선택됨</span>
+                </span>
             </div>
-            <span class="badge bg-secondary ms-2" id="selectedCount">0 선택됨</span>
         </div>
         <div class="col-md-6 text-end">
             <div class="btn-group me-2" role="group">
@@ -73627,6 +73807,48 @@ function toggleColumn(colIndex) {
     savePreferencesToStorage();
 }
 
+// Toggle all columns visibility
+// 모든 컬럼 표시/숨김 토글
+function toggleAllColumns(show) {
+    const table = document.getElementById('employeeTable');
+    const headers = table.querySelectorAll('thead th');
+    const rows = table.querySelectorAll('tbody tr');
+    const checkboxes = document.querySelectorAll('#columnToggleMenu input[type="checkbox"]');
+
+    // Update all column visibility
+    // 모든 컬럼 표시 상태 업데이트
+    for (let i = 0; i < columnVisibility.length; i++) {
+        columnVisibility[i] = show;
+        const actualColIndex = i + 1; // +1 for checkbox column
+
+        if (show) {
+            headers[actualColIndex]?.classList.remove('column-hidden');
+            rows.forEach(row => {
+                row.querySelectorAll('td')[actualColIndex]?.classList.remove('column-hidden');
+            });
+        } else {
+            headers[actualColIndex]?.classList.add('column-hidden');
+            rows.forEach(row => {
+                row.querySelectorAll('td')[actualColIndex]?.classList.add('column-hidden');
+            });
+        }
+    }
+
+    // Update checkboxes
+    // 체크박스 상태 업데이트
+    checkboxes.forEach(cb => {
+        cb.checked = show;
+    });
+
+    savePreferencesToStorage();
+}
+
+// Reset column visibility to default (all visible)
+// 컬럼 표시 상태를 기본값(모두 표시)으로 초기화
+function resetColumnVisibility() {
+    toggleAllColumns(true);
+}
+
 // Save preferences to localStorage
 // localStorage에 환경설정 저장
 function savePreferencesToStorage() {
@@ -73774,7 +73996,21 @@ function toggleSelectAll() {
 
 function updateSelectionUI() {
     const count = selectedEmployees.size;
-    document.getElementById('selectedCount').textContent = `${count} 선택됨`;
+    const countElement = document.getElementById('selectedCount');
+    const langLabel = countElement.querySelector('.lang-label');
+
+    // Update count text based on current language
+    // 현재 언어에 따라 선택 수 텍스트 업데이트
+    if (langLabel) {
+        langLabel.setAttribute('data-ko', `${count} 선택됨`);
+        langLabel.setAttribute('data-en', `${count} selected`);
+        langLabel.setAttribute('data-vi', `Đã chọn ${count}`);
+        langLabel.textContent = currentLanguage === 'en' ? `${count} selected` :
+                                currentLanguage === 'vi' ? `Đã chọn ${count}` : `${count} 선택됨`;
+    } else {
+        countElement.textContent = `${count} 선택됨`;
+    }
+
     document.getElementById('exportSelectedBtn').disabled = count === 0;
     document.getElementById('printSelectedBtn').disabled = count === 0;
 }
