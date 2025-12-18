@@ -1600,14 +1600,22 @@ class CompleteDashboardBuilder:
         margin-bottom: 10px;
     }
 
-    /* Language Switcher */
-    .language-switcher {
+    /* Header Controls Container / 헤더 컨트롤 컨테이너 */
+    .header-controls {
         position: absolute;
         top: 20px;
         right: 20px;
         display: flex;
-        gap: 8px;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
         z-index: 10;
+    }
+
+    /* Language Switcher */
+    .language-switcher {
+        display: flex;
+        gap: 8px;
     }
 
     .lang-btn {
@@ -1636,6 +1644,137 @@ class CompleteDashboardBuilder:
         border-color: white;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         transform: scale(1.15);
+    }
+
+    /* Download Button / 다운로드 버튼 */
+    .download-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.15);
+        border: 2px solid rgba(255,255,255,0.4);
+        border-radius: 25px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .download-btn:hover {
+        background: rgba(255,255,255,0.25);
+        border-color: rgba(255,255,255,0.7);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .download-btn:active {
+        transform: translateY(0);
+    }
+
+    .download-icon {
+        font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+        .header-controls {
+            top: 10px;
+            right: 10px;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+        }
+
+        .download-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .download-text {
+            display: none;
+        }
+
+        .download-icon {
+            font-size: 16px;
+        }
+    }
+
+    /* Download Toast Notification / 다운로드 토스트 알림 */
+    .download-toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(40, 167, 69, 0.4);
+        z-index: 9999;
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+        transition: all 0.3s ease;
+    }
+
+    .download-toast.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    .download-toast-icon {
+        font-size: 28px;
+        animation: bounce 0.5s ease;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
+    .download-toast-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .download-toast-message {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .download-toast-filename {
+        font-size: 12px;
+        opacity: 0.9;
+        font-family: monospace;
+    }
+
+    @media (max-width: 768px) {
+        .download-toast {
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            padding: 12px 16px;
+        }
+
+        .download-toast-icon {
+            font-size: 24px;
+        }
+
+        .download-toast-message {
+            font-size: 13px;
+        }
+
+        .download-toast-filename {
+            font-size: 10px;
+        }
     }
 
     .summary-card {
@@ -2527,11 +2666,18 @@ class CompleteDashboardBuilder:
         return f"""
 <div class="dashboard-header">
     <div class="container-xl position-relative">
-        <!-- Language Switcher -->
-        <div class="language-switcher">
-            <button class="lang-btn active" data-lang="ko" onclick="switchLanguage('ko')" title="한국어">🇰🇷</button>
-            <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')" title="English">🇺🇸</button>
-            <button class="lang-btn" data-lang="vi" onclick="switchLanguage('vi')" title="Tiếng Việt">🇻🇳</button>
+        <!-- Language Switcher & Download Button -->
+        <!-- 언어 전환 및 다운로드 버튼 -->
+        <div class="header-controls">
+            <div class="language-switcher">
+                <button class="lang-btn active" data-lang="ko" onclick="switchLanguage('ko')" title="한국어">🇰🇷</button>
+                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')" title="English">🇺🇸</button>
+                <button class="lang-btn" data-lang="vi" onclick="switchLanguage('vi')" title="Tiếng Việt">🇻🇳</button>
+            </div>
+            <button class="download-btn" onclick="downloadDashboard()" title="대시보드 다운로드">
+                <span class="download-icon">📥</span>
+                <span class="download-text lang-text" data-ko="다운로드" data-en="Download" data-vi="Tải xuống">다운로드</span>
+            </button>
         </div>
 
         <h1 class="lang-title" data-ko="👥 HR 대시보드" data-en="👥 HR Dashboard" data-vi="👥 Bảng điều khiển HR">👥 HR 대시보드</h1>
@@ -4941,6 +5087,85 @@ document.addEventListener('DOMContentLoaded', function() {
         switchLanguage(savedLang);
     }
 });
+
+// ============================================
+// Dashboard Download Function
+// 대시보드 다운로드 기능
+// ============================================
+
+function downloadDashboard() {{
+    // Get the current page HTML
+    // 현재 페이지 HTML 가져오기
+    const htmlContent = document.documentElement.outerHTML;
+
+    // Create a Blob with the HTML content
+    // HTML 콘텐츠로 Blob 생성
+    const blob = new Blob([htmlContent], {{ type: 'text/html;charset=utf-8' }});
+
+    // Create download link
+    // 다운로드 링크 생성
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+
+    // Generate filename with current date
+    // 현재 날짜로 파일명 생성
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const pageTitle = document.title || 'HR_Dashboard';
+    const filename = `${{pageTitle.replace(/[^a-zA-Z0-9가-힣_-]/g, '_')}}_${{dateStr}}.html`;
+
+    link.download = filename;
+
+    // Trigger download
+    // 다운로드 실행
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up
+    // 정리
+    URL.revokeObjectURL(link.href);
+
+    // Show success message based on current language
+    // 현재 언어에 맞는 성공 메시지 표시
+    const messages = {{
+        ko: '✅ 대시보드가 다운로드되었습니다!',
+        en: '✅ Dashboard downloaded successfully!',
+        vi: '✅ Đã tải xuống bảng điều khiển!'
+    }};
+
+    // Create toast notification
+    // 토스트 알림 생성
+    showDownloadToast(messages[currentLanguage] || messages.ko, filename);
+
+    console.log(`📥 Dashboard downloaded: ${{filename}}`);
+}}
+
+function showDownloadToast(message, filename) {{
+    // Create toast element
+    // 토스트 요소 생성
+    const toast = document.createElement('div');
+    toast.className = 'download-toast';
+    toast.innerHTML = `
+        <div class="download-toast-icon">📥</div>
+        <div class="download-toast-content">
+            <div class="download-toast-message">${{message}}</div>
+            <div class="download-toast-filename">${{filename}}</div>
+        </div>
+    `;
+
+    // Add to document
+    document.body.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Remove after 3 seconds
+    setTimeout(() => {{
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }}, 3000);
+}}
 
 // ============================================
 // Helper Functions
