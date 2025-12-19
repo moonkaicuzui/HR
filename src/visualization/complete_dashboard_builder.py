@@ -2844,8 +2844,8 @@ class CompleteDashboardBuilder:
             (4, 'resignation_rate', '퇴사율', '%', 'Resignation Rate', 'Tỷ lệ nghỉ việc'),
             (5, 'recent_hires', '신규 입사자', '명', 'Recent Hires', 'Nhân viên mới'),
             (6, 'recent_resignations', '최근 퇴사자', '명', 'Recent Resignations', 'Nghỉ việc gần đây'),
-            (7, 'under_60_days', '60일 미만', '명', 'Under 60 Days', 'Dưới 60 ngày'),
-            (8, 'post_assignment_resignations', '배정 후 퇴사', '명', 'Post-Assignment', 'Sau phân công'),
+            (7, 'under_60_days', '60일 미만 재직자', '명', 'Under 60 Days Tenure', 'Dưới 60 ngày làm việc'),
+            (8, 'post_assignment_resignations', '라인 배정 후 퇴사', '명', 'Post-Line Assignment', 'Nghỉ sau phân công'),
             (9, 'perfect_attendance', '개근 직원', '명', 'Perfect Attendance', 'Chuyên cần hoàn hảo'),
             (10, 'long_term_employees', '장기근속자', '명', 'Long-term (1yr+)', 'Lâu năm (1 năm+)'),
             (11, 'data_errors', '데이터 오류', '건', 'Data Errors', 'Lỗi dữ liệu'),
@@ -2862,7 +2862,33 @@ class CompleteDashboardBuilder:
             change_html = ''
             if change:
                 sign = '+' if change['absolute'] >= 0 else ''
-                change_class = 'positive' if change['absolute'] >= 0 else 'negative'
+
+                # Inverse metrics: increase is BAD (should show as negative/red)
+                # 역방향 지표: 증가가 나쁜 것 (빨간색으로 표시)
+                inverse_metrics = {
+                    'absence_rate_excl_maternity',  # 결근율 증가 = 나쁨
+                    'unauthorized_absence_rate',     # 무단결근율 증가 = 나쁨
+                    'resignation_rate',              # 퇴사율 증가 = 나쁨
+                    'recent_resignations',           # 퇴사자 증가 = 나쁨
+                    'under_60_days',                 # 60일 미만 증가 = 이탈 위험 증가
+                    'post_assignment_resignations',  # 배정 후 퇴사 증가 = 나쁨
+                    'data_errors',                   # 데이터 오류 증가 = 나쁨
+                    'team_absence_avg'               # 팀별 결근율 증가 = 나쁨
+                }
+
+                # Determine if this is a good or bad change
+                # 이 변화가 좋은 것인지 나쁜 것인지 판단
+                is_increase = change['absolute'] >= 0
+                is_inverse_metric = key in inverse_metrics
+
+                # For inverse metrics: increase is bad (negative class)
+                # For normal metrics: increase is good (positive class)
+                # 역방향 지표: 증가 = 나쁨 (negative), 일반 지표: 증가 = 좋음 (positive)
+                if is_inverse_metric:
+                    change_class = 'negative' if is_increase else 'positive'
+                else:
+                    change_class = 'positive' if is_increase else 'negative'
+
                 abs_val = round(change["absolute"], 2) if isinstance(change["absolute"], float) else change["absolute"]
                 change_html = f'<div class="card-change {change_class}">{sign}{abs_val} ({sign}{change["percentage"]:.1f}%)</div>'
 
@@ -2903,9 +2929,14 @@ class CompleteDashboardBuilder:
                     'vi': "📐 Công thức: Nhân viên nghỉ việc trong tháng"
                 },
                 'under_60_days': {
-                    'ko': "📐 계산: 재직 기간 < 60일인 재직자 수",
-                    'en': "📐 Formula: Active employees with tenure < 60 days",
-                    'vi': "📐 Công thức: NV đang làm việc < 60 ngày"
+                    'ko': "📐 계산: 재직 기간 < 60일인 재직자 수 (이탈 위험군)",
+                    'en': "📐 Formula: Active employees with tenure < 60 days (at-risk group)",
+                    'vi': "📐 Công thức: NV đang làm việc < 60 ngày (nhóm rủi ro)"
+                },
+                'post_assignment_resignations': {
+                    'ko': "📐 계산: 라인 배정 후 60일 이내 퇴사자 수",
+                    'en': "📐 Formula: Resignations within 60 days after line assignment",
+                    'vi': "📐 Công thức: Nghỉ việc trong 60 ngày sau phân công dây chuyền"
                 },
                 'perfect_attendance': {
                     'ko': "📐 계산: 실제 근무일 = 전체 근무일인 직원 수",
@@ -2926,6 +2957,11 @@ class CompleteDashboardBuilder:
                     'ko': "📐 계산: 모든 팀의 결근율 평균",
                     'en': "📐 Formula: Average of all team absence rates",
                     'vi': "📐 Công thức: TB tỷ lệ vắng mặt của tất cả các nhóm"
+                },
+                'pregnant_employees': {
+                    'ko': "📐 계산: 임신 상태로 등록된 재직자 수",
+                    'en': "📐 Formula: Active employees registered as pregnant",
+                    'vi': "📐 Công thức: NV đang làm việc đăng ký mang thai"
                 }
             }
 
@@ -2960,10 +2996,24 @@ class CompleteDashboardBuilder:
         return '\n'.join(html_parts)
 
     def _generate_charts_section(self) -> str:
-        """Generate charts section with 2-column grid"""
+        """Generate charts section with 2-column grid and period selector"""
         return """
 <div class="charts-section">
-    <h4 class="mb-4 lang-section-title" data-ko="📈 월별 추세 분석" data-en="📈 Monthly Trends" data-vi="📈 Xu hướng hàng tháng">📈 월별 추세 분석</h4>
+    <!-- Header with Period Selector / 기간 선택기가 있는 헤더 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 lang-section-title" data-ko="📈 월별 추세 분석" data-en="📈 Monthly Trends" data-vi="📈 Xu hướng hàng tháng">📈 월별 추세 분석</h4>
+        <div class="btn-group" role="group" id="periodSelector">
+            <button type="button" class="btn btn-outline-primary btn-sm" data-period="3" onclick="updateTrendPeriod(3)">
+                <span class="lang-option" data-ko="3개월" data-en="3 Months" data-vi="3 tháng">3개월</span>
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm active" data-period="6" onclick="updateTrendPeriod(6)">
+                <span class="lang-option" data-ko="6개월" data-en="6 Months" data-vi="6 tháng">6개월</span>
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-period="12" onclick="updateTrendPeriod(12)">
+                <span class="lang-option" data-ko="12개월" data-en="12 Months" data-vi="12 tháng">12개월</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Row 1: Employee Trend & Hires/Resignations -->
     <div class="row">
@@ -6822,11 +6872,78 @@ document.querySelectorAll('#hierarchyChartTabs button').forEach(button => {{
 }});
 
 // ============================================
-// Main Trend Charts
+// Main Trend Charts with Period Selector
+// 기간 선택이 가능한 트렌드 차트
 // ============================================
 
+// Store chart instances for updating
+// 업데이트를 위해 차트 인스턴스 저장
+let trendCharts = {};
+let currentTrendPeriod = 6; // Default: 6 months / 기본값: 6개월
+
+// Get trend data filtered by period
+// 기간으로 필터링된 트렌드 데이터 가져오기
+function getTrendDataForPeriod(metricKey, period) {
+    const data = availableMonths.map(month => monthlyMetrics[month][metricKey]);
+    return data.slice(-period); // Last N months / 최근 N개월
+}
+
+// Get labels filtered by period
+// 기간으로 필터링된 레이블 가져오기
+function getLabelsForPeriod(period) {
+    return monthLabels.slice(-period);
+}
+
+// Update all trend charts with new period
+// 새 기간으로 모든 트렌드 차트 업데이트
+function updateTrendPeriod(period) {
+    currentTrendPeriod = period;
+
+    // Update button states
+    document.querySelectorAll('#periodSelector button').forEach(btn => {
+        btn.classList.remove('active');
+        if (parseInt(btn.dataset.period) === period) {
+            btn.classList.add('active');
+        }
+    });
+
+    const newLabels = getLabelsForPeriod(period);
+
+    // Update each chart
+    Object.keys(trendCharts).forEach(chartId => {
+        const chart = trendCharts[chartId];
+        if (chart) {
+            chart.data.labels = newLabels;
+
+            // Update each dataset based on chart type
+            chart.data.datasets.forEach((dataset, index) => {
+                const metricKey = getMetricKeyForChart(chartId, index);
+                if (metricKey) {
+                    dataset.data = getTrendDataForPeriod(metricKey, period);
+                }
+            });
+
+            chart.update('active');
+        }
+    });
+}
+
+// Map chart IDs to metric keys
+// 차트 ID를 메트릭 키에 매핑
+function getMetricKeyForChart(chartId, datasetIndex) {
+    const mapping = {
+        'employeeTrend': ['total_employees'],
+        'hiresResignations': ['recent_hires', 'recent_resignations', 'maternity_leave_count'],
+        'resignationRate': ['resignation_rate'],
+        'longTerm': ['long_term_employees'],
+        'unauthorizedAbsence': ['unauthorized_absence_rate'],
+        'absenceRate': ['absence_rate', 'absence_rate_excl_maternity']
+    };
+    return mapping[chartId] ? mapping[chartId][datasetIndex] : null;
+}
+
 // Chart 1: Employee Trend
-new Chart(document.getElementById('employeeTrendChart'), {
+trendCharts.employeeTrend = new Chart(document.getElementById('employeeTrendChart'), {
     type: 'line',
     data: {
         labels: monthLabels,
@@ -6847,7 +6964,7 @@ new Chart(document.getElementById('employeeTrendChart'), {
 });
 
 // Chart 2: Hires vs Resignations vs Maternity Leave
-new Chart(document.getElementById('hiresResignationsChart'), {
+trendCharts.hiresResignations = new Chart(document.getElementById('hiresResignationsChart'), {
     type: 'bar',
     data: {
         labels: monthLabels,
@@ -6909,7 +7026,7 @@ new Chart(document.getElementById('hiresResignationsChart'), {
 });
 
 // Chart 3: Resignation Rate
-new Chart(document.getElementById('resignationRateChart'), {
+trendCharts.resignationRate = new Chart(document.getElementById('resignationRateChart'), {
     type: 'line',
     data: {
         labels: monthLabels,
@@ -6936,7 +7053,7 @@ new Chart(document.getElementById('resignationRateChart'), {
 });
 
 // Chart 4: Long-term Employees
-new Chart(document.getElementById('longTermChart'), {
+trendCharts.longTerm = new Chart(document.getElementById('longTermChart'), {
     type: 'bar',
     data: {
         labels: monthLabels,
@@ -6956,7 +7073,7 @@ new Chart(document.getElementById('longTermChart'), {
 });
 
 // Chart 5: Unauthorized Absence Rate
-new Chart(document.getElementById('unauthorizedAbsenceChart'), {
+trendCharts.unauthorizedAbsence = new Chart(document.getElementById('unauthorizedAbsenceChart'), {
     type: 'bar',
     data: {
         labels: monthLabels,
@@ -6995,7 +7112,7 @@ new Chart(document.getElementById('unauthorizedAbsenceChart'), {
 });
 
 // Chart 6: Absence Rate (with Maternity Leave comparison)
-new Chart(document.getElementById('absenceRateChart'), {
+trendCharts.absenceRate = new Chart(document.getElementById('absenceRateChart'), {
     type: 'line',
     data: {
         labels: monthLabels,
