@@ -3565,12 +3565,14 @@ class CompleteDashboardBuilder:
             🏢 팀별 분석
         </h4>
         <div class="team-selector-group">
-            <select class="form-select" id="teamPositionSelect" onchange="filterTeamsByPosition()">
-                <option value="all" selected>전체 직급</option>
+            <select class="form-select lang-select" id="teamPositionSelect" onchange="filterTeamsByPosition()"
+                    data-ko-placeholder="전체 직급" data-en-placeholder="All Positions" data-vi-placeholder="Tất cả chức vụ">
+                <option value="all" selected class="lang-option" data-ko="전체 직급" data-en="All Positions" data-vi="Tất cả chức vụ">전체 직급</option>
                 <!-- Populated by JavaScript -->
             </select>
-            <select class="form-select ms-2" id="teamNameSelect" onchange="selectTeam()">
-                <option value="all" selected>팀 선택...</option>
+            <select class="form-select ms-2 lang-select" id="teamNameSelect" onchange="selectTeam()"
+                    data-ko-placeholder="팀 선택..." data-en-placeholder="Select Team..." data-vi-placeholder="Chọn nhóm...">
+                <option value="all" selected class="lang-option" data-ko="팀 선택..." data-en="Select Team..." data-vi="Chọn nhóm...">팀 선택...</option>
                 <!-- Populated by JavaScript -->
             </select>
         </div>
@@ -3581,36 +3583,36 @@ class CompleteDashboardBuilder:
         <div class="col-md-3">
             <div class="card border-primary h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">총 팀 수</h6>
+                    <h6 class="text-muted mb-2 lang-text" data-ko="총 팀 수" data-en="Total Teams" data-vi="Tổng số nhóm">총 팀 수</h6>
                     <h2 class="mb-0" id="totalTeamsCount">0</h2>
-                    <small class="text-muted">Total Teams</small>
+                    <small class="text-muted lang-text" data-ko="개 팀" data-en="teams" data-vi="nhóm">개 팀</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-success h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">총 팀원 수</h6>
+                    <h6 class="text-muted mb-2 lang-text" data-ko="총 팀원 수" data-en="Total Members" data-vi="Tổng thành viên">총 팀원 수</h6>
                     <h2 class="mb-0" id="totalTeamMembersCount">0</h2>
-                    <small class="text-muted">Total Members</small>
+                    <small class="text-muted lang-text" data-ko="명" data-en="people" data-vi="người">명</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-info h-100">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">평균 출근율</h6>
+                    <h6 class="text-muted mb-2 lang-text" data-ko="평균 출근율" data-en="Avg Attendance" data-vi="Tỷ lệ TB">평균 출근율</h6>
                     <h2 class="mb-0" id="avgTeamAttendance">0%</h2>
-                    <small class="text-muted">Average Attendance</small>
+                    <small class="text-muted lang-text" data-ko="전체 평균" data-en="overall avg" data-vi="trung bình">전체 평균</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-warning h-100">
+            <div class="card border-warning h-100" title="출근율이 가장 높은 팀 / Team with highest attendance rate">
                 <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">최고 성과 팀</h6>
+                    <h6 class="text-muted mb-2 lang-text" data-ko="최고 성과 팀" data-en="Top Team" data-vi="Nhóm tốt nhất">최고 성과 팀</h6>
                     <h5 class="mb-0" id="topPerformingTeam">-</h5>
-                    <small class="text-muted">Top Team</small>
+                    <small class="text-muted lang-text" data-ko="📊 출근율 기준" data-en="📊 by attendance" data-vi="📊 theo tỷ lệ">📊 출근율 기준</small>
                 </div>
             </div>
         </div>
@@ -3621,7 +3623,7 @@ class CompleteDashboardBuilder:
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">팀별 출근율 비교</h6>
+                    <h6 class="mb-0 lang-text" data-ko="📊 팀별 출근율 비교" data-en="📊 Attendance by Team" data-vi="📊 Tỷ lệ theo nhóm">📊 팀별 출근율 비교</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="teamAttendanceComparisonChart" height="250"></canvas>
@@ -3631,7 +3633,7 @@ class CompleteDashboardBuilder:
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">팀별 인원 분포</h6>
+                    <h6 class="mb-0 lang-text" data-ko="👥 팀별 인원 분포" data-en="👥 Team Size Distribution" data-vi="👥 Phân bố nhân sự">👥 팀별 인원 분포</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="teamSizeDistributionChart" height="250"></canvas>
@@ -3644,7 +3646,7 @@ class CompleteDashboardBuilder:
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">팀별 TYPE 분포</h6>
+                    <h6 class="mb-0 lang-text" data-ko="🏷️ 팀별 TYPE 분포" data-en="🏷️ TYPE Distribution" data-vi="🏷️ Phân bố TYPE">🏷️ 팀별 TYPE 분포</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="teamTypeBreakdownChart" height="250"></canvas>
@@ -3654,7 +3656,7 @@ class CompleteDashboardBuilder:
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">팀별 근속연수</h6>
+                    <h6 class="mb-0 lang-text" data-ko="📅 팀별 평균 근속연수" data-en="📅 Avg Tenure by Team" data-vi="📅 Thâm niên TB">📅 팀별 평균 근속연수</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="teamTenureChart" height="250"></canvas>
@@ -3666,9 +3668,9 @@ class CompleteDashboardBuilder:
     <!-- Team Details Table -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">팀 상세 정보</h6>
+            <h6 class="mb-0 lang-text" data-ko="📋 팀 상세 정보" data-en="📋 Team Details" data-vi="📋 Chi tiết nhóm">📋 팀 상세 정보</h6>
             <button class="btn btn-sm btn-outline-primary" onclick="exportTeamAnalysis()">
-                📥 내보내기
+                <span class="lang-text" data-ko="📥 내보내기" data-en="📥 Export" data-vi="📥 Xuất">📥 내보내기</span>
             </button>
         </div>
         <div class="card-body">
@@ -3676,14 +3678,16 @@ class CompleteDashboardBuilder:
                 <table class="table table-hover" id="teamDetailsTable">
                     <thead class="table-light">
                         <tr>
-                            <th>직급</th>
-                            <th>팀명</th>
-                            <th>팀원 수</th>
-                            <th>평균 출근율</th>
-                            <th>개근자</th>
-                            <th>고위험</th>
-                            <th>평균 근속</th>
-                            <th>액션</th>
+                            <th class="lang-text" data-ko="직급" data-en="Position" data-vi="Chức vụ">직급</th>
+                            <th class="lang-text" data-ko="팀명" data-en="Team" data-vi="Nhóm">팀명</th>
+                            <th class="lang-text" data-ko="팀원 수" data-en="Members" data-vi="Thành viên">팀원 수</th>
+                            <th class="lang-text" data-ko="평균 출근율" data-en="Attendance" data-vi="Tỷ lệ">평균 출근율</th>
+                            <th class="lang-text" data-ko="개근자" data-en="Perfect" data-vi="Hoàn hảo">개근자</th>
+                            <th class="lang-text" data-ko="고위험 ⓘ" data-en="High Risk ⓘ" data-vi="Rủi ro ⓘ"
+                                title="결근율 >30% 또는 무단결근율 >15% / Absence >30% or Unauthorized >15%"
+                                style="cursor: help; text-decoration: underline dotted;">고위험 ⓘ</th>
+                            <th class="lang-text" data-ko="평균 근속" data-en="Tenure" data-vi="Thâm niên">평균 근속</th>
+                            <th class="lang-text" data-ko="액션" data-en="Action" data-vi="Hành động">액션</th>
                         </tr>
                     </thead>
                     <tbody id="teamDetailsTableBody">
