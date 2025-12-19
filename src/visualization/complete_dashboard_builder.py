@@ -4163,9 +4163,19 @@ class CompleteDashboardBuilder:
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0 lang-text" data-ko="📋 팀 상세 정보" data-en="📋 Team Details" data-vi="📋 Chi tiết nhóm">📋 팀 상세 정보</h6>
-            <button class="btn btn-sm btn-outline-primary" onclick="exportTeamAnalysis()">
-                <span class="lang-text" data-ko="📥 내보내기" data-en="📥 Export" data-vi="📥 Xuất">📥 내보내기</span>
-            </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="lang-text" data-ko="📥 내보내기" data-en="📥 Export" data-vi="📥 Xuất">📥 내보내기</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" onclick="exportTeamAnalysis(); return false;">
+                        <span class="lang-text" data-ko="📊 CSV 형식" data-en="📊 CSV Format" data-vi="📊 Định dạng CSV">📊 CSV 형식</span>
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportTeamAnalysisJSON(); return false;">
+                        <span class="lang-text" data-ko="📋 JSON 형식" data-en="📋 JSON Format" data-vi="📋 Định dạng JSON">📋 JSON 형식</span>
+                    </a></li>
+                </ul>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -16448,8 +16458,230 @@ function viewTeamDetail(teamKey) {{
 }}
 
 function exportTeamAnalysis() {{
-    alert('\ud300 \ubd84\uc11d \ub370\uc774\ud130 \ub0b4\ubcf4\ub0b4\uae30 \uae30\ub2a5\uc740 \uac1c\ubc1c \uc911\uc785\ub2c8\ub2e4.');
-    // TODO: Implement export functionality
+    /**
+     * Export team analysis data to CSV
+     * 팀 분석 데이터를 CSV로 내보내기
+     */
+    try {{
+        // Build export data from teamData
+        // teamData에서 내보내기 데이터 구성
+        const exportRows = [];
+
+        // Header row
+        const headers = [
+            '팀명 (Team)',
+            '총 인원 (Total)',
+            '결근율 (%) (Absence Rate)',
+            '무단결근율 (%) (Unauthorized)',
+            '완벽출근 (Perfect Attendance)',
+            '완벽출근율 (%) (Perfect Rate)',
+            '전월 대비 (vs Previous)',
+            '상태 (Status)'
+        ];
+        exportRows.push(headers.join(','));
+
+        // Get team names sorted
+        const teamNames = Object.keys(teamData).sort((a, b) => {{
+            const countA = teamData[a].members ? teamData[a].members.length : 0;
+            const countB = teamData[b].members ? teamData[b].members.length : 0;
+            return countB - countA;
+        }});
+
+        let grandTotal = 0;
+        let grandAbsent = 0;
+        let grandUnauthorized = 0;
+        let grandPerfect = 0;
+
+        teamNames.forEach(teamName => {{
+            const team = teamData[teamName];
+            const members = team.members || [];
+            const memberCount = members.length;
+
+            if (memberCount === 0) return;
+
+            grandTotal += memberCount;
+
+            // Calculate metrics
+            let absentCount = 0;
+            let unauthorizedCount = 0;
+            let perfectCount = 0;
+
+            members.forEach(member => {{
+                const absentDays = member.absent_days || 0;
+                const unauthorizedDays = member.unauthorized_absent_days || 0;
+
+                if (absentDays > 0) absentCount++;
+                if (unauthorizedDays > 0) unauthorizedCount++;
+                if (absentDays === 0) perfectCount++;
+            }});
+
+            grandAbsent += absentCount;
+            grandUnauthorized += unauthorizedCount;
+            grandPerfect += perfectCount;
+
+            const absenceRate = memberCount > 0 ? ((absentCount / memberCount) * 100).toFixed(1) : '0.0';
+            const unauthorizedRate = memberCount > 0 ? ((unauthorizedCount / memberCount) * 100).toFixed(1) : '0.0';
+            const perfectRate = memberCount > 0 ? ((perfectCount / memberCount) * 100).toFixed(1) : '0.0';
+
+            // Calculate month-over-month change
+            let momChange = '-';
+            let status = '정상';
+
+            if (previousMonthTeamData && previousMonthTeamData[teamName]) {{
+                const prevMembers = previousMonthTeamData[teamName].members || [];
+                const prevCount = prevMembers.length;
+                if (prevCount > 0) {{
+                    const change = memberCount - prevCount;
+                    const changePercent = ((change / prevCount) * 100).toFixed(1);
+                    momChange = change >= 0 ? `+${{change}} (+${{changePercent}}%)` : `${{change}} (${{changePercent}}%)`;
+                }}
+            }}
+
+            // Determine status based on unauthorized rate
+            const uRate = parseFloat(unauthorizedRate);
+            if (uRate >= 5) {{
+                status = '경고';
+            }} else if (uRate >= 2) {{
+                status = '주의';
+            }} else {{
+                status = '양호';
+            }}
+
+            // Escape and format CSV row
+            const row = [
+                `"${{teamName}}"`,
+                memberCount,
+                absenceRate,
+                unauthorizedRate,
+                perfectCount,
+                perfectRate,
+                `"${{momChange}}"`,
+                status
+            ];
+            exportRows.push(row.join(','));
+        }});
+
+        // Add summary row
+        const totalAbsenceRate = grandTotal > 0 ? ((grandAbsent / grandTotal) * 100).toFixed(1) : '0.0';
+        const totalUnauthorizedRate = grandTotal > 0 ? ((grandUnauthorized / grandTotal) * 100).toFixed(1) : '0.0';
+        const totalPerfectRate = grandTotal > 0 ? ((grandPerfect / grandTotal) * 100).toFixed(1) : '0.0';
+
+        exportRows.push('');  // Empty row
+        exportRows.push([
+            '"전체 (Total)"',
+            grandTotal,
+            totalAbsenceRate,
+            totalUnauthorizedRate,
+            grandPerfect,
+            totalPerfectRate,
+            '"-"',
+            '"-"'
+        ].join(','));
+
+        // Create CSV content with BOM for Excel Korean support
+        const csvContent = '\ufeff' + exportRows.join('\n');
+
+        // Create and download file
+        const blob = new Blob([csvContent], {{ type: 'text/csv;charset=utf-8;' }});
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        // Generate filename with current date
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const filename = `Team_Analysis_${{dateStr}}.csv`;
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        // Show success message
+        showToast(
+            '팀 분석 내보내기 완료',
+            `${{teamNames.length}}개 팀 데이터가 CSV 파일로 저장되었습니다.`,
+            'success'
+        );
+
+    }} catch (error) {{
+        console.error('Export error:', error);
+        showToast('내보내기 오류', '팀 분석 데이터 내보내기 중 오류가 발생했습니다.', 'error');
+    }}
+}}
+
+function exportTeamAnalysisJSON() {{
+    /**
+     * Export team analysis data to JSON
+     * 팀 분석 데이터를 JSON으로 내보내기
+     */
+    try {{
+        const exportData = {{}};
+
+        Object.keys(teamData).forEach(teamName => {{
+            const team = teamData[teamName];
+            const members = team.members || [];
+
+            if (members.length === 0) return;
+
+            let absentCount = 0;
+            let unauthorizedCount = 0;
+            let perfectCount = 0;
+
+            members.forEach(member => {{
+                if ((member.absent_days || 0) > 0) absentCount++;
+                if ((member.unauthorized_absent_days || 0) > 0) unauthorizedCount++;
+                if ((member.absent_days || 0) === 0) perfectCount++;
+            }});
+
+            exportData[teamName] = {{
+                total_employees: members.length,
+                absence_count: absentCount,
+                absence_rate: members.length > 0 ? ((absentCount / members.length) * 100).toFixed(2) : 0,
+                unauthorized_count: unauthorizedCount,
+                unauthorized_rate: members.length > 0 ? ((unauthorizedCount / members.length) * 100).toFixed(2) : 0,
+                perfect_attendance_count: perfectCount,
+                perfect_attendance_rate: members.length > 0 ? ((perfectCount / members.length) * 100).toFixed(2) : 0,
+                members: members.map(m => ({{
+                    employee_no: m.employee_no,
+                    name: m.name,
+                    position: m.position_1st,
+                    tenure_days: m.tenure_days,
+                    absent_days: m.absent_days || 0,
+                    unauthorized_absent_days: m.unauthorized_absent_days || 0
+                }}))
+            }};
+        }});
+
+        const jsonContent = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonContent], {{ type: 'application/json;charset=utf-8;' }});
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const filename = `Team_Analysis_${{dateStr}}.json`;
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast(
+            '팀 분석 내보내기 완료',
+            `${{Object.keys(exportData).length}}개 팀 데이터가 JSON 파일로 저장되었습니다.`,
+            'success'
+        );
+
+    }} catch (error) {{
+        console.error('Export error:', error);
+        showToast('내보내기 오류', '팀 분석 데이터 내보내기 중 오류가 발생했습니다.', 'error');
+    }}
 }}
 
 // Initialize team analysis on tab switch (null check to prevent error)
