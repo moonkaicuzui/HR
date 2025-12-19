@@ -2429,17 +2429,17 @@ if (typeof module !== 'undefined' && module.exports) {
                 <div class="col-md-3">
                     <div class="stat-item">
                         <div class="stat-label small opacity-75">
-                            <span class="lang-stat" data-ko="개근률" data-en="Perfect Rate" data-vi="Tỷ lệ chuyên cần">개근률</span>
+                            <span class="lang-stat" data-ko="이번 달 결근자" data-en="Absent (Month)" data-vi="Vắng (Tháng)">이번 달 결근자</span>
                         </div>
-                        <div class="stat-value fs-4 fw-bold" id="statsPerfectRate">0%</div>
+                        <div class="stat-value fs-4 fw-bold" id="statsAbsentCount">0명</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-item">
                         <div class="stat-label small opacity-75">
-                            <span class="lang-stat" data-ko="평균 재직기간" data-en="Avg. Tenure" data-vi="Thâm niên TB">평균 재직기간</span>
+                            <span class="lang-stat" data-ko="무단결근자" data-en="Unauthorized" data-vi="Không phép">무단결근자</span>
                         </div>
-                        <div class="stat-value fs-4 fw-bold" id="statsAvgTenure">0일</div>
+                        <div class="stat-value fs-4 fw-bold text-danger" id="statsUnauthorizedCount">0명</div>
                     </div>
                 </div>
             </div>
@@ -2497,14 +2497,26 @@ if (typeof module !== 'undefined' && module.exports) {
                         <label class="column-item"><input type="checkbox" checked data-column="3" onchange="toggleColumn(3)"><span class="column-icon">🏷️</span><span class="column-name lang-label" data-ko="유형" data-en="Type" data-vi="Loại">유형</span></label>
                     </div>
 
-                    <!-- Category: Work Info / 근무정보 -->
+                    <!-- Category: Work Info / 근무정보 (hidden by default for cleaner view) -->
                     <div class="column-category">
                         <div class="category-header">
                             <span class="lang-label" data-ko="🏢 근무정보" data-en="🏢 Work Info" data-vi="🏢 Thông tin công việc">🏢 근무정보</span>
+                            <small class="text-muted ms-1">(선택)</small>
                         </div>
-                        <label class="column-item"><input type="checkbox" checked data-column="4" onchange="toggleColumn(4)"><span class="column-icon">🏢</span><span class="column-name lang-label" data-ko="건물" data-en="Building" data-vi="Tòa">건물</span></label>
-                        <label class="column-item"><input type="checkbox" checked data-column="5" onchange="toggleColumn(5)"><span class="column-icon">📍</span><span class="column-name lang-label" data-ko="라인" data-en="Line" data-vi="Dây">라인</span></label>
-                        <label class="column-item"><input type="checkbox" checked data-column="6" onchange="toggleColumn(6)"><span class="column-icon">👔</span><span class="column-name lang-label" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span></label>
+                        <label class="column-item"><input type="checkbox" data-column="4" onchange="toggleColumn(4)"><span class="column-icon">🏢</span><span class="column-name lang-label" data-ko="건물" data-en="Building" data-vi="Tòa">건물</span></label>
+                        <label class="column-item"><input type="checkbox" data-column="5" onchange="toggleColumn(5)"><span class="column-icon">📍</span><span class="column-name lang-label" data-ko="라인" data-en="Line" data-vi="Dây">라인</span></label>
+                        <label class="column-item"><input type="checkbox" data-column="6" onchange="toggleColumn(6)"><span class="column-icon">👔</span><span class="column-name lang-label" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span></label>
+                    </div>
+
+                    <!-- Category: Attendance Info / 출결정보 (핵심 HR 정보) -->
+                    <div class="column-category">
+                        <div class="category-header">
+                            <span class="lang-label" data-ko="📊 출결정보" data-en="📊 Attendance" data-vi="📊 Chấm công">📊 출결정보</span>
+                            <small class="text-success ms-1">★</small>
+                        </div>
+                        <label class="column-item"><input type="checkbox" checked data-column="7" onchange="toggleColumn(7)"><span class="column-icon">📅</span><span class="column-name lang-label" data-ko="근무일" data-en="Work Days" data-vi="Ngày làm">근무일</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="8" onchange="toggleColumn(8)"><span class="column-icon">❌</span><span class="column-name lang-label" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="9" onchange="toggleColumn(9)"><span class="column-icon">⚠️</span><span class="column-name lang-label" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span></label>
                     </div>
 
                     <!-- Category: Date Info / 날짜정보 -->
@@ -2512,10 +2524,10 @@ if (typeof module !== 'undefined' && module.exports) {
                         <div class="category-header">
                             <span class="lang-label" data-ko="📅 날짜정보" data-en="📅 Date Info" data-vi="📅 Thông tin ngày">📅 날짜정보</span>
                         </div>
-                        <label class="column-item"><input type="checkbox" checked data-column="7" onchange="toggleColumn(7)"><span class="column-icon">📥</span><span class="column-name lang-label" data-ko="입사일" data-en="Start Date" data-vi="Ngày vào">입사일</span></label>
-                        <label class="column-item"><input type="checkbox" checked data-column="8" onchange="toggleColumn(8)"><span class="column-icon">📤</span><span class="column-name lang-label" data-ko="퇴사일" data-en="End Date" data-vi="Ngày nghỉ">퇴사일</span></label>
-                        <label class="column-item"><input type="checkbox" checked data-column="9" onchange="toggleColumn(9)"><span class="column-icon">⏱️</span><span class="column-name lang-label" data-ko="재직기간" data-en="Tenure" data-vi="Thâm niên">재직기간</span></label>
-                        <label class="column-item"><input type="checkbox" checked data-column="10" onchange="toggleColumn(10)"><span class="column-icon">🔵</span><span class="column-name lang-label" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="10" onchange="toggleColumn(10)"><span class="column-icon">📥</span><span class="column-name lang-label" data-ko="입사일" data-en="Start Date" data-vi="Ngày vào">입사일</span></label>
+                        <label class="column-item"><input type="checkbox" data-column="11" onchange="toggleColumn(11)"><span class="column-icon">📤</span><span class="column-name lang-label" data-ko="퇴사일" data-en="End Date" data-vi="Ngày nghỉ">퇴사일</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="12" onchange="toggleColumn(12)"><span class="column-icon">⏱️</span><span class="column-name lang-label" data-ko="재직기간" data-en="Tenure" data-vi="Thâm niên">재직기간</span></label>
+                        <label class="column-item"><input type="checkbox" checked data-column="13" onchange="toggleColumn(13)"><span class="column-icon">🔵</span><span class="column-name lang-label" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></label>
                     </div>
                 </div>
             </div>
@@ -2644,9 +2656,12 @@ if (typeof module !== 'undefined' && module.exports) {
                     <th class="sortable" onclick="sortTable(4)" id="th-4"><span class="lang-th" data-ko="건물" data-en="Building" data-vi="Tòa nhà">건물</span> <span class="sort-indicator"></span></th>
                     <th class="sortable" onclick="sortTable(5)" id="th-5"><span class="lang-th" data-ko="라인" data-en="Line" data-vi="Dây chuyền">라인</span> <span class="sort-indicator"></span></th>
                     <th class="sortable" onclick="sortTable(6)" id="th-6"><span class="lang-th" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(7)" id="th-7"><span class="lang-th" data-ko="입사일" data-en="Entrance" data-vi="Ngày vào">입사일</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(8)" id="th-8"><span class="lang-th" data-ko="퇴사일" data-en="Stop" data-vi="Ngày nghỉ">퇴사일</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(9)" id="th-9"><span class="lang-th" data-ko="재직기간" data-en="Tenure" data-vi="Thâm niên">재직기간</span> <span class="sort-indicator"></span></th>
+                    <th class="sortable" onclick="sortTable(7)" id="th-7"><span class="lang-th" data-ko="근무일" data-en="Work" data-vi="Làm việc">근무일</span> <span class="sort-indicator"></span></th>
+                    <th class="sortable" onclick="sortTable(8)" id="th-8"><span class="lang-th" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span> <span class="sort-indicator"></span></th>
+                    <th class="sortable" onclick="sortTable(9)" id="th-9"><span class="lang-th" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span> <span class="sort-indicator"></span></th>
+                    <th class="sortable" onclick="sortTable(10)" id="th-10"><span class="lang-th" data-ko="입사일" data-en="Start" data-vi="Ngày vào">입사일</span> <span class="sort-indicator"></span></th>
+                    <th class="sortable" onclick="sortTable(11)" id="th-11"><span class="lang-th" data-ko="퇴사일" data-en="End" data-vi="Ngày nghỉ">퇴사일</span> <span class="sort-indicator"></span></th>
+                    <th class="sortable" onclick="sortTable(12)" id="th-12"><span class="lang-th" data-ko="재직" data-en="Tenure" data-vi="Thâm niên">재직</span> <span class="sort-indicator"></span></th>
                     <th><span class="lang-th" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></th>
                 </tr>
             </thead>
@@ -73378,22 +73393,28 @@ let pageSize = 50;
 let searchTerm = '';
 let searchTimeout = null;
 let selectedEmployees = new Set();
-let columnVisibility = Array(11).fill(true); // All columns visible by default
+// Default column visibility: hide Building(4), Line(5), Boss(6), StopDate(11) for cleaner view
+// 기본 열 표시 설정: 깔끔한 화면을 위해 건물(4), 라인(5), 상사(6), 퇴사일(11) 숨김
+// Columns: ID(0), Name(1), Position(2), Type(3), Building(4), Line(5), Boss(6), WorkDays(7), Absent(8), Unauth(9), Start(10), Stop(11), Tenure(12), Status(13)
+let columnVisibility = [true, true, true, true, false, false, false, true, true, true, true, false, true, true];
 let filteredEmployees = [];
 
 // Column field mapping for sorting
 // 정렬을 위한 컬럼 필드 매핑
 const sortColumnMap = [
-    'employee_id',    // Column 0: 사번/ID
-    'employee_name',  // Column 1: 이름/Name
-    'position',       // Column 2: 직급/Position
-    'role_type',      // Column 3: 유형/Type
-    'building',       // Column 4: 건물/Building
-    'line',           // Column 5: 라인/Line
-    'boss_name',      // Column 6: 상사/Boss
-    'entrance_date',  // Column 7: 입사일/Entrance
-    'stop_date',      // Column 8: 퇴사일/Stop
-    'tenure_days'     // Column 9: 재직기간/Tenure (numeric sort)
+    'employee_id',           // Column 0: 사번/ID
+    'employee_name',         // Column 1: 이름/Name
+    'position',              // Column 2: 직급/Position
+    'role_type',             // Column 3: 유형/Type
+    'building',              // Column 4: 건물/Building
+    'line',                  // Column 5: 라인/Line
+    'boss_name',             // Column 6: 상사/Boss
+    'working_days',          // Column 7: 근무일/Work Days (numeric)
+    'absent_days',           // Column 8: 결근/Absent Days (numeric)
+    'unauthorized_absent_days', // Column 9: 무단/Unauthorized (numeric)
+    'entrance_date',         // Column 10: 입사일/Start
+    'stop_date',             // Column 11: 퇴사일/End
+    'tenure_days'            // Column 12: 재직기간/Tenure (numeric)
 ];
 
 // Apply sorting to employee array
@@ -73408,9 +73429,10 @@ function applySortToData(employees) {
         let aVal = a[field] || '';
         let bVal = b[field] || '';
 
-        // Numeric sort for tenure_days
-        // tenure_days는 숫자 정렬
-        if (field === 'tenure_days') {
+        // Numeric sort for numeric fields
+        // 숫자 필드는 숫자 정렬
+        const numericFields = ['tenure_days', 'working_days', 'absent_days', 'unauthorized_absent_days'];
+        if (numericFields.includes(field)) {
             aVal = parseInt(aVal) || 0;
             bVal = parseInt(bVal) || 0;
             return currentSortAsc ? aVal - bVal : bVal - aVal;
@@ -73472,7 +73494,7 @@ function renderEmployeeTable(employees = null) {
     document.getElementById('nextPageBtn').disabled = currentPage >= totalPages || pageSize === -1;
 
     if (displayEmployees.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-4">직원이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-4">직원이 없습니다.</td></tr>';
         updateEmployeeCount(0);
         updateQuickStats([]);
         return;
@@ -73480,8 +73502,21 @@ function renderEmployeeTable(employees = null) {
 
     let html = '';
     displayEmployees.forEach(emp => {
-        const tenureMonths = Math.floor((emp.tenure_days || 0) / 30);
-        const tenureDisplay = emp.tenure_days ? `${emp.tenure_days}일 (${tenureMonths}개월)` : '-';
+        // Improved tenure display: years/months format for better readability
+        // 재직기간 표시 개선: 가독성을 위해 년/월 형식으로 표시
+        const tenureDays = emp.tenure_days || 0;
+        const tenureYears = Math.floor(tenureDays / 365);
+        const tenureMonths = Math.floor((tenureDays % 365) / 30);
+        let tenureDisplay = '-';
+        if (tenureDays > 0) {
+            if (tenureYears >= 1) {
+                tenureDisplay = tenureMonths > 0 ? `${tenureYears}년 ${tenureMonths}개월` : `${tenureYears}년`;
+            } else if (tenureMonths >= 1) {
+                tenureDisplay = `${tenureMonths}개월`;
+            } else {
+                tenureDisplay = `${tenureDays}일`;
+            }
+        }
 
         // Determine row class based on employee status
         let rowClass = '';
@@ -73525,6 +73560,16 @@ function renderEmployeeTable(employees = null) {
 
         const isChecked = selectedEmployees.has(emp.employee_id) ? 'checked' : '';
 
+        // Attendance data with visual indicators
+        // 출결 데이터 시각적 표시
+        const workingDays = emp.working_days || 0;
+        const absentDays = emp.absent_days || 0;
+        const unauthorizedDays = emp.unauthorized_absent_days || 0;
+
+        // Absent days badge color based on count
+        const absentBadgeClass = absentDays === 0 ? 'bg-success' : (absentDays >= 3 ? 'bg-danger' : 'bg-warning text-dark');
+        const unauthorizedBadgeClass = unauthorizedDays === 0 ? 'bg-light text-muted' : 'bg-danger';
+
         html += `
             <tr class="${rowClass}">
                 <td onclick="event.stopPropagation()"><input type="checkbox" class="employee-checkbox" value="${emp.employee_id}" ${isChecked} onchange="toggleEmployeeSelection('${emp.employee_id}')"></td>
@@ -73535,6 +73580,9 @@ function renderEmployeeTable(employees = null) {
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.building || ''}</td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.line || ''}</td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.boss_name || ''}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${workingDays}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;"><span class="badge ${absentBadgeClass}">${absentDays}</span></td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;"><span class="badge ${unauthorizedBadgeClass}">${unauthorizedDays}</span></td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.entrance_date || ''}</td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.stop_date || '-'}</td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${tenureDisplay}</td>
@@ -74038,13 +74086,13 @@ function updateQuickStats(employees) {
 
     const active = employees.filter(e => e.is_active).length;
     const resigned = employees.filter(e => e.resigned_this_month).length;
-    const perfect = employees.filter(e => e.perfect_attendance).length;
-    const avgTenure = Math.round(employees.reduce((sum, e) => sum + (e.tenure_days || 0), 0) / employees.length);
+    const absentCount = employees.filter(e => (e.absent_days || 0) > 0).length;
+    const unauthorizedCount = employees.filter(e => (e.unauthorized_absent_days || 0) > 0).length;
 
     document.getElementById('statsShowing').textContent = employees.length;
     document.getElementById('statsActiveResigned').textContent = `${active}/${resigned}`;
-    document.getElementById('statsPerfectRate').textContent = `${Math.round(perfect / employees.length * 100)}%`;
-    document.getElementById('statsAvgTenure').textContent = `${avgTenure}일`;
+    document.getElementById('statsAbsentCount').textContent = `${absentCount}명`;
+    document.getElementById('statsUnauthorizedCount').textContent = `${unauthorizedCount}명`;
 }
 
 function populateTeamFilter() {
