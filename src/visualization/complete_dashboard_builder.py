@@ -16579,7 +16579,7 @@ function exportTeamAnalysis() {{
         ].join(','));
 
         // Create CSV content with BOM for Excel Korean support
-        const csvContent = '\ufeff' + exportRows.join('\n');
+        const csvContent = '\\ufeff' + exportRows.join('\\n');
 
         // Create and download file
         const blob = new Blob([csvContent], {{ type: 'text/csv;charset=utf-8;' }});
