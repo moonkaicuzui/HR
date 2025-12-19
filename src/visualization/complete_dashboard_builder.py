@@ -1482,6 +1482,7 @@ class CompleteDashboardBuilder:
         <div class="tab-content" id="dashboardTabContent">
             <!-- Overview Tab -->
             <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                {self._generate_executive_summary(target_metrics)}
                 {self._generate_summary_cards(target_metrics)}
                 {self._generate_hierarchy_visualization_section()}
             </div>
@@ -1875,6 +1876,182 @@ class CompleteDashboardBuilder:
         border-radius: 6px;
         padding: 4px 8px;
         margin: 8px -8px -8px;
+    }
+
+    /* Executive Summary Section Styles / 현황 요약 섹션 스타일 */
+    .executive-summary {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        overflow: hidden;
+    }
+
+    .summary-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .summary-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .summary-period {
+        font-size: 14px;
+        opacity: 0.9;
+        background: rgba(255,255,255,0.2);
+        padding: 4px 12px;
+        border-radius: 12px;
+    }
+
+    .summary-body {
+        padding: 20px 24px;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: white;
+        border-left: 4px solid;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .status-item.status-success {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #ffffff 0%, #d4edda 100%);
+    }
+
+    .status-item.status-warning {
+        border-left-color: #ffc107;
+        background: linear-gradient(135deg, #ffffff 0%, #fff3cd 100%);
+    }
+
+    .status-item.status-danger {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #ffffff 0%, #f8d7da 100%);
+    }
+
+    .status-icon {
+        font-size: 20px;
+    }
+
+    .status-text {
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .summary-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+        margin: 16px 0;
+    }
+
+    .summary-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .summary-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .issues-section, .actions-section {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .section-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .issue-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .issue-item:last-child {
+        border-bottom: none;
+    }
+
+    .issue-severity {
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .issue-text {
+        font-size: 13px;
+        color: #495057;
+        line-height: 1.4;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-btn {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .action-btn:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .action-arrow {
+        font-size: 16px;
+        opacity: 0.8;
+    }
+
+    .no-actions {
+        font-size: 13px;
+        color: #6c757d;
+        text-align: center;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
     }
 
     .charts-section {
@@ -2834,6 +3011,323 @@ class CompleteDashboardBuilder:
     </div>
 </div>
 """
+
+    def _generate_executive_summary(self, metrics: Dict[str, Any]) -> str:
+        """
+        Generate Executive Summary section for quick status overview
+        빠른 현황 파악을 위한 Executive Summary 섹션 생성
+
+        Features:
+        - Status indicators (✅⚠️🚨) based on thresholds
+        - Top 3 issues automatically detected
+        - Action required list with direct links
+        - Multi-language support (KO/EN/VI)
+        """
+        # Get current month metrics
+        # 현재 월 메트릭 가져오기
+        total_employees = metrics.get('total_employees', 0)
+        absence_rate = metrics.get('absence_rate_excl_maternity', 0)
+        unauthorized_rate = metrics.get('unauthorized_absence_rate', 0)
+        resignation_rate = metrics.get('resignation_rate', 0)
+        recent_hires = metrics.get('recent_hires', 0)
+        recent_resignations = metrics.get('recent_resignations', 0)
+        under_60_days = metrics.get('under_60_days', 0)
+        data_errors = metrics.get('data_errors', 0)
+
+        # Get previous month change
+        # 전월 대비 변화 가져오기
+        total_change = self.calculator.get_month_over_month_change('total_employees', self.target_month)
+        total_change_val = total_change['absolute'] if total_change else 0
+        total_change_sign = '+' if total_change_val >= 0 else ''
+
+        # Define thresholds for status indicators
+        # 상태 표시를 위한 임계치 정의
+        ABSENCE_TARGET = 10.0  # Target: 10%
+        ABSENCE_WARNING = 12.0  # Warning: 12%
+        UNAUTHORIZED_WARNING = 2.0  # Warning: 2%
+        UNAUTHORIZED_CRITICAL = 5.0  # Critical: 5%
+
+        # Determine status for each metric
+        # 각 메트릭에 대한 상태 결정
+
+        # Total employees status (always normal unless dramatic change)
+        # 총 인원 상태 (급격한 변화가 없으면 정상)
+        if abs(total_change_val) > 20:
+            total_status = '⚠️'
+            total_status_class = 'warning'
+        else:
+            total_status = '✅'
+            total_status_class = 'success'
+
+        # Absence rate status
+        # 결근율 상태
+        if absence_rate <= ABSENCE_TARGET:
+            absence_status = '✅'
+            absence_status_class = 'success'
+            absence_msg_ko = f'결근율 {absence_rate:.1f}% (목표 {ABSENCE_TARGET}% 이내)'
+            absence_msg_en = f'Absence rate {absence_rate:.1f}% (target ≤{ABSENCE_TARGET}%)'
+            absence_msg_vi = f'Tỷ lệ vắng {absence_rate:.1f}% (mục tiêu ≤{ABSENCE_TARGET}%)'
+        elif absence_rate <= ABSENCE_WARNING:
+            absence_status = '⚠️'
+            absence_status_class = 'warning'
+            absence_msg_ko = f'결근율 {absence_rate:.1f}% (목표 {ABSENCE_TARGET}% 초과)'
+            absence_msg_en = f'Absence rate {absence_rate:.1f}% (above target {ABSENCE_TARGET}%)'
+            absence_msg_vi = f'Tỷ lệ vắng {absence_rate:.1f}% (vượt mục tiêu {ABSENCE_TARGET}%)'
+        else:
+            absence_status = '🚨'
+            absence_status_class = 'danger'
+            absence_msg_ko = f'결근율 {absence_rate:.1f}% (목표 {ABSENCE_TARGET}% 크게 초과)'
+            absence_msg_en = f'Absence rate {absence_rate:.1f}% (significantly above {ABSENCE_TARGET}%)'
+            absence_msg_vi = f'Tỷ lệ vắng {absence_rate:.1f}% (vượt xa mục tiêu {ABSENCE_TARGET}%)'
+
+        # Unauthorized absence status
+        # 무단결근 상태
+        # Count employees with unauthorized absence
+        unauthorized_count = 0
+        for emp in self.employee_details:
+            if emp.get('has_unauthorized_absence', False):
+                unauthorized_count += 1
+
+        if unauthorized_rate <= UNAUTHORIZED_WARNING and unauthorized_count == 0:
+            unauthorized_status = '✅'
+            unauthorized_status_class = 'success'
+            unauthorized_msg_ko = '무단결근 없음'
+            unauthorized_msg_en = 'No unauthorized absence'
+            unauthorized_msg_vi = 'Không vắng không phép'
+        elif unauthorized_rate <= UNAUTHORIZED_CRITICAL:
+            unauthorized_status = '⚠️'
+            unauthorized_status_class = 'warning'
+            unauthorized_msg_ko = f'무단결근 {unauthorized_count}명 - 관리 필요'
+            unauthorized_msg_en = f'Unauthorized absence: {unauthorized_count} - needs attention'
+            unauthorized_msg_vi = f'Vắng không phép: {unauthorized_count} - cần chú ý'
+        else:
+            unauthorized_status = '🚨'
+            unauthorized_status_class = 'danger'
+            unauthorized_msg_ko = f'무단결근 {unauthorized_count}명 - 즉시 조치 필요'
+            unauthorized_msg_en = f'Unauthorized absence: {unauthorized_count} - immediate action needed'
+            unauthorized_msg_vi = f'Vắng không phép: {unauthorized_count} - cần xử lý ngay'
+
+        # Detect Top 3 Issues automatically
+        # 상위 3개 이슈 자동 감지
+        issues = []
+
+        # Issue 1: Team with high absence rate
+        # 이슈 1: 결근율 높은 팀
+        if self.team_data:
+            team_absence_rates = []
+            for team_name, team_info in self.team_data.items():
+                members = team_info.get('members', [])
+                active_members = [m for m in members if m.get('is_active', False)]
+                if len(active_members) >= 3:  # Only teams with 3+ members
+                    total_working = sum(m.get('working_days', 0) for m in active_members)
+                    total_absent = sum(m.get('absent_days', 0) for m in active_members)
+                    if total_working > 0:
+                        team_rate = (total_absent / total_working) * 100
+                        team_absence_rates.append((team_name, team_rate, len(active_members)))
+
+            if team_absence_rates:
+                team_absence_rates.sort(key=lambda x: x[1], reverse=True)
+                worst_team = team_absence_rates[0]
+                if worst_team[1] > ABSENCE_TARGET * 1.5:  # 50% above target
+                    issues.append({
+                        'severity': '🚨' if worst_team[1] > ABSENCE_TARGET * 2 else '⚠️',
+                        'ko': f'{worst_team[0]}팀 결근율 {worst_team[1]:.1f}% (전사 평균 대비 높음)',
+                        'en': f'{worst_team[0]} team absence {worst_team[1]:.1f}% (above company avg)',
+                        'vi': f'Nhóm {worst_team[0]} vắng {worst_team[1]:.1f}% (cao hơn TB công ty)'
+                    })
+
+        # Issue 2: High new employee turnover risk
+        # 이슈 2: 신규 입사자 이탈 위험
+        if under_60_days > 0:
+            turnover_risk_pct = (under_60_days / total_employees * 100) if total_employees > 0 else 0
+            if turnover_risk_pct > 10:
+                issues.append({
+                    'severity': '⚠️',
+                    'ko': f'60일 미만 재직자 {under_60_days}명 ({turnover_risk_pct:.1f}%) - 이탈 위험군',
+                    'en': f'{under_60_days} employees under 60 days ({turnover_risk_pct:.1f}%) - turnover risk',
+                    'vi': f'{under_60_days} NV dưới 60 ngày ({turnover_risk_pct:.1f}%) - rủi ro nghỉ việc'
+                })
+
+        # Issue 3: Data quality issues
+        # 이슈 3: 데이터 품질 문제
+        if data_errors > 0:
+            issues.append({
+                'severity': '⚠️' if data_errors < 10 else '🚨',
+                'ko': f'데이터 오류 {data_errors}건 - 정정 필요',
+                'en': f'{data_errors} data errors - correction needed',
+                'vi': f'{data_errors} lỗi dữ liệu - cần sửa'
+            })
+
+        # Issue 4: High resignation rate
+        # 이슈 4: 높은 퇴사율
+        if resignation_rate > 5:
+            issues.append({
+                'severity': '🚨' if resignation_rate > 10 else '⚠️',
+                'ko': f'퇴사율 {resignation_rate:.1f}% - 주의 필요',
+                'en': f'Resignation rate {resignation_rate:.1f}% - attention needed',
+                'vi': f'Tỷ lệ nghỉ việc {resignation_rate:.1f}% - cần chú ý'
+            })
+
+        # Issue 5: Unauthorized absence concentration
+        # 이슈 5: 무단결근 집중
+        if unauthorized_count >= 3:
+            issues.append({
+                'severity': '🚨',
+                'ko': f'무단결근 {unauthorized_count}명 집중 발생',
+                'en': f'Unauthorized absence concentrated: {unauthorized_count} employees',
+                'vi': f'Vắng không phép tập trung: {unauthorized_count} NV'
+            })
+
+        # Sort issues by severity and take top 3
+        # 심각도로 정렬하고 상위 3개 선택
+        severity_order = {'🚨': 0, '⚠️': 1, '✅': 2}
+        issues.sort(key=lambda x: severity_order.get(x['severity'], 2))
+        top_issues = issues[:3]
+
+        # Build Action Required list
+        # Action Required 목록 생성
+        actions = []
+
+        # Action: Long-term absence
+        # 액션: 장기 결근
+        long_absence_count = 0
+        for emp in self.employee_details:
+            absent_days = emp.get('absent_days', 0)
+            if absent_days >= 5:
+                long_absence_count += 1
+        if long_absence_count > 0:
+            actions.append({
+                'ko': f'장기결근 (5일+): {long_absence_count}명',
+                'en': f'Long absence (5d+): {long_absence_count}',
+                'vi': f'Vắng dài (5 ngày+): {long_absence_count}',
+                'filter': 'long_absence'
+            })
+
+        # Action: Unauthorized absence
+        # 액션: 무단결근
+        if unauthorized_count > 0:
+            actions.append({
+                'ko': f'무단결근자: {unauthorized_count}명',
+                'en': f'Unauthorized absence: {unauthorized_count}',
+                'vi': f'Vắng không phép: {unauthorized_count}',
+                'filter': 'unauthorized'
+            })
+
+        # Action: Data errors
+        # 액션: 데이터 오류
+        if data_errors > 0:
+            actions.append({
+                'ko': f'데이터 오류: {data_errors}건',
+                'en': f'Data errors: {data_errors}',
+                'vi': f'Lỗi dữ liệu: {data_errors}',
+                'filter': 'data_error'
+            })
+
+        # Action: TYPE unregistered (use data_errors as proxy)
+        # 액션: TYPE 미등록
+
+        # Format month display
+        year, month = self.target_month.split('-')
+
+        # Build HTML
+        issues_html = ''
+        if top_issues:
+            issues_items = ''.join([
+                f'''<div class="issue-item">
+                    <span class="issue-severity">{issue['severity']}</span>
+                    <span class="issue-text lang-text" data-ko="{issue['ko']}" data-en="{issue['en']}" data-vi="{issue['vi']}">{issue['ko']}</span>
+                </div>'''
+                for issue in top_issues
+            ])
+            issues_html = f'''
+            <div class="issues-section">
+                <div class="section-label lang-text" data-ko="📌 상위 이슈" data-en="📌 Top Issues" data-vi="📌 Vấn đề hàng đầu">📌 상위 이슈</div>
+                {issues_items}
+            </div>'''
+        else:
+            issues_html = '''
+            <div class="issues-section">
+                <div class="section-label lang-text" data-ko="📌 상위 이슈" data-en="📌 Top Issues" data-vi="📌 Vấn đề hàng đầu">📌 상위 이슈</div>
+                <div class="issue-item">
+                    <span class="issue-severity">✅</span>
+                    <span class="issue-text lang-text" data-ko="현재 특이사항 없음" data-en="No significant issues" data-vi="Không có vấn đề đáng kể">현재 특이사항 없음</span>
+                </div>
+            </div>'''
+
+        actions_html = ''
+        if actions:
+            action_items = ''.join([
+                f'''<button class="action-btn" onclick="filterEmployeeDetails('{action['filter']}')">
+                    <span class="action-text lang-text" data-ko="{action['ko']}" data-en="{action['en']}" data-vi="{action['vi']}">{action['ko']}</span>
+                    <span class="action-arrow">→</span>
+                </button>'''
+                for action in actions
+            ])
+            actions_html = f'''
+            <div class="actions-section">
+                <div class="section-label lang-text" data-ko="⚡ 즉시 조치 필요" data-en="⚡ Action Required" data-vi="⚡ Cần xử lý ngay">⚡ 즉시 조치 필요</div>
+                <div class="action-buttons">
+                    {action_items}
+                </div>
+            </div>'''
+        else:
+            actions_html = '''
+            <div class="actions-section">
+                <div class="section-label lang-text" data-ko="⚡ 즉시 조치 필요" data-en="⚡ Action Required" data-vi="⚡ Cần xử lý ngay">⚡ 즉시 조치 필요</div>
+                <div class="no-actions lang-text" data-ko="현재 조치 필요 항목 없음" data-en="No action items" data-vi="Không có mục cần xử lý">현재 조치 필요 항목 없음</div>
+            </div>'''
+
+        return f'''
+<!-- Executive Summary Section / 현황 요약 섹션 -->
+<div class="executive-summary mb-4">
+    <div class="summary-header">
+        <h5 class="summary-title lang-text" data-ko="📊 현황 요약" data-en="📊 Executive Summary" data-vi="📊 Tóm tắt">📊 현황 요약</h5>
+        <span class="summary-period">{year}.{int(month):02d}</span>
+    </div>
+
+    <div class="summary-body">
+        <!-- Status Indicators / 상태 지표 -->
+        <div class="status-grid">
+            <div class="status-item status-{total_status_class}">
+                <span class="status-icon">{total_status}</span>
+                <span class="status-text lang-text"
+                    data-ko="총인원: {total_employees}명 (전월 {total_change_sign}{total_change_val})"
+                    data-en="Total: {total_employees} (prev {total_change_sign}{total_change_val})"
+                    data-vi="Tổng: {total_employees} (trước {total_change_sign}{total_change_val})">
+                    총인원: {total_employees}명 (전월 {total_change_sign}{total_change_val})
+                </span>
+            </div>
+            <div class="status-item status-{absence_status_class}">
+                <span class="status-icon">{absence_status}</span>
+                <span class="status-text lang-text"
+                    data-ko="{absence_msg_ko}"
+                    data-en="{absence_msg_en}"
+                    data-vi="{absence_msg_vi}">
+                    {absence_msg_ko}
+                </span>
+            </div>
+            <div class="status-item status-{unauthorized_status_class}">
+                <span class="status-icon">{unauthorized_status}</span>
+                <span class="status-text lang-text"
+                    data-ko="{unauthorized_msg_ko}"
+                    data-en="{unauthorized_msg_en}"
+                    data-vi="{unauthorized_msg_vi}">
+                    {unauthorized_msg_ko}
+                </span>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="summary-divider"></div>
+
+        <!-- Two Column Layout: Issues + Actions -->
+        <div class="summary-columns">
+            {issues_html}
+            {actions_html}
+        </div>
+    </div>
+</div>
+'''
 
     def _generate_summary_cards(self, metrics: Dict[str, Any]) -> str:
         """Generate summary cards grid with Vietnamese support"""
@@ -13444,6 +13938,42 @@ function filterEmployees(filter) {
     }
 
     renderEmployeeTable(filtered);
+}
+
+// Filter from Executive Summary - switches to Details tab and applies filter
+// Executive Summary에서 필터 - Details 탭으로 전환 후 필터 적용
+function filterEmployeeDetails(filterType) {
+    // Switch to Details tab
+    // Details 탭으로 전환
+    const detailsTab = document.getElementById('details-tab');
+    if (detailsTab) {
+        const tab = new bootstrap.Tab(detailsTab);
+        tab.show();
+    }
+
+    // Apply appropriate filter based on filterType
+    // filterType에 따라 적절한 필터 적용
+    setTimeout(() => {
+        switch(filterType) {
+            case 'long_absence':
+                // Filter employees with 5+ absent days
+                // 결근 5일 이상 직원 필터
+                const longAbsenceFiltered = employeeDetails.filter(e => e.absent_days >= 5);
+                renderEmployeeTable(longAbsenceFiltered);
+                break;
+            case 'unauthorized':
+                filterEmployees('unauthorized');
+                break;
+            case 'data_error':
+                // Show employees with data errors (use existing modal or filter)
+                // 데이터 오류 있는 직원 표시
+                const errorFiltered = employeeDetails.filter(e => e.has_data_error);
+                renderEmployeeTable(errorFiltered);
+                break;
+            default:
+                filterEmployees('all');
+        }
+    }, 300);
 }
 
 function updateFilterCounts() {
