@@ -21,6 +21,8 @@ NO FAKE DATA policy: System returns empty results if data doesn't exist.
 """
 
 import sys
+import json
+import shutil
 from pathlib import Path
 import argparse
 from datetime import datetime
@@ -31,6 +33,69 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.visualization.complete_dashboard_builder import CompleteDashboardBuilder
+
+
+def update_dashboards_json(year: int, month: int, stats: dict, project_root: Path):
+    """
+    Update docs/dashboards.json with new dashboard entry
+    docs/dashboards.json에 새 대시보드 항목 업데이트
+
+    Args:
+        year: Dashboard year / 대시보드 연도
+        month: Dashboard month / 대시보드 월
+        stats: Dashboard statistics / 대시보드 통계
+        project_root: Project root path / 프로젝트 루트 경로
+    """
+    dashboards_json_path = project_root / "docs" / "dashboards.json"
+
+    # Load existing data or create new
+    # 기존 데이터 로드 또는 새로 생성
+    if dashboards_json_path.exists():
+        with open(dashboards_json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        data = {
+            "version": "1.0.0",
+            "description": "HR Dashboard manifest file",
+            "dashboards": []
+        }
+
+    # Create new dashboard entry
+    # 새 대시보드 항목 생성
+    new_entry = {
+        "file": f"HR_Dashboard_Complete_{year}_{month:02d}.html",
+        "year": year,
+        "month": month,
+        "updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "stats": stats
+    }
+
+    # Remove existing entry for same year/month if exists
+    # 같은 연도/월의 기존 항목이 있으면 제거
+    data["dashboards"] = [
+        d for d in data["dashboards"]
+        if not (d.get("year") == year and d.get("month") == month)
+    ]
+
+    # Add new entry at the beginning
+    # 새 항목을 맨 앞에 추가
+    data["dashboards"].insert(0, new_entry)
+
+    # Sort by year and month (descending)
+    # 연도와 월로 정렬 (내림차순)
+    data["dashboards"].sort(key=lambda x: (x.get("year", 0), x.get("month", 0)), reverse=True)
+
+    # Update lastUpdated
+    # lastUpdated 업데이트
+    data["lastUpdated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Save updated data
+    # 업데이트된 데이터 저장
+    with open(dashboards_json_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    print(f"📋 Updated dashboards.json: {dashboards_json_path}")
+    print(f"📋 dashboards.json 업데이트됨: {dashboards_json_path}")
 
 
 def parse_arguments():
@@ -172,6 +237,38 @@ def main():
         # 파일 크기 가져오기
         file_size_kb = output_file.stat().st_size / 1024
 
+        # Copy to docs folder for GitHub Pages
+        # GitHub Pages용 docs 폴더에 복사
+        docs_dir = project_root / "docs"
+        docs_dir.mkdir(parents=True, exist_ok=True)
+        docs_file = docs_dir / output_file.name
+        shutil.copy(output_file, docs_file)
+        print(f"📂 Copied to docs/: {docs_file}")
+        print(f"📂 docs/에 복사됨: {docs_file}")
+
+        # Extract stats from builder for dashboards.json
+        # dashboards.json용 통계 추출
+        target_month_key = f"{args.year}-{args.month:02d}"
+        stats = {
+            "total": "-",
+            "absenceRate": "-",
+            "resignationRate": "-"
+        }
+
+        if hasattr(builder, 'monthly_metrics') and target_month_key in builder.monthly_metrics:
+            metrics = builder.monthly_metrics[target_month_key]
+            stats["total"] = str(metrics.get('total_employees', '-'))
+            absence_rate = metrics.get('absence_rate')
+            if absence_rate is not None:
+                stats["absenceRate"] = f"{absence_rate}%"
+            resignation_rate = metrics.get('resignation_rate')
+            if resignation_rate is not None:
+                stats["resignationRate"] = f"{resignation_rate}%"
+
+        # Update dashboards.json
+        # dashboards.json 업데이트
+        update_dashboards_json(args.year, args.month, stats, project_root)
+
         # Success message
         # 성공 메시지
         print()
@@ -180,6 +277,7 @@ def main():
         print("✅ 대시보드 생성이 성공적으로 완료되었습니다!")
         print("=" * 70)
         print(f"📁 Output file / 출력 파일: {output_file}")
+        print(f"📂 Docs file / Docs 파일: {docs_file}")
         print(f"📏 File size / 파일 크기: {file_size_kb:.1f} KB")
         print()
         print("💡 Dashboard features / 대시보드 기능:")
@@ -189,6 +287,9 @@ def main():
         print("   • Employee detail table with filter/search/sort")
         print("   • Export to CSV/JSON")
         print("   • Multi-language support (런타임 전환 가능)")
+        print()
+        print("🌐 GitHub Pages URL:")
+        print(f"   https://moonkaicuzui.github.io/HR/{output_file.name}")
         print()
         print("🌐 Open the HTML file in your browser to view the dashboard")
         print("🌐 브라우저에서 HTML 파일을 열어 대시보드를 확인하세요")
