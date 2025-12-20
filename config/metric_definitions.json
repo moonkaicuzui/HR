@@ -33,6 +33,7 @@
       "formula": "100 - (SUM(actual_working_days) / SUM(total_working_days) * 100)",
       "data_sources": ["attendance", "basic_manpower"],
       "calculation_method": "percentage",
+      "is_negative_metric": true,
       "thresholds": {
         "excellent": {"max": 3, "color": "#28a745"},
         "good": {"min": 3, "max": 5, "color": "#17a2b8"},
@@ -54,6 +55,7 @@
       "formula": "SUM(unapproved_absence_days) / SUM(total_working_days) * 100",
       "data_sources": ["attendance", "basic_manpower"],
       "calculation_method": "percentage",
+      "is_negative_metric": true,
       "thresholds": {
         "excellent": {"max": 1, "color": "#28a745"},
         "good": {"min": 1, "max": 2, "color": "#17a2b8"},
@@ -78,6 +80,7 @@
       "denominator": "average_monthly_headcount",
       "data_sources": ["basic_manpower"],
       "calculation_method": "percentage",
+      "is_negative_metric": true,
       "filters": {
         "resignation_date_in_month": true
       },

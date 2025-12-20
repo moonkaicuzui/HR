@@ -26,6 +26,7 @@ class EnhancedModalGenerator:
         self.t = translator
         self.metric_calculator = metric_calculator
         self.logger = logger
+        self._metric_definitions = self._load_metric_definitions()
 
         # Define KPI thresholds for priority scoring
         # 우선순위 점수를 위한 KPI 임계값 정의
@@ -38,6 +39,21 @@ class EnhancedModalGenerator:
             'early_resignation_90': {'critical': 20, 'warning': 10, 'normal': 5},
             'overtime_rate': {'critical': 30, 'warning': 20, 'normal': 10}
         }
+
+    def _load_metric_definitions(self) -> Dict[str, Any]:
+        """
+        Load metric definitions from config file
+        설정 파일에서 메트릭 정의 로드
+        """
+        from pathlib import Path
+        try:
+            config_path = Path(__file__).parent.parent.parent / "config" / "metric_definitions.json"
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                return config.get('metrics', {})
+        except Exception as e:
+            self.logger.warning(f"Failed to load metric definitions: {e}")
+            return {}
 
     def generate_enhanced_modal(self,
                               modal_id: str,
@@ -585,12 +601,19 @@ class EnhancedModalGenerator:
             return value / thresholds['normal'] * 20
 
     def _is_negative_metric(self, metric_id: str) -> bool:
-        """Check if higher values are negative for this metric"""
-        negative_metrics = [
-            'resignation_rate', 'absence_rate', 'unauthorized_absence_rate',
-            'early_resignation_30', 'early_resignation_60', 'early_resignation_90'
-        ]
-        return metric_id in negative_metrics
+        """
+        Check if higher values are negative for this metric using config
+        설정을 사용하여 높은 값이 부정적인지 확인
+        """
+        # First check config for is_negative_metric flag
+        # 먼저 설정에서 is_negative_metric 플래그 확인
+        if metric_id in self._metric_definitions:
+            return self._metric_definitions[metric_id].get('is_negative_metric', False)
+
+        # Fallback to pattern matching for backward compatibility
+        # 하위 호환성을 위해 패턴 매칭으로 대체
+        negative_patterns = ['absence', 'resignation', 'unauthorized', 'turnover', 'early_resignation']
+        return any(pattern in metric_id.lower() for pattern in negative_patterns)
 
     def _get_trend_icon(self, trend: str) -> str:
         """Get icon for trend"""

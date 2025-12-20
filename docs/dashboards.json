@@ -1,13 +1,13 @@
 {
   "version": "1.0.0",
   "description": "HR Dashboard manifest file",
-  "lastUpdated": "2025-12-20 15:52:25",
+  "lastUpdated": "2025-12-20 21:32:59",
   "dashboards": [
     {
       "file": "HR_Dashboard_Complete_2025_12.html",
       "year": 2025,
       "month": 12,
-      "updated": "2025-12-20 15:52",
+      "updated": "2025-12-20 21:32",
       "stats": {
         "total": "411",
         "absenceRate": "12.3%",

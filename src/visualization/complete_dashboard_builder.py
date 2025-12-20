@@ -1931,6 +1931,21 @@ class CompleteDashboardBuilder:
         color: #721c24;
     }
 
+    /* Trend Arrow Styles - 트렌드 화살표 스타일 */
+    .trend-arrow {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-right: 4px;
+    }
+
+    .card-change.positive .trend-arrow {
+        color: #28a745;
+    }
+
+    .card-change.negative .trend-arrow {
+        color: #dc3545;
+    }
+
     .card-info-line {
         margin-top: 8px;
         padding-top: 8px;
@@ -2320,6 +2335,9 @@ class CompleteDashboardBuilder:
     .chart-container {
         position: relative;
         height: 300px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
         margin-bottom: 30px;
     }
 
@@ -2388,6 +2406,9 @@ class CompleteDashboardBuilder:
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         min-height: 450px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
     }
 
     /* Gradient backgrounds for modal headers */
@@ -3263,9 +3284,9 @@ class CompleteDashboardBuilder:
         <!-- 언어 전환 및 다운로드 버튼 -->
         <div class="header-controls">
             <div class="language-switcher">
-                <button class="lang-btn active" data-lang="ko" onclick="switchLanguage('ko')" title="한국어">🇰🇷</button>
-                <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')" title="English">🇺🇸</button>
-                <button class="lang-btn" data-lang="vi" onclick="switchLanguage('vi')" title="Tiếng Việt">🇻🇳</button>
+                <button class="lang-btn{' active' if self.language == 'ko' else ''}" data-lang="ko" onclick="switchLanguage('ko')" title="한국어">🇰🇷</button>
+                <button class="lang-btn{' active' if self.language == 'en' else ''}" data-lang="en" onclick="switchLanguage('en')" title="English">🇺🇸</button>
+                <button class="lang-btn{' active' if self.language == 'vi' else ''}" data-lang="vi" onclick="switchLanguage('vi')" title="Tiếng Việt">🇻🇳</button>
             </div>
             <button class="download-btn" onclick="downloadDashboard()" title="대시보드 다운로드">
                 <span class="download-icon">📥</span>
@@ -3869,11 +3890,17 @@ class CompleteDashboardBuilder:
                 # 역방향 지표: 증가 = 나쁨 (negative), 일반 지표: 증가 = 좋음 (positive)
                 if is_inverse_metric:
                     change_class = 'negative' if is_increase else 'positive'
+                    # Arrow direction: for inverse metrics, decrease is good (↓ green), increase is bad (↑ red)
+                    # 화살표 방향: 역방향 지표에서 감소는 좋음 (↓ 녹색), 증가는 나쁨 (↑ 빨강)
+                    trend_arrow = '↑' if is_increase else '↓'
                 else:
                     change_class = 'positive' if is_increase else 'negative'
+                    # Arrow direction: for normal metrics, increase is good (↑ green), decrease is bad (↓ red)
+                    # 화살표 방향: 일반 지표에서 증가는 좋음 (↑ 녹색), 감소는 나쁨 (↓ 빨강)
+                    trend_arrow = '↑' if is_increase else '↓'
 
                 abs_val = round(change["absolute"], 2) if isinstance(change["absolute"], float) else change["absolute"]
-                change_html = f'<div class="card-change {change_class}">{sign}{abs_val} ({sign}{change["percentage"]:.1f}%)</div>'
+                change_html = f'<div class="card-change {change_class}"><span class="trend-arrow">{trend_arrow}</span> {sign}{abs_val} ({sign}{change["percentage"]:.1f}%)</div>'
 
             # Enhanced KPI card - tooltip shows calculation formula and basis
             # 향상된 KPI 카드 - 툴팁에 계산 공식과 기준 표시
@@ -6628,13 +6655,15 @@ class CompleteDashboardBuilder:
 
     def _generate_javascript(self) -> str:
         """Generate JavaScript for charts, interactivity, and modal management"""
-        return """
+        # Use string concatenation to set initial language from Python
+        # 파이썬에서 초기 언어를 설정하기 위해 문자열 결합 사용
+        return f"""
 // ============================================
 // Language Switching
 // ============================================
 
-let currentLanguage = 'ko';
-
+let currentLanguage = '{self.language}';
+""" + """
 function switchLanguage(lang) {
     currentLanguage = lang;
 

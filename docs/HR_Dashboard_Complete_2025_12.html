@@ -1173,6 +1173,21 @@ if (typeof module !== 'undefined' && module.exports) {
         color: #721c24;
     }
 
+    /* Trend Arrow Styles - 트렌드 화살표 스타일 */
+    .trend-arrow {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-right: 4px;
+    }
+
+    .card-change.positive .trend-arrow {
+        color: #28a745;
+    }
+
+    .card-change.negative .trend-arrow {
+        color: #dc3545;
+    }
+
     .card-info-line {
         margin-top: 8px;
         padding-top: 8px;
@@ -1562,6 +1577,9 @@ if (typeof module !== 'undefined' && module.exports) {
     .chart-container {
         position: relative;
         height: 300px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
         margin-bottom: 30px;
     }
 
@@ -1630,6 +1648,9 @@ if (typeof module !== 'undefined' && module.exports) {
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         min-height: 450px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
     }
 
     /* Gradient backgrounds for modal headers */
@@ -2667,7 +2688,7 @@ if (typeof module !== 'undefined' && module.exports) {
             총 재직자 수<br><small class="lang-card-subtitle" data-ko="Total Employees" data-en="Total Employees" data-vi="Tổng số nhân viên">Total Employees</small>
         </div>
         <div class="card-value">411<small class="ms-2">명</small></div>
-        <div class="card-change positive">+6 (+1.5%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↑</span> +6 (+1.5%)</div>
     </div>
 </div>
 
@@ -2679,7 +2700,7 @@ if (typeof module !== 'undefined' && module.exports) {
             결근율 (출산휴가 제외)<br><small class="lang-card-subtitle" data-ko="Absence Rate (excl. Maternity)" data-en="Absence Rate (excl. Maternity)" data-vi="Tỷ lệ vắng mặt (không bao gồm thai sản)">Absence Rate (excl. Maternity)</small>
         </div>
         <div class="card-value">8.3<small class="ms-2">%</small></div>
-        <div class="card-change positive">-1.0 (-10.8%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↓</span> -1.0 (-10.8%)</div>
     </div>
 </div>
 
@@ -2691,7 +2712,7 @@ if (typeof module !== 'undefined' && module.exports) {
             무단결근율<br><small class="lang-card-subtitle" data-ko="Unauthorized Absence" data-en="Unauthorized Absence" data-vi="Vắng không phép">Unauthorized Absence</small>
         </div>
         <div class="card-value">0.69<small class="ms-2">%</small></div>
-        <div class="card-change positive">-0.07 (-9.2%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↓</span> -0.07 (-9.2%)</div>
     </div>
 </div>
 
@@ -2703,7 +2724,7 @@ if (typeof module !== 'undefined' && module.exports) {
             퇴사율<br><small class="lang-card-subtitle" data-ko="Resignation Rate" data-en="Resignation Rate" data-vi="Tỷ lệ nghỉ việc">Resignation Rate</small>
         </div>
         <div class="card-value">1.0<small class="ms-2">%</small></div>
-        <div class="card-change positive">-2.4 (-70.6%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↓</span> -2.4 (-70.6%)</div>
     </div>
 </div>
 
@@ -2715,7 +2736,7 @@ if (typeof module !== 'undefined' && module.exports) {
             신규 입사자<br><small class="lang-card-subtitle" data-ko="Recent Hires" data-en="Recent Hires" data-vi="Nhân viên mới">Recent Hires</small>
         </div>
         <div class="card-value">11<small class="ms-2">명</small></div>
-        <div class="card-change positive">+3 (+37.5%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↑</span> +3 (+37.5%)</div>
     </div>
 </div>
 
@@ -2727,7 +2748,7 @@ if (typeof module !== 'undefined' && module.exports) {
             최근 퇴사자<br><small class="lang-card-subtitle" data-ko="Recent Resignations" data-en="Recent Resignations" data-vi="Nghỉ việc gần đây">Recent Resignations</small>
         </div>
         <div class="card-value">4<small class="ms-2">명</small></div>
-        <div class="card-change positive">-10 (-71.4%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↓</span> -10 (-71.4%)</div>
     </div>
 </div>
 
@@ -2739,7 +2760,7 @@ if (typeof module !== 'undefined' && module.exports) {
             60일 미만 재직자<br><small class="lang-card-subtitle" data-ko="Under 60 Days Tenure" data-en="Under 60 Days Tenure" data-vi="Dưới 60 ngày làm việc">Under 60 Days Tenure</small>
         </div>
         <div class="card-value">18<small class="ms-2">명</small></div>
-        <div class="card-change positive">-12 (-40.0%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↓</span> -12 (-40.0%)</div>
     </div>
 </div>
 
@@ -2751,7 +2772,7 @@ if (typeof module !== 'undefined' && module.exports) {
             라인 배정 후 퇴사<br><small class="lang-card-subtitle" data-ko="Post-Line Assignment" data-en="Post-Line Assignment" data-vi="Nghỉ sau phân công">Post-Line Assignment</small>
         </div>
         <div class="card-value">2<small class="ms-2">명</small></div>
-        <div class="card-change positive">-2 (-50.0%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↓</span> -2 (-50.0%)</div>
     </div>
 </div>
 
@@ -2763,7 +2784,7 @@ if (typeof module !== 'undefined' && module.exports) {
             개근 직원<br><small class="lang-card-subtitle" data-ko="Perfect Attendance" data-en="Perfect Attendance" data-vi="Chuyên cần hoàn hảo">Perfect Attendance</small>
         </div>
         <div class="card-value">99<small class="ms-2">명</small></div>
-        <div class="card-change positive">+17 (+20.7%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↑</span> +17 (+20.7%)</div>
     </div>
 </div>
 
@@ -2775,7 +2796,7 @@ if (typeof module !== 'undefined' && module.exports) {
             장기근속자<br><small class="lang-card-subtitle" data-ko="Long-term (1yr+)" data-en="Long-term (1yr+)" data-vi="Lâu năm (1 năm+)">Long-term (1yr+)</small>
         </div>
         <div class="card-value">288<small class="ms-2">명</small></div>
-        <div class="card-change positive">+2 (+0.7%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↑</span> +2 (+0.7%)</div>
     </div>
 </div>
 
@@ -2787,7 +2808,7 @@ if (typeof module !== 'undefined' && module.exports) {
             데이터 오류<br><small class="lang-card-subtitle" data-ko="Data Errors" data-en="Data Errors" data-vi="Lỗi dữ liệu">Data Errors</small>
         </div>
         <div class="card-value">0<small class="ms-2">건</small></div>
-        <div class="card-change negative">+0 (+0.0%)</div>
+        <div class="card-change negative"><span class="trend-arrow">↑</span> +0 (+0.0%)</div>
     </div>
 </div>
 
@@ -2799,7 +2820,7 @@ if (typeof module !== 'undefined' && module.exports) {
             임신 직원<br><small class="lang-card-subtitle" data-ko="Pregnant Employees" data-en="Pregnant Employees" data-vi="Nhân viên mang thai">Pregnant Employees</small>
         </div>
         <div class="card-value">17<small class="ms-2">명</small></div>
-        <div class="card-change positive">+2 (+13.3%)</div>
+        <div class="card-change positive"><span class="trend-arrow">↑</span> +2 (+13.3%)</div>
     </div>
 </div>
 
@@ -2811,7 +2832,7 @@ if (typeof module !== 'undefined' && module.exports) {
             팀별 평균 결근율<br><small class="lang-card-subtitle" data-ko="Team Avg Absence" data-en="Team Avg Absence" data-vi="Tỷ lệ vắng TB theo nhóm">Team Avg Absence</small>
         </div>
         <div class="card-value">12.0<small class="ms-2">%</small></div>
-        <div class="card-change negative">+12.0 (+100.0%)</div>
+        <div class="card-change negative"><span class="trend-arrow">↑</span> +12.0 (+100.0%)</div>
     </div>
 </div>
 

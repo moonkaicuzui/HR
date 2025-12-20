@@ -85,6 +85,38 @@ class TrendAnalyzer:
         """
         self.logger = get_logger()
         self.date_parser = date_parser or DateParser()
+        self._metric_definitions = self._load_metric_definitions()
+
+    def _load_metric_definitions(self) -> Dict[str, Any]:
+        """
+        Load metric definitions from config file
+        설정 파일에서 메트릭 정의 로드
+        """
+        import json
+        from pathlib import Path
+        try:
+            config_path = Path(__file__).parent.parent.parent / "config" / "metric_definitions.json"
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                return config.get('metrics', {})
+        except Exception as e:
+            self.logger.warning(f"Failed to load metric definitions: {e}")
+            return {}
+
+    def _is_negative_metric(self, metric_id: str) -> bool:
+        """
+        Check if metric is negative (lower is better) using config
+        설정을 사용하여 메트릭이 부정적(낮을수록 좋음)인지 확인
+        """
+        # First check config for is_negative_metric flag
+        # 먼저 설정에서 is_negative_metric 플래그 확인
+        if metric_id in self._metric_definitions:
+            return self._metric_definitions[metric_id].get('is_negative_metric', False)
+
+        # Fallback to pattern matching for backward compatibility
+        # 하위 호환성을 위해 패턴 매칭으로 대체
+        negative_patterns = ['absence', 'resignation', 'unauthorized', 'turnover']
+        return any(pattern in metric_id.lower() for pattern in negative_patterns)
 
     def analyze_trend(
         self,
@@ -289,12 +321,11 @@ class TrendAnalyzer:
         if current_trend.trend_direction != previous_trend.trend_direction:
             comparison['trend_change'] = f"{previous_trend.trend_direction} → {current_trend.trend_direction}"
 
-        # Determine if improved (depends on metric type)
-        # 개선 여부 확인 (메트릭 유형에 따라 다름)
-        # For negative metrics (absence, resignation), lower is better
-        # 부정적 메트릭(결근, 퇴사)의 경우 낮을수록 좋음
-        negative_metrics = ['absence_rate', 'resignation_rate', 'unauthorized_absence']
-        if any(metric in current_trend.metric.lower() for metric in negative_metrics):
+        # Determine if improved (depends on metric type from config)
+        # 개선 여부 확인 (설정의 메트릭 유형에 따라 다름)
+        if self._is_negative_metric(current_trend.metric):
+            # For negative metrics (absence, resignation), lower is better
+            # 부정적 메트릭(결근, 퇴사)의 경우 낮을수록 좋음
             comparison['improved'] = current_trend.average_value < previous_trend.average_value
         else:
             # For positive metrics (attendance, full_attendance), higher is better
