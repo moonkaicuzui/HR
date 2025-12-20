@@ -7,6 +7,7 @@ HR 대시보드 데이터 구조에 최적화
 """
 
 import pandas as pd
+import json
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
@@ -28,18 +29,143 @@ class HRMetricCalculator:
     """
     Calculate HR metrics dynamically for all available months
     사용 가능한 모든 월에 대해 동적으로 HR 메트릭 계산
+
+    Includes caching mechanism for performance optimization
+    성능 최적화를 위한 캐싱 메커니즘 포함
     """
+
+    # Class-level cache for metrics (shared across instances)
+    # 클래스 수준 메트릭 캐시 (인스턴스 간 공유)
+    _metrics_cache: Dict[str, Dict[str, Any]] = {}
+    _cache_timestamps: Dict[str, datetime] = {}
+    _cache_ttl_minutes: int = 30  # Cache TTL in minutes / 캐시 TTL (분)
 
     def __init__(self, data_collector: MonthlyDataCollector, report_date: Optional[datetime] = None):
         self.data_collector = data_collector
         self.monthly_metrics: Dict[str, Dict[str, Any]] = {}
         # Report generation date (default: today)
         self.report_date = report_date if report_date else datetime.now()
+        # Load config thresholds / 설정 임계치 로드
+        self._config = self._load_config()
+        self._thresholds = self._config.get('thresholds', {})
+        # Performance config / 성능 설정
+        self._cache_enabled = self._config.get('performance', {}).get('cache_data', True)
+        cache_ttl = self._config.get('performance', {}).get('cache_ttl_minutes', 30)
+        HRMetricCalculator._cache_ttl_minutes = cache_ttl
+
+    def _load_config(self) -> Dict[str, Any]:
+        """
+        Load metric definitions config
+        메트릭 정의 설정 로드
+        """
+        try:
+            config_path = Path(__file__).parent.parent.parent / "config" / "metric_definitions.json"
+            with open(config_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"⚠️  Warning: Could not load config: {e}")
+            return {}
+
+    def _get_threshold(self, key: str, default: Any = None) -> Any:
+        """
+        Get threshold value from config with fallback
+        설정에서 임계치 값 가져오기 (대체값 포함)
+        """
+        return self._thresholds.get(key, default)
+
+    def _get_cache_key(self, year_month: str) -> str:
+        """
+        Generate cache key for a specific month
+        특정 월에 대한 캐시 키 생성
+        """
+        return f"{year_month}_{self.report_date.strftime('%Y%m%d')}"
+
+    def _is_cache_valid(self, cache_key: str) -> bool:
+        """
+        Check if cached metrics are still valid
+        캐시된 메트릭이 아직 유효한지 확인
+        """
+        if not self._cache_enabled:
+            return False
+
+        if cache_key not in self._metrics_cache:
+            return False
+
+        cached_time = self._cache_timestamps.get(cache_key)
+        if not cached_time:
+            return False
+
+        elapsed_minutes = (datetime.now() - cached_time).total_seconds() / 60
+        return elapsed_minutes < self._cache_ttl_minutes
+
+    def _cache_metrics(self, cache_key: str, metrics: Dict[str, Any]) -> None:
+        """
+        Store metrics in cache
+        메트릭을 캐시에 저장
+        """
+        if self._cache_enabled:
+            HRMetricCalculator._metrics_cache[cache_key] = metrics.copy()
+            HRMetricCalculator._cache_timestamps[cache_key] = datetime.now()
+
+    def _get_cached_metrics(self, cache_key: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve metrics from cache if valid
+        유효한 경우 캐시에서 메트릭 검색
+        """
+        if self._is_cache_valid(cache_key):
+            return self._metrics_cache.get(cache_key, {}).copy()
+        return None
+
+    @classmethod
+    def clear_cache(cls) -> None:
+        """
+        Clear all cached metrics (useful for force refresh)
+        모든 캐시된 메트릭 삭제 (강제 새로고침 시 유용)
+        """
+        cls._metrics_cache.clear()
+        cls._cache_timestamps.clear()
+
+    @classmethod
+    def get_cache_stats(cls) -> Dict[str, Any]:
+        """
+        Get cache statistics for debugging
+        디버깅용 캐시 통계 반환
+        """
+        return {
+            'cached_months': len(cls._metrics_cache),
+            'cache_keys': list(cls._metrics_cache.keys()),
+            'cache_enabled': True,
+            'ttl_minutes': cls._cache_ttl_minutes
+        }
 
     def calculate_all_metrics(self, months: List[str]) -> Dict[str, Dict[str, Any]]:
-        """Calculate metrics for all specified months"""
+        """
+        Calculate metrics for all specified months with caching
+        캐싱을 사용하여 지정된 모든 월에 대한 메트릭 계산
+        """
+        cache_hits = 0
+        cache_misses = 0
+
         for month in months:
-            self.monthly_metrics[month] = self._calculate_month(month)
+            cache_key = self._get_cache_key(month)
+            cached = self._get_cached_metrics(cache_key)
+
+            if cached:
+                self.monthly_metrics[month] = cached
+                cache_hits += 1
+            else:
+                metrics = self._calculate_month(month)
+                self.monthly_metrics[month] = metrics
+                self._cache_metrics(cache_key, metrics)
+                cache_misses += 1
+
+        # Log cache performance (only if there's activity)
+        # 캐시 성능 로그 (활동이 있는 경우에만)
+        if cache_hits > 0 or cache_misses > 0:
+            total = cache_hits + cache_misses
+            hit_rate = (cache_hits / total * 100) if total > 0 else 0
+            print(f"📊 Metric cache: {cache_hits} hits, {cache_misses} misses ({hit_rate:.0f}% hit rate)")
+
         return self.monthly_metrics
 
     def _calculate_month(self, year_month: str) -> Dict[str, Any]:
@@ -382,9 +508,11 @@ class HRMetricCalculator:
 
         tenure_days = (reference_date - entrance_dates).dt.days
 
-        # Filter for active employees AND tenure >= 365 days
+        # Filter for active employees AND tenure >= long_term_employee_days (from config)
+        # 재직자 중 장기근속 임계치 이상인 직원 필터링 (설정에서 가져옴)
+        long_term_days = self._get_threshold('long_term_employee_days', 365)
         long_term = df[
-            (tenure_days >= 365) &
+            (tenure_days >= long_term_days) &
             ((stop_dates.isna()) | (stop_dates > self.report_date))
         ]
 
@@ -890,11 +1018,18 @@ class HRMetricCalculator:
         active_entrance = parse_entrance_date(active)
         tenure_days = (reference_date - active_entrance).dt.days
 
+        # Get tenure bucket thresholds from config
+        # 설정에서 근속 기간 버킷 임계치 가져오기
+        buckets = self._thresholds.get('tenure_buckets', {})
+        under_1yr_max = buckets.get('under_1yr', {}).get('max_days', 365)
+        yr_1_3_max = buckets.get('1_to_3yr', {}).get('max_days', 1095)
+        yr_3_5_max = buckets.get('3_to_5yr', {}).get('max_days', 1825)
+
         return {
-            'under_1yr': len(active[tenure_days < 365]),
-            '1_to_3yr': len(active[(tenure_days >= 365) & (tenure_days < 1095)]),
-            '3_to_5yr': len(active[(tenure_days >= 1095) & (tenure_days < 1825)]),
-            'over_5yr': len(active[tenure_days >= 1825])
+            'under_1yr': len(active[tenure_days < under_1yr_max]),
+            '1_to_3yr': len(active[(tenure_days >= under_1yr_max) & (tenure_days < yr_1_3_max)]),
+            '3_to_5yr': len(active[(tenure_days >= yr_1_3_max) & (tenure_days < yr_3_5_max)]),
+            'over_5yr': len(active[tenure_days >= yr_3_5_max])
         }
 
     def _pregnant_employees(self, df: pd.DataFrame) -> int:

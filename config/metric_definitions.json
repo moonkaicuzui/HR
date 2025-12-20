@@ -307,5 +307,36 @@
     "aql_history": "input_files/AQL history/1.HSRG AQL REPORT-{MONTH}.{year}.csv",
     "5prs": "input_files/5prs data {month}.csv",
     "incentive_detail": "input_files/{year}년 {month} 인센티브 지급 세부 정보.csv"
+  },
+
+  "thresholds": {
+    "tenure_buckets": {
+      "under_1yr": {"min_days": 0, "max_days": 365, "name_ko": "1년 미만", "name_en": "Under 1 year"},
+      "1_to_3yr": {"min_days": 365, "max_days": 1095, "name_ko": "1-3년", "name_en": "1-3 years"},
+      "3_to_5yr": {"min_days": 1095, "max_days": 1825, "name_ko": "3-5년", "name_en": "3-5 years"},
+      "over_5yr": {"min_days": 1825, "max_days": null, "name_ko": "5년 이상", "name_en": "Over 5 years"}
+    },
+    "early_resignation_days": {
+      "early_30": {"days": 30, "name_ko": "30일 이내 퇴사", "name_en": "Within 30 days"},
+      "early_60": {"days": 60, "name_ko": "60일 이내 퇴사", "name_en": "Within 60 days"},
+      "early_90": {"days": 90, "name_ko": "90일 이내 퇴사", "name_en": "Within 90 days"}
+    },
+    "long_term_employee_days": 365,
+    "under_60_days_threshold": 60,
+    "long_absence_days": 5,
+    "new_hire_tracking_days": 30
+  },
+
+  "validation_rules": {
+    "percentage_metrics": {
+      "min": 0,
+      "max": 100,
+      "allow_exceed": false
+    },
+    "rate_anomaly_thresholds": {
+      "absence_rate_max": 50,
+      "resignation_rate_max": 30,
+      "unauthorized_rate_max": 20
+    }
   }
 }

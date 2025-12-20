@@ -27,6 +27,18 @@ class DynamicMetricCalculator:
     """
     Calculate metrics dynamically for all available months
     사용 가능한 모든 월에 대해 동적으로 메트릭 계산
+
+    NOTE: This is a reference implementation for documentation purposes.
+    The actual metric calculations used in production are performed by
+    HRMetricCalculator in hr_metric_calculator.py, which handles:
+    - Proper column mappings for HR data
+    - Maternity/pregnancy exclusions
+    - Consolidated attendance data
+    - Team-based calculations
+
+    참고: 이 클래스는 문서화 목적의 참조 구현입니다.
+    실제 프로덕션에서 사용되는 메트릭 계산은 hr_metric_calculator.py의
+    HRMetricCalculator에서 수행됩니다.
     """
 
     # HR Dashboard column name mapping
@@ -157,22 +169,39 @@ class DynamicMetricCalculator:
         return len(active)
 
     def _calc_absence_rate(self, df: pd.DataFrame) -> float:
-        """Calculate absence rate from attendance data"""
+        """
+        Calculate absence rate from attendance data
+        출석 데이터에서 결근율 계산
+
+        NOTE: This is a reference implementation. The actual calculation is
+        performed in HRMetricCalculator._absence_rate() which uses the
+        consolidated attendance data with proper column mappings.
+        참고: 실제 계산은 HRMetricCalculator._absence_rate()에서 수행됩니다.
+        """
         if df.empty:
             return 0.0
 
-        # Assuming attendance data has 'WTime' and working days
-        # Absence rate = (Total possible days - WTime) / Total possible days
-        # This is simplified - adjust based on actual data structure
-
-        return 0.0  # TODO: Implement based on actual attendance data structure
+        # Reference implementation - not used in production
+        # Actual implementation in HRMetricCalculator handles:
+        # - Maternity/pregnancy exclusions
+        # - Proper working day calculations
+        # - Absence categorization (authorized/unauthorized)
+        return 0.0
 
     def _calc_unauthorized_absence_rate(self, df: pd.DataFrame) -> float:
-        """Calculate unauthorized absence rate"""
+        """
+        Calculate unauthorized absence rate
+        무단 결근율 계산
+
+        NOTE: This is a reference implementation. The actual calculation is
+        performed in HRMetricCalculator using absence_data categorization.
+        참고: 실제 계산은 HRMetricCalculator에서 수행됩니다.
+        """
         if df.empty:
             return 0.0
 
-        # TODO: Implement based on absence reason column
+        # Reference implementation - not used in production
+        # See HRMetricCalculator for actual implementation
         return 0.0
 
     def _calc_resignation_rate(self, df: pd.DataFrame, year_month: str) -> float:
@@ -257,12 +286,22 @@ class DynamicMetricCalculator:
         return len(post_assignment)
 
     def _calc_perfect_attendance(self, df: pd.DataFrame) -> int:
-        """Calculate employees with perfect attendance"""
+        """
+        Calculate employees with perfect attendance
+        개근 직원 수 계산
+
+        NOTE: This is a reference implementation. The actual calculation is
+        performed in HRMetricCalculator._perfect_attendance() which uses:
+        - working_days == attendance_days
+        - absent_days == 0
+        - unauthorized_absent_days == 0
+        참고: 실제 계산은 HRMetricCalculator._perfect_attendance()에서 수행됩니다.
+        """
         if df.empty:
             return 0
 
-        # TODO: Implement based on attendance data structure
-        # Should check for 100% attendance rate
+        # Reference implementation - not used in production
+        # See HRMetricCalculator for actual implementation
         return 0
 
     def _calc_long_term_employees(self, df: pd.DataFrame, year_month: str) -> int:

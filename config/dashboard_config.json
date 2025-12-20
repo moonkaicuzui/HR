@@ -11,6 +11,23 @@
       "mobile": 768,
       "tablet": 1024,
       "desktop": 1920
+    },
+    "mobile_config": {
+      "grid_columns": 1,
+      "card_padding": "12px",
+      "font_scale": 0.9,
+      "chart_height": 250,
+      "hide_secondary_info": true,
+      "stack_columns": true,
+      "swipeable_tabs": true
+    },
+    "tablet_config": {
+      "grid_columns": 2,
+      "card_padding": "16px",
+      "font_scale": 0.95,
+      "chart_height": 300,
+      "hide_secondary_info": false,
+      "stack_columns": false
     }
   },
 
@@ -197,17 +214,107 @@
   },
 
   "team_mapping": {
-    "source": "HR info/team_structure_updated.json",
-    "fallback_team": "Team Unidentified",
-    "priority_order": [
-      "position_combo",
-      "position_3rd",
-      "position_2nd",
-      "position_1st"
-    ],
-    "special_cases": {
-      "A.MANAGER": "use_position_3rd",
-      "NEW QIP MEMBER": "NEW"
+    "description": "Team mapping based on QIP POSITION 3RD NAME - 11 teams with 100% coverage",
+    "fallback_team": "QIP_MANAGER_OFFICE_OCPT",
+    "teams": {
+      "ASSEMBLY": [
+        "ASSEMBLY LINE TQC",
+        "ASSEMBLY LINE RQC",
+        "12 ASSEMBLY LINE QUALITY IN CHARGE",
+        "2 ASSEMBLY BUILDING QUALITY IN CHARGE",
+        "1 ASSEMBLY BUILDING QUALITY IN CHARGE",
+        "ALL ASSEMBLY BUILDING QUALITY IN CHARGE",
+        "ASSEMBLY LINE PO COMPLETION QUALITY",
+        "SCAN PACK AREA TQC",
+        "ALL B-GRADE CONTROL & PACKING"
+      ],
+      "STITCHING": [
+        "STITCHING LINE TQC",
+        "STITCHING LINE RQC",
+        "1 STITCHING BUILDING QUALITY IN CHARGE",
+        "ALL STITCHING BUILDING QUALITY IN CHARGE",
+        "1 STITCHING BUILDING QIP LEADER'S SUCCESSOR 1",
+        "1 STITCHING BUILDING QIP LEADER'S SUCCESSOR 2"
+      ],
+      "OSC": [
+        "INCOMING WH OSC INSPECTION TQC",
+        "INCOMING WH OSC INSPECTION RQC",
+        "HWK OSC/MTL QUALITY IN CHARGE",
+        "MTL QUALITY IN CHARGE",
+        "INCOMING OSC WH QUALITY IN CHARGE",
+        "LEATHER MTL TEAM LEADER",
+        "TEXTILE MTL TEAM LEADER",
+        "SUBSI MTL TEAM LEADER",
+        "INHOUSE HF/ NO-SEW INSPECTION TQC",
+        "INHOUSE HF/ NO-SEW INSPECTION RQC",
+        "INHOUSE PRINTING INSPECTION TQC",
+        "INHOUSE PRINTING INSPECTION RQC"
+      ],
+      "MTL": [
+        "LEATHER TQC",
+        "TEXTILE TQC",
+        "SUBSI TQC",
+        "HAPPO TQC",
+        "LINE LEADER(GROUP LEADER SUCCESSOR)"
+      ],
+      "BOTTOM": [
+        "BOTTOM INSPECTION TQC",
+        "BOTTOM INSPECTION RQC",
+        "BOTTOM REPAIRING & PACKING TQC",
+        "1 BUILDING BOTTOM QUALITY IN CHARGE",
+        "ALL BUILDING BOTTOM QUALITY IN CHARGE"
+      ],
+      "AQL": [
+        "AQL INSPECTOR",
+        "AQL ROOM PACKING TQC",
+        "AQL INPUT CARTON TQC",
+        "AQL REPORT TEAM",
+        "FG WH CARTON PACKING TQC",
+        "FG WH INPUT-OUTPUT CARTON RQC"
+      ],
+      "REPACKING": [
+        "REPACKING LINE TQC",
+        "REPACKING LINE PACKING TQC",
+        "REPACKING LINE REPAIRING TQC",
+        "REPACKING AREA INPUT-OUTPUT CARTON TQC",
+        "REPACKING LINE PO COMPLETION QUALITY"
+      ],
+      "QA": [
+        "QA TEAM STAFF",
+        "QA TEAM HEAD",
+        "QA TEAM IN CHARGE",
+        "AUDITOR & TRAININER",
+        "MODEL MASTER",
+        "AUDIT & TRAINING TEAM LEADER"
+      ],
+      "CUTTING": [
+        "CUTTING INSPECTOR",
+        "ALL CUTTING BUILDING QUALITY IN CHARGE"
+      ],
+      "QIP_MANAGER_OFFICE_OCPT": [
+        "OCPT AND OFFICE TEAM LEADER",
+        "OCPT TEAM STAFF",
+        "TEAM OPERATION MANAGEMENT",
+        "QIP SAP & INCOMING QUALITY REPORT ",
+        "HWK QUALITY IN CHARGE"
+      ],
+      "NEW": [
+        "NEW"
+      ]
+    },
+    "keyword_mapping": {
+      "ASSEMBLY": ["ASSEMBLY"],
+      "STITCHING": ["STITCHING"],
+      "CUTTING": ["CUTTING"],
+      "LASTING": ["LASTING"],
+      "STOCKFITTING": ["STOCKFITTING", "STOCK"],
+      "BOTTOM": ["BOTTOM", "OUTSOLE"],
+      "QSC": ["QSC", "QC", "QUALITY"],
+      "MTL": ["MATERIAL", "MTL", "TEXTILE", "LEATHER"],
+      "REPACKING": ["REPACKING", "PACKING"],
+      "OSC": ["OSC", "INCOMING"],
+      "QA": ["QA"],
+      "NEW": ["NEW"]
     }
   },
 

@@ -18,7 +18,28 @@
           "tooltip": {
             "enabled": true,
             "mode": "index",
-            "intersect": false
+            "intersect": false,
+            "backgroundColor": "rgba(0, 0, 0, 0.8)",
+            "titleColor": "#fff",
+            "bodyColor": "#fff",
+            "borderColor": "rgba(255, 255, 255, 0.2)",
+            "borderWidth": 1,
+            "cornerRadius": 8,
+            "padding": 12,
+            "titleFont": {"weight": "bold", "size": 13},
+            "bodyFont": {"size": 12},
+            "displayColors": true,
+            "boxWidth": 12,
+            "boxHeight": 12
+          },
+          "datalabels": {
+            "display": "auto",
+            "color": "#333",
+            "font": {"weight": "bold", "size": 11},
+            "anchor": "end",
+            "align": "top",
+            "offset": 4,
+            "formatter": "function(value) { return value.toFixed(1) + '%'; }"
           }
         },
         "scales": {
@@ -60,7 +81,21 @@
             "display": false
           },
           "tooltip": {
-            "enabled": true
+            "enabled": true,
+            "backgroundColor": "rgba(0, 0, 0, 0.8)",
+            "titleColor": "#fff",
+            "bodyColor": "#fff",
+            "cornerRadius": 8,
+            "padding": 10,
+            "displayColors": true
+          },
+          "datalabels": {
+            "display": true,
+            "color": "#fff",
+            "font": {"weight": "bold", "size": 11},
+            "anchor": "center",
+            "align": "center",
+            "formatter": "function(value) { return value > 0 ? value.toFixed(1) + '%' : ''; }"
           }
         },
         "scales": {
@@ -182,12 +217,29 @@
         "plugins": {
           "legend": {
             "display": true,
-            "position": "right"
+            "position": "right",
+            "labels": {
+              "usePointStyle": true,
+              "padding": 15,
+              "font": {"size": 12}
+            }
           },
           "tooltip": {
+            "enabled": true,
+            "backgroundColor": "rgba(0, 0, 0, 0.85)",
+            "titleColor": "#fff",
+            "bodyColor": "#fff",
+            "cornerRadius": 8,
+            "padding": 12,
             "callbacks": {
-              "label": "function(context) { return context.label + ': ' + context.formattedValue + '명'; }"
+              "label": "function(context) { const pct = ((context.raw / context.dataset.data.reduce((a,b)=>a+b,0)) * 100).toFixed(1); return context.label + ': ' + context.formattedValue + '명 (' + pct + '%)'; }"
             }
+          },
+          "datalabels": {
+            "display": true,
+            "color": "#fff",
+            "font": {"weight": "bold", "size": 12},
+            "formatter": "function(value, context) { const total = context.dataset.data.reduce((a,b)=>a+b,0); const pct = ((value / total) * 100).toFixed(1); return pct > 5 ? pct + '%' : ''; }"
           }
         },
         "cutout": "60%"
@@ -239,7 +291,37 @@
   "cdn_resources": {
     "chartjs": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js",
     "chartjs_treemap": "https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.2.2/dist/chartjs-chart-treemap.min.js",
-    "chartjs_adapter_date": "https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"
+    "chartjs_adapter_date": "https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js",
+    "chartjs_datalabels": "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"
+  },
+
+  "tooltip_defaults": {
+    "enabled": true,
+    "backgroundColor": "rgba(0, 0, 0, 0.8)",
+    "titleColor": "#ffffff",
+    "bodyColor": "#ffffff",
+    "borderColor": "rgba(255, 255, 255, 0.2)",
+    "borderWidth": 1,
+    "cornerRadius": 8,
+    "padding": 12,
+    "caretSize": 6,
+    "displayColors": true,
+    "boxWidth": 12,
+    "boxHeight": 12,
+    "titleFont": {"weight": "bold", "size": 13},
+    "bodyFont": {"size": 12},
+    "footerFont": {"style": "italic", "size": 11}
+  },
+
+  "datalabels_defaults": {
+    "display": "auto",
+    "color": "#333333",
+    "font": {"weight": "bold", "size": 11},
+    "anchor": "end",
+    "align": "top",
+    "offset": 4,
+    "clamp": true,
+    "clip": false
   },
 
   "animation_presets": {

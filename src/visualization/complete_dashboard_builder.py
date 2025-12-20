@@ -24,100 +24,32 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.data.monthly_data_collector import MonthlyDataCollector
 from src.analytics.hr_metric_calculator import HRMetricCalculator
+from src.analytics.metric_validator import MetricValidator, DataQualityScore
 from src.utils.employee_counter import count_employees_by_teams_monthly
 from src.visualization.enhanced_modal_generator import EnhancedModalGenerator
 from src.utils.i18n import I18n
 from src.utils.logger import get_logger
 
 
-# Team mapping configuration - Based on FINAL_TEAM_MAPPING_V2.md
-# 11 teams with 100% coverage (506 employees)
-TEAM_MAPPING = {
-    'ASSEMBLY': [
-        'ASSEMBLY LINE TQC',
-        'ASSEMBLY LINE RQC',
-        '12 ASSEMBLY LINE QUALITY IN CHARGE',
-        '2 ASSEMBLY BUILDING QUALITY IN CHARGE',
-        '1 ASSEMBLY BUILDING QUALITY IN CHARGE',
-        'ALL ASSEMBLY BUILDING QUALITY IN CHARGE',
-        'ASSEMBLY LINE PO COMPLETION QUALITY',
-        'SCAN PACK AREA TQC',
-        'ALL B-GRADE CONTROL & PACKING'
-    ],
-    'STITCHING': [
-        'STITCHING LINE TQC',
-        'STITCHING LINE RQC',
-        '1 STITCHING BUILDING QUALITY IN CHARGE',
-        'ALL STITCHING BUILDING QUALITY IN CHARGE',
-        '1 STITCHING BUILDING QIP LEADER\'S SUCCESSOR 1',
-        '1 STITCHING BUILDING QIP LEADER\'S SUCCESSOR 2'
-    ],
-    'OSC': [
-        'INCOMING WH OSC INSPECTION TQC',
-        'INCOMING WH OSC INSPECTION RQC',
-        'HWK OSC/MTL QUALITY IN CHARGE',
-        'MTL QUALITY IN CHARGE',
-        'INCOMING OSC WH QUALITY IN CHARGE',
-        'LEATHER MTL TEAM LEADER',
-        'TEXTILE MTL TEAM LEADER',
-        'SUBSI MTL TEAM LEADER',
-        'INHOUSE HF/ NO-SEW INSPECTION TQC',
-        'INHOUSE HF/ NO-SEW INSPECTION RQC',
-        'INHOUSE PRINTING INSPECTION TQC',
-        'INHOUSE PRINTING INSPECTION RQC'
-    ],
-    'MTL': [
-        'LEATHER TQC',
-        'TEXTILE TQC',
-        'SUBSI TQC',
-        'HAPPO TQC',
-        'LINE LEADER(GROUP LEADER SUCCESSOR)'
-    ],
-    'BOTTOM': [
-        'BOTTOM INSPECTION TQC',
-        'BOTTOM INSPECTION RQC',
-        'BOTTOM REPAIRING & PACKING TQC',
-        '1 BUILDING BOTTOM QUALITY IN CHARGE',
-        'ALL BUILDING BOTTOM QUALITY IN CHARGE'
-    ],
-    'AQL': [
-        'AQL INSPECTOR',
-        'AQL ROOM PACKING TQC',
-        'AQL INPUT CARTON TQC',
-        'AQL REPORT TEAM',
-        'FG WH CARTON PACKING TQC',
-        'FG WH INPUT-OUTPUT CARTON RQC'
-    ],
-    'REPACKING': [
-        'REPACKING LINE TQC',
-        'REPACKING LINE PACKING TQC',
-        'REPACKING LINE REPAIRING TQC',
-        'REPACKING AREA INPUT-OUTPUT CARTON TQC',
-        'REPACKING LINE PO COMPLETION QUALITY'
-    ],
-    'QA': [
-        'QA TEAM STAFF',
-        'QA TEAM HEAD',
-        'QA TEAM IN CHARGE',
-        'AUDITOR & TRAININER',
-        'MODEL MASTER',
-        'AUDIT & TRAINING TEAM LEADER'
-    ],
-    'CUTTING': [
-        'CUTTING INSPECTOR',
-        'ALL CUTTING BUILDING QUALITY IN CHARGE'
-    ],
-    'QIP MANAGER & OFFICE & OCPT': [
-        'OCPT AND OFFICE TEAM LEADER',
-        'OCPT TEAM STAFF',
-        'TEAM OPERATION MANAGEMENT',
-        'QIP SAP & INCOMING QUALITY REPORT ',
-        'HWK QUALITY IN CHARGE'
-    ],
-    'NEW': [
-        'NEW'
-    ]
-}
+def _load_dashboard_config() -> Dict[str, Any]:
+    """
+    Load dashboard configuration from JSON file
+    대시보드 설정을 JSON 파일에서 로드
+    """
+    try:
+        config_path = Path(__file__).parent.parent.parent / "config" / "dashboard_config.json"
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+# Load team mapping from config (fallback to empty dict)
+# 설정에서 팀 매핑 로드 (fallback: 빈 딕셔너리)
+_dashboard_config = _load_dashboard_config()
+TEAM_MAPPING = _dashboard_config.get('team_mapping', {}).get('teams', {})
+TEAM_KEYWORD_MAPPING = _dashboard_config.get('team_mapping', {}).get('keyword_mapping', {})
+TEAM_FALLBACK = _dashboard_config.get('team_mapping', {}).get('fallback_team', 'QIP_MANAGER_OFFICE_OCPT')
 
 
 class CompleteDashboardBuilder:
@@ -161,6 +93,7 @@ class CompleteDashboardBuilder:
         self.previous_month_team_data: Dict[str, Any] = {}  # NEW: Previous month team data for comparison
         self.monthly_team_counts: Dict[str, Dict[str, int]] = {}  # NEW: Team counts for each month
         self.hierarchy_data: List[Dict[str, Any]] = []  # NEW: Organization hierarchy data
+        self.quality_score: Optional[DataQualityScore] = None  # Data quality score / 데이터 품질 점수
 
     def build(self) -> str:
         """Build complete dashboard HTML"""
@@ -174,6 +107,11 @@ class CompleteDashboardBuilder:
         # Step 2: Calculate metrics
         self.monthly_metrics = self.calculator.calculate_all_metrics(self.available_months)
         print(f"📊 Metrics calculated for {len(self.monthly_metrics)} months")
+
+        # Step 2.5: Validate metrics and calculate data quality score
+        # 메트릭 검증 및 데이터 품질 점수 계산
+        self._validate_metrics()
+        print(f"✅ Data quality score: {self.quality_score.score:.1f}% (Grade: {self.quality_score.grade})")
 
         # Step 3: Collect employee details
         self._collect_employee_details()
@@ -209,53 +147,56 @@ class CompleteDashboardBuilder:
 
         return html
 
+    def _validate_metrics(self) -> None:
+        """
+        Validate calculated metrics and compute data quality score
+        계산된 메트릭 검증 및 데이터 품질 점수 계산
+        """
+        # Get target month metrics for validation
+        # 검증용 대상 월 메트릭 가져오기
+        target_metrics = self.monthly_metrics.get(self.target_month, {})
+
+        # Initialize validator and run validation
+        # 검증기 초기화 및 검증 실행
+        validator = MetricValidator()
+        self.quality_score = validator.validate_metrics(target_metrics)
+
+        # Log any warnings
+        # 경고 로그 기록
+        if self.quality_score.warnings:
+            for warning in self.quality_score.warnings:
+                if warning.severity == 'error':
+                    self.logger.warning(f"❌ {warning.message_ko}")
+                else:
+                    self.logger.info(f"⚠️ {warning.message_ko}")
+
     def _extract_team_from_position(self, position_str: str) -> str:
         """
-        Extract team name from position string
-        직급 문자열에서 팀 이름 추출
+        Extract team name from position string using config-driven keyword mapping
+        설정 기반 키워드 매핑을 사용하여 직급 문자열에서 팀 이름 추출
 
-        Uses same logic as hr_metric_calculator.py for consistency
-        hr_metric_calculator.py와 동일한 로직 사용 (일관성 유지)
+        Uses keyword_mapping from dashboard_config.json for consistency
+        일관성을 위해 dashboard_config.json의 keyword_mapping 사용
 
         Args:
             position_str: Position string (QIP POSITION 3RD NAME preferred)
 
         Returns:
-            Team name (ASSEMBLY, STITCHING, etc.) or QIP_MANAGER_OFFICE_OCPT
+            Team name (ASSEMBLY, STITCHING, etc.) or fallback team
         """
         if pd.isna(position_str) or not position_str:
-            return 'QIP_MANAGER_OFFICE_OCPT'
+            return TEAM_FALLBACK
 
         position = str(position_str).upper()
 
-        # Team mapping based on keywords (same as hr_metric_calculator.py)
-        # 키워드 기반 팀 매핑 (hr_metric_calculator.py와 동일)
-        if 'ASSEMBLY' in position:
-            return 'ASSEMBLY'
-        elif 'STITCHING' in position:
-            return 'STITCHING'
-        elif 'CUTTING' in position:
-            return 'CUTTING'
-        elif 'LASTING' in position:
-            return 'LASTING'
-        elif 'STOCKFITTING' in position or 'STOCK' in position:
-            return 'STOCKFITTING'
-        elif 'BOTTOM' in position or 'OUTSOLE' in position:
-            return 'BOTTOM'
-        elif 'QSC' in position or 'QC' in position or 'QUALITY' in position:
-            return 'QSC'
-        elif 'MATERIAL' in position or 'MTL' in position or 'TEXTILE' in position or 'LEATHER' in position:
-            return 'MTL'
-        elif 'REPACKING' in position or 'PACKING' in position:
-            return 'REPACKING'
-        elif 'OSC' in position or 'INCOMING' in position:
-            return 'OSC'
-        elif 'QA' in position:
-            return 'QA'
-        elif 'NEW' in position:
-            return 'NEW'
-        else:
-            return 'QIP_MANAGER_OFFICE_OCPT'
+        # Use config-driven keyword mapping
+        # 설정 기반 키워드 매핑 사용
+        for team_name, keywords in TEAM_KEYWORD_MAPPING.items():
+            for keyword in keywords:
+                if keyword.upper() in position:
+                    return team_name
+
+        return TEAM_FALLBACK
 
     def _collect_employee_details(self):
         """Collect employee details with calculated fields for the target month"""
@@ -1581,11 +1522,112 @@ class CompleteDashboardBuilder:
         --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         --card-shadow: 0 4px 6px rgba(0,0,0,0.07);
         --card-hover-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        --touch-target-min: 44px;
     }
 
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         background: #f8f9fa;
+    }
+
+    /* Loading Indicator / 로딩 인디케이터 */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e2e8f0;
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Last Updated Indicator / 마지막 업데이트 표시 */
+    .last-updated {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .last-updated-icon {
+        font-size: 14px;
+    }
+
+    /* Touch Target Improvements / 터치 영역 개선 */
+    button, .btn, [role="button"] {
+        min-height: var(--touch-target-min);
+        min-width: var(--touch-target-min);
+    }
+
+    /* Error Boundary / 오류 경계 */
+    .error-boundary {
+        padding: 20px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        color: #991b1b;
+        text-align: center;
+    }
+
+    .error-boundary-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .error-boundary-message {
+        font-weight: 500;
+    }
+
+    .error-boundary-retry {
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: #991b1b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    /* P1 Fix: Search Highlighting / 검색 하이라이팅 */
+    .search-highlight, mark.search-highlight {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 
     /* Top Navigation Bar / 상단 네비게이션 바 */
@@ -1764,15 +1806,19 @@ class CompleteDashboardBuilder:
             gap: 8px;
         }
 
+        /* Touch target minimum 44x44px for accessibility / 접근성을 위한 최소 터치 영역 44x44px */
         .lang-btn {
-            width: 36px;
-            height: 36px;
-            font-size: 18px;
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            min-width: 44px;
+            min-height: 44px;
         }
 
         .download-btn {
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 10px 16px;
+            font-size: 14px;
+            min-height: 44px;
         }
 
         .download-text {
@@ -1780,7 +1826,7 @@ class CompleteDashboardBuilder:
         }
 
         .download-icon {
-            font-size: 16px;
+            font-size: 20px;
         }
     }
 
@@ -2001,6 +2047,39 @@ class CompleteDashboardBuilder:
         background: rgba(255,255,255,0.2);
         padding: 4px 12px;
         border-radius: 12px;
+    }
+
+    .summary-header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .quality-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: help;
+        transition: transform 0.2s;
+    }
+
+    .quality-badge:hover {
+        transform: scale(1.05);
+    }
+
+    .quality-grade {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .quality-score {
+        font-size: 12px;
+        opacity: 0.9;
     }
 
     .summary-body {
@@ -3243,6 +3322,102 @@ class CompleteDashboardBuilder:
         }
     }
 
+    /* Executive Summary Mobile Styles / 현황 요약 모바일 스타일 */
+    @media (max-width: 768px) {
+        .summary-header {
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .summary-header-right {
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .quality-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+        }
+
+        .quality-grade {
+            font-size: 12px;
+        }
+
+        .summary-columns-three {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .issues-section,
+        .positive-section,
+        .actions-section {
+            width: 100%;
+        }
+
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .status-item {
+            padding: 10px 12px;
+        }
+
+        /* Top navbar mobile / 상단 네비게이션 모바일 */
+        .top-navbar {
+            padding: 8px 12px;
+        }
+
+        .nav-title {
+            font-size: 14px;
+        }
+
+        .nav-link-text {
+            display: none;
+        }
+
+        .nav-link-icon {
+            font-size: 18px;
+        }
+
+        /* Header controls mobile / 헤더 컨트롤 모바일 */
+        .header-controls {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .download-text {
+            display: none;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .summary-title {
+            font-size: 15px;
+        }
+
+        .summary-period {
+            font-size: 12px;
+            padding: 2px 8px;
+        }
+
+        .quality-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+
+        .issue-item-clickable,
+        .positive-item-clickable {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+    }
+
     #teamDetailsTable tbody tr:hover {
         background-color: #f8f9fa;
     }
@@ -3259,19 +3434,19 @@ class CompleteDashboardBuilder:
 
         return f"""
 <!-- Top Navigation Bar / 상단 네비게이션 바 -->
-<nav class="top-navbar">
+<nav class="top-navbar" role="navigation" aria-label="Main navigation">
     <div class="container-xl d-flex justify-content-between align-items-center">
         <div class="nav-brand">
-            <span class="nav-icon">📊</span>
+            <span class="nav-icon" aria-hidden="true">📊</span>
             <span class="nav-title lang-text" data-ko="HR 관리 시스템" data-en="HR Management System" data-vi="Hệ thống quản lý HR">HR 관리 시스템</span>
         </div>
-        <div class="nav-links">
-            <a href="selector.html" class="nav-link active" title="HR Dashboard">
-                <span class="nav-link-icon">👥</span>
+        <div class="nav-links" role="menubar">
+            <a href="selector.html" class="nav-link active" title="HR Dashboard" role="menuitem" aria-current="page">
+                <span class="nav-link-icon" aria-hidden="true">👥</span>
                 <span class="nav-link-text lang-text" data-ko="HR 대시보드" data-en="HR Dashboard" data-vi="Bảng điều khiển HR">HR 대시보드</span>
             </a>
-            <a href="https://moonkaicuzui.github.io/qip-dashboard/" class="nav-link" title="Incentive Dashboard">
-                <span class="nav-link-icon">💰</span>
+            <a href="https://moonkaicuzui.github.io/qip-dashboard/" class="nav-link" title="Incentive Dashboard" role="menuitem">
+                <span class="nav-link-icon" aria-hidden="true">💰</span>
                 <span class="nav-link-text lang-text" data-ko="인센티브 대시보드" data-en="Incentive Dashboard" data-vi="Bảng khuyến khích">인센티브 대시보드</span>
             </a>
         </div>
@@ -3283,13 +3458,13 @@ class CompleteDashboardBuilder:
         <!-- Language Switcher & Download Button -->
         <!-- 언어 전환 및 다운로드 버튼 -->
         <div class="header-controls">
-            <div class="language-switcher">
-                <button class="lang-btn{' active' if self.language == 'ko' else ''}" data-lang="ko" onclick="switchLanguage('ko')" title="한국어">🇰🇷</button>
-                <button class="lang-btn{' active' if self.language == 'en' else ''}" data-lang="en" onclick="switchLanguage('en')" title="English">🇺🇸</button>
-                <button class="lang-btn{' active' if self.language == 'vi' else ''}" data-lang="vi" onclick="switchLanguage('vi')" title="Tiếng Việt">🇻🇳</button>
+            <div class="language-switcher" role="group" aria-label="Language selection">
+                <button class="lang-btn{' active' if self.language == 'ko' else ''}" data-lang="ko" onclick="switchLanguage('ko')" title="한국어" aria-label="Switch to Korean" aria-pressed="{'true' if self.language == 'ko' else 'false'}">🇰🇷</button>
+                <button class="lang-btn{' active' if self.language == 'en' else ''}" data-lang="en" onclick="switchLanguage('en')" title="English" aria-label="Switch to English" aria-pressed="{'true' if self.language == 'en' else 'false'}">🇺🇸</button>
+                <button class="lang-btn{' active' if self.language == 'vi' else ''}" data-lang="vi" onclick="switchLanguage('vi')" title="Tiếng Việt" aria-label="Switch to Vietnamese" aria-pressed="{'true' if self.language == 'vi' else 'false'}">🇻🇳</button>
             </div>
-            <button class="download-btn" onclick="downloadDashboard()" title="대시보드 다운로드">
-                <span class="download-icon">📥</span>
+            <button class="download-btn" onclick="downloadDashboard()" title="대시보드 다운로드" aria-label="Download dashboard as HTML file">
+                <span class="download-icon" aria-hidden="true">📥</span>
                 <span class="download-text lang-text" data-ko="다운로드" data-en="Download" data-vi="Tải xuống">다운로드</span>
             </button>
         </div>
@@ -3322,7 +3497,8 @@ class CompleteDashboardBuilder:
         # Get current month metrics
         # 현재 월 메트릭 가져오기
         total_employees = metrics.get('total_employees', 0)
-        absence_rate = metrics.get('absence_rate_excl_maternity', 0)
+        absence_rate_incl = metrics.get('absence_rate', 0)  # Including maternity / 출산휴가 포함
+        absence_rate = metrics.get('absence_rate_excl_maternity', 0)  # Excluding maternity / 출산휴가 제외
         unauthorized_rate = metrics.get('unauthorized_absence_rate', 0)
         resignation_rate = metrics.get('resignation_rate', 0)
         recent_hires = metrics.get('recent_hires', 0)
@@ -3355,26 +3531,26 @@ class CompleteDashboardBuilder:
             total_status = '✅'
             total_status_class = 'success'
 
-        # Absence rate status
-        # 결근율 상태
+        # Absence rate status - show both including and excluding maternity
+        # 결근율 상태 - 출산휴가 포함/제외 둘 다 표시
         if absence_rate <= ABSENCE_TARGET:
             absence_status = '✅'
             absence_status_class = 'success'
-            absence_msg_ko = f'결근율 {absence_rate:.1f}% (목표 {ABSENCE_TARGET}% 이내)'
-            absence_msg_en = f'Absence rate {absence_rate:.1f}% (target ≤{ABSENCE_TARGET}%)'
-            absence_msg_vi = f'Tỷ lệ vắng {absence_rate:.1f}% (mục tiêu ≤{ABSENCE_TARGET}%)'
+            absence_msg_ko = f'결근율 {absence_rate:.1f}% (출산휴가 제외) / {absence_rate_incl:.1f}% (포함) - 목표 {ABSENCE_TARGET}% 이내'
+            absence_msg_en = f'Absence {absence_rate:.1f}% (excl. maternity) / {absence_rate_incl:.1f}% (incl.) - target ≤{ABSENCE_TARGET}%'
+            absence_msg_vi = f'Vắng {absence_rate:.1f}% (không thai sản) / {absence_rate_incl:.1f}% (có) - mục tiêu ≤{ABSENCE_TARGET}%'
         elif absence_rate <= ABSENCE_WARNING:
             absence_status = '⚠️'
             absence_status_class = 'warning'
-            absence_msg_ko = f'결근율 {absence_rate:.1f}% (목표 {ABSENCE_TARGET}% 초과)'
-            absence_msg_en = f'Absence rate {absence_rate:.1f}% (above target {ABSENCE_TARGET}%)'
-            absence_msg_vi = f'Tỷ lệ vắng {absence_rate:.1f}% (vượt mục tiêu {ABSENCE_TARGET}%)'
+            absence_msg_ko = f'결근율 {absence_rate:.1f}% (출산휴가 제외) / {absence_rate_incl:.1f}% (포함) - 목표 초과'
+            absence_msg_en = f'Absence {absence_rate:.1f}% (excl. maternity) / {absence_rate_incl:.1f}% (incl.) - above target'
+            absence_msg_vi = f'Vắng {absence_rate:.1f}% (không thai sản) / {absence_rate_incl:.1f}% (có) - vượt mục tiêu'
         else:
             absence_status = '🚨'
             absence_status_class = 'danger'
-            absence_msg_ko = f'결근율 {absence_rate:.1f}% (목표 {ABSENCE_TARGET}% 크게 초과)'
-            absence_msg_en = f'Absence rate {absence_rate:.1f}% (significantly above {ABSENCE_TARGET}%)'
-            absence_msg_vi = f'Tỷ lệ vắng {absence_rate:.1f}% (vượt xa mục tiêu {ABSENCE_TARGET}%)'
+            absence_msg_ko = f'결근율 {absence_rate:.1f}% (출산휴가 제외) / {absence_rate_incl:.1f}% (포함) - 크게 초과'
+            absence_msg_en = f'Absence {absence_rate:.1f}% (excl. maternity) / {absence_rate_incl:.1f}% (incl.) - significantly above'
+            absence_msg_vi = f'Vắng {absence_rate:.1f}% (không thai sản) / {absence_rate_incl:.1f}% (có) - vượt xa'
 
         # Unauthorized absence status
         # 무단결근 상태
@@ -3691,13 +3867,24 @@ class CompleteDashboardBuilder:
 
         # Store issue and positive data in modal_data for JavaScript access
         # 모달용 JavaScript 접근을 위해 데이터 저장
+        quality_info = {
+            'score': self.quality_score.score if self.quality_score else 0,
+            'grade': self.quality_score.grade if self.quality_score else 'N/A',
+            'grade_color': self.quality_score.grade_color if self.quality_score else '#6c757d',
+            'passed': self.quality_score.passed_checks if self.quality_score else 0,
+            'total': self.quality_score.total_checks if self.quality_score else 0,
+            'warning_count': len([w for w in self.quality_score.warnings if w.severity == 'warning']) if self.quality_score else 0,
+            'error_count': len([w for w in self.quality_score.warnings if w.severity == 'error']) if self.quality_score else 0
+        }
         self.modal_data['executive_summary'] = {
             'issues': top_issues,
             'positive_changes': top_positive,
             'actions': actions,
+            'quality': quality_info,
             'metrics': {
                 'total_employees': total_employees,
-                'absence_rate': absence_rate,
+                'absence_rate': absence_rate,  # Excluding maternity / 출산휴가 제외
+                'absence_rate_incl': absence_rate_incl,  # Including maternity / 출산휴가 포함
                 'resignation_rate': resignation_rate,
                 'unauthorized_count': unauthorized_count,
                 'perfect_attendance': perfect_attendance,
@@ -3786,12 +3973,26 @@ class CompleteDashboardBuilder:
                 <div class="no-actions lang-text" data-ko="현재 조치 필요 항목 없음" data-en="No action items" data-vi="Không có mục cần xử lý">현재 조치 필요 항목 없음</div>
             </div>'''
 
+        # Get quality score info for display
+        # 표시용 품질 점수 정보
+        qs_score = self.quality_score.score if self.quality_score else 0
+        qs_grade = self.quality_score.grade if self.quality_score else 'N/A'
+        qs_color = self.quality_score.grade_color if self.quality_score else '#6c757d'
+        qs_passed = self.quality_score.passed_checks if self.quality_score else 0
+        qs_total = self.quality_score.total_checks if self.quality_score else 0
+
         return f'''
 <!-- Executive Summary Section / 현황 요약 섹션 -->
 <div class="executive-summary mb-4">
     <div class="summary-header">
         <h5 class="summary-title lang-text" data-ko="📊 현황 요약" data-en="📊 Executive Summary" data-vi="📊 Tóm tắt">📊 현황 요약</h5>
-        <span class="summary-period">{year}.{int(month):02d}</span>
+        <div class="summary-header-right">
+            <span class="quality-badge" style="background-color: {qs_color};" title="{qs_passed}/{qs_total} checks passed">
+                <span class="quality-grade">{qs_grade}</span>
+                <span class="quality-score">{qs_score:.0f}%</span>
+            </span>
+            <span class="summary-period">{year}.{int(month):02d}</span>
+        </div>
     </div>
 
     <div class="summary-body">
@@ -3991,12 +4192,13 @@ class CompleteDashboardBuilder:
 
             html_parts.append(f"""
 <div class="col-md-6 col-lg-4 col-xl-3">
-    <div class="summary-card" onclick="showModal{num}()" title="{tooltip_ko}">
-        <div class="card-number">{num}</div>
+    <div class="summary-card" onclick="showModal{num}()" onkeydown="if(event.key==='Enter')showModal{num}()" title="{tooltip_ko}"
+         role="button" tabindex="0" aria-label="{title_en}: {value} {unit}">
+        <div class="card-number" aria-hidden="true">{num}</div>
         <div class="card-title lang-card-title" data-ko="{title_ko}" data-en="{title_en}" data-vi="{title_vi}">
             {title_ko}<br><small class="lang-card-subtitle" data-ko="{title_en}" data-en="{title_en}" data-vi="{title_vi}">{title_en}</small>
         </div>
-        <div class="card-value">{value}<small class="ms-2">{unit}</small></div>
+        <div class="card-value" aria-live="polite">{value}<small class="ms-2">{unit}</small></div>
         {change_html}
     </div>
 </div>
@@ -4008,18 +4210,18 @@ class CompleteDashboardBuilder:
     def _generate_charts_section(self) -> str:
         """Generate charts section with 2-column grid and period selector"""
         return """
-<div class="charts-section">
+<div class="charts-section" role="region" aria-label="Monthly Trend Charts">
     <!-- Header with Period Selector / 기간 선택기가 있는 헤더 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0 lang-section-title" data-ko="📈 월별 추세 분석" data-en="📈 Monthly Trends" data-vi="📈 Xu hướng hàng tháng">📈 월별 추세 분석</h4>
-        <div class="btn-group" role="group" id="periodSelector">
-            <button type="button" class="btn btn-outline-primary btn-sm" data-period="3" onclick="updateTrendPeriod(3)">
+        <div class="btn-group" role="group" id="periodSelector" aria-label="Select time period">
+            <button type="button" class="btn btn-outline-primary btn-sm" data-period="3" onclick="updateTrendPeriod(3)" aria-pressed="false">
                 <span class="lang-option" data-ko="3개월" data-en="3 Months" data-vi="3 tháng">3개월</span>
             </button>
-            <button type="button" class="btn btn-outline-primary btn-sm active" data-period="6" onclick="updateTrendPeriod(6)">
+            <button type="button" class="btn btn-outline-primary btn-sm active" data-period="6" onclick="updateTrendPeriod(6)" aria-pressed="true">
                 <span class="lang-option" data-ko="6개월" data-en="6 Months" data-vi="6 tháng">6개월</span>
             </button>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-period="12" onclick="updateTrendPeriod(12)">
+            <button type="button" class="btn btn-outline-primary btn-sm" data-period="12" onclick="updateTrendPeriod(12)" aria-pressed="false">
                 <span class="lang-option" data-ko="12개월" data-en="12 Months" data-vi="12 tháng">12개월</span>
             </button>
         </div>
@@ -4028,7 +4230,7 @@ class CompleteDashboardBuilder:
     <!-- Row 1: Employee Trend & Hires/Resignations -->
     <div class="row">
         <div class="col-lg-6">
-            <div class="chart-container">
+            <div class="chart-container" role="img" aria-label="Employee trend chart">
                 <canvas id="employeeTrendChart"></canvas>
             </div>
         </div>
@@ -4195,21 +4397,26 @@ class CompleteDashboardBuilder:
     <!-- Team Filter and Controls -->
     <div class="row mb-3">
         <div class="col-md-3">
-            <select class="form-select" id="teamFilter" onchange="applyFilters()">
+            <label for="teamFilter" class="visually-hidden">Select team filter</label>
+            <select class="form-select" id="teamFilter" onchange="applyFilters()" aria-label="Filter by team">
                 <option value="all">
                     <span class="lang-option" data-ko="전체 팀" data-en="All Teams" data-vi="Tất cả nhóm">전체 팀</span>
                 </option>
             </select>
         </div>
         <div class="col-md-6">
-            <div class="position-relative">
-                <input type="text" class="form-control" id="employeeSearch"
+            <div class="position-relative" role="search">
+                <label for="employeeSearch" class="visually-hidden">Search employees</label>
+                <input type="search" class="form-control" id="employeeSearch"
                        placeholder="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
                        onkeyup="handleSearchInput()"
+                       aria-label="Search employees by ID, name, position, building, line, or boss"
+                       aria-describedby="searchSuggestions"
+                       autocomplete="off"
                        data-ko="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
                        data-en="🔍 Search by ID, Name, Position, Building, Line, Boss..."
                        data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây, Cấp trên...">
-                <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
+                <div id="searchSuggestions" class="search-suggestions" role="listbox" aria-live="polite" style="display: none;"></div>
             </div>
         </div>
         <div class="col-md-3 text-end">
@@ -4281,57 +4488,57 @@ class CompleteDashboardBuilder:
     </div>
 
     <!-- Filter Buttons -->
-    <div class="btn-toolbar mb-4" role="toolbar">
+    <div class="btn-toolbar mb-4" role="toolbar" aria-label="Employee filter options">
         <!-- Status Filters -->
-        <div class="btn-group me-2" role="group">
-            <button type="button" class="btn btn-outline-primary active" id="filterAll" onclick="filterEmployees('all')">
+        <div class="btn-group me-2" role="group" aria-label="Filter by employment status">
+            <button type="button" class="btn btn-outline-primary active" id="filterAll" onclick="filterEmployees('all')" aria-pressed="true">
                 <span class="lang-filter" data-ko="전체" data-en="All" data-vi="Tất cả">전체</span>
-                <span class="badge bg-primary ms-1" id="countAll">0</span>
+                <span class="badge bg-primary ms-1" id="countAll" aria-label="count">0</span>
             </button>
-            <button type="button" class="btn btn-outline-success" id="filterActive" onclick="filterEmployees('active')">
+            <button type="button" class="btn btn-outline-success" id="filterActive" onclick="filterEmployees('active')" aria-pressed="false">
                 <span class="lang-filter" data-ko="재직자" data-en="Active" data-vi="Đang làm">재직자</span>
-                <span class="badge bg-success ms-1" id="countActive">0</span>
+                <span class="badge bg-success ms-1" id="countActive" aria-label="count">0</span>
             </button>
-            <button type="button" class="btn btn-outline-info" id="filterHired" onclick="filterEmployees('hired')">
+            <button type="button" class="btn btn-outline-info" id="filterHired" onclick="filterEmployees('hired')" aria-pressed="false">
                 <span class="lang-filter" data-ko="신규입사" data-en="New Hires" data-vi="Mới vào">신규입사</span>
-                <span class="badge bg-info ms-1" id="countHired">0</span>
+                <span class="badge bg-info ms-1" id="countHired" aria-label="count">0</span>
             </button>
-            <button type="button" class="btn btn-outline-warning" id="filterResigned" onclick="filterEmployees('resigned')">
+            <button type="button" class="btn btn-outline-warning" id="filterResigned" onclick="filterEmployees('resigned')" aria-pressed="false">
                 <span class="lang-filter" data-ko="퇴사자" data-en="Resigned" data-vi="Đã nghỉ">퇴사자</span>
-                <span class="badge bg-warning ms-1" id="countResigned">0</span>
+                <span class="badge bg-warning ms-1" id="countResigned" aria-label="count">0</span>
             </button>
         </div>
         <!-- Attendance Filters -->
-        <div class="btn-group me-2" role="group">
-            <button type="button" class="btn btn-outline-success" id="filterPerfect" onclick="filterEmployees('perfect')">
+        <div class="btn-group me-2" role="group" aria-label="Filter by attendance status">
+            <button type="button" class="btn btn-outline-success" id="filterPerfect" onclick="filterEmployees('perfect')" aria-pressed="false">
                 <span class="lang-filter" data-ko="개근" data-en="Perfect" data-vi="Chuyên cần">개근</span>
-                <span class="badge bg-success ms-1" id="countPerfect">0</span>
+                <span class="badge bg-success ms-1" id="countPerfect" aria-label="count">0</span>
             </button>
-            <button type="button" class="btn btn-outline-warning" id="filterAbsent" onclick="filterEmployees('absent')">
+            <button type="button" class="btn btn-outline-warning" id="filterAbsent" onclick="filterEmployees('absent')" aria-pressed="false">
                 <span class="lang-filter" data-ko="결근자" data-en="Absent" data-vi="Vắng mặt">결근자</span>
-                <span class="badge bg-warning ms-1" id="countAbsent">0</span>
+                <span class="badge bg-warning ms-1" id="countAbsent" aria-label="count">0</span>
             </button>
-            <button type="button" class="btn btn-outline-danger" id="filterUnauthorized" onclick="filterEmployees('unauthorized')">
+            <button type="button" class="btn btn-outline-danger" id="filterUnauthorized" onclick="filterEmployees('unauthorized')" aria-pressed="false">
                 <span class="lang-filter" data-ko="무단결근" data-en="Unauthorized" data-vi="Không phép">무단결근</span>
-                <span class="badge bg-danger ms-1" id="countUnauthorized">0</span>
+                <span class="badge bg-danger ms-1" id="countUnauthorized" aria-label="count">0</span>
             </button>
         </div>
         <!-- Tenure Filters -->
-        <div class="btn-group me-2" role="group">
-            <button type="button" class="btn btn-outline-info" id="filterLongTerm" onclick="filterEmployees('longterm')">
+        <div class="btn-group me-2" role="group" aria-label="Filter by tenure">
+            <button type="button" class="btn btn-outline-info" id="filterLongTerm" onclick="filterEmployees('longterm')" aria-pressed="false">
                 <span class="lang-filter" data-ko="장기근속" data-en="Long-term" data-vi="Lâu năm">장기근속</span>
-                <span class="badge bg-info ms-1" id="countLongTerm">0</span>
+                <span class="badge bg-info ms-1" id="countLongTerm" aria-label="count">0</span>
             </button>
-            <button type="button" class="btn btn-outline-secondary" id="filterNew" onclick="filterEmployees('new60')">
+            <button type="button" class="btn btn-outline-secondary" id="filterNew" onclick="filterEmployees('new60')" aria-pressed="false">
                 <span class="lang-filter" data-ko="60일 미만" data-en="Under 60d" data-vi="Dưới 60 ngày">60일 미만</span>
-                <span class="badge bg-secondary ms-1" id="countNew60">0</span>
+                <span class="badge bg-secondary ms-1" id="countNew60" aria-label="count">0</span>
             </button>
         </div>
         <!-- Special Filters -->
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-warning" id="filterPregnant" onclick="filterEmployees('pregnant')">
+        <div class="btn-group" role="group" aria-label="Special filters">
+            <button type="button" class="btn btn-outline-warning" id="filterPregnant" onclick="filterEmployees('pregnant')" aria-pressed="false">
                 <span class="lang-filter" data-ko="임신" data-en="Pregnant" data-vi="Mang thai">임신</span>
-                <span class="badge bg-warning ms-1" id="countPregnant">0</span>
+                <span class="badge bg-warning ms-1" id="countPregnant" aria-label="count">0</span>
             </button>
         </div>
     </div>
@@ -4374,41 +4581,44 @@ class CompleteDashboardBuilder:
                 </button>
             </div>
             <!-- Pagination Controls -->
-            <div class="btn-group me-2" role="group">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="prevPageBtn" onclick="changePage(-1)">◄</button>
-                <span class="btn btn-sm btn-outline-secondary disabled" id="pageInfo">Page 1</span>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="nextPageBtn" onclick="changePage(1)">►</button>
-            </div>
-            <select class="form-select form-select-sm d-inline-block me-2" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
+            <nav aria-label="Employee table pagination" class="d-inline-block">
+                <div class="btn-group me-2" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="prevPageBtn" onclick="changePage(-1)" aria-label="Previous page">◄</button>
+                    <span class="btn btn-sm btn-outline-secondary disabled" id="pageInfo" aria-live="polite" aria-atomic="true">Page 1</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="nextPageBtn" onclick="changePage(1)" aria-label="Next page">►</button>
+                </div>
+            </nav>
+            <label for="pageSizeSelect" class="visually-hidden">Select page size</label>
+            <select class="form-select form-select-sm d-inline-block me-2" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;" aria-label="Number of employees per page">
                 <option value="20">20/page</option>
                 <option value="50" selected>50/page</option>
                 <option value="100">100/page</option>
                 <option value="-1">All</option>
             </select>
-            <span class="badge bg-info fs-6" id="employeeCount">Total: 0</span>
+            <span class="badge bg-info fs-6" id="employeeCount" aria-live="polite">Total: 0</span>
         </div>
     </div>
 
     <!-- Employee Table -->
-    <div class="table-responsive">
-        <table class="table table-striped table-hover employee-table" id="employeeTable">
+    <div class="table-responsive" role="region" aria-label="Employee data table" tabindex="0">
+        <table class="table table-striped table-hover employee-table" id="employeeTable" aria-label="Employee list with attendance and status information">
             <thead class="table-light sticky-top">
                 <tr>
-                    <th style="width: 40px;"><input type="checkbox" id="headerCheckbox" onchange="toggleSelectAll()"></th>
-                    <th class="sortable" onclick="sortTable(0)" id="th-0"><span class="lang-th" data-ko="사번" data-en="ID" data-vi="Mã NV">사번</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(1)" id="th-1"><span class="lang-th" data-ko="이름" data-en="Name" data-vi="Tên">이름</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(2)" id="th-2"><span class="lang-th" data-ko="직급" data-en="Position" data-vi="Vị trí">직급</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(3)" id="th-3"><span class="lang-th" data-ko="유형" data-en="Type" data-vi="Loại">유형</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(4)" id="th-4"><span class="lang-th" data-ko="건물" data-en="Building" data-vi="Tòa nhà">건물</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(5)" id="th-5"><span class="lang-th" data-ko="라인" data-en="Line" data-vi="Dây chuyền">라인</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(6)" id="th-6"><span class="lang-th" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(7)" id="th-7"><span class="lang-th" data-ko="근무일" data-en="Work" data-vi="Làm việc">근무일</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(8)" id="th-8"><span class="lang-th" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(9)" id="th-9"><span class="lang-th" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(10)" id="th-10"><span class="lang-th" data-ko="입사일" data-en="Start" data-vi="Ngày vào">입사일</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(11)" id="th-11"><span class="lang-th" data-ko="퇴사일" data-en="End" data-vi="Ngày nghỉ">퇴사일</span> <span class="sort-indicator"></span></th>
-                    <th class="sortable" onclick="sortTable(12)" id="th-12"><span class="lang-th" data-ko="재직" data-en="Tenure" data-vi="Thâm niên">재직</span> <span class="sort-indicator"></span></th>
-                    <th><span class="lang-th" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></th>
+                    <th scope="col" style="width: 40px;"><input type="checkbox" id="headerCheckbox" onchange="toggleSelectAll()" aria-label="Select all employees"></th>
+                    <th scope="col" class="sortable" onclick="sortTable(0)" id="th-0" aria-sort="none"><span class="lang-th" data-ko="사번" data-en="ID" data-vi="Mã NV">사번</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(1)" id="th-1" aria-sort="none"><span class="lang-th" data-ko="이름" data-en="Name" data-vi="Tên">이름</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(2)" id="th-2" aria-sort="none"><span class="lang-th" data-ko="직급" data-en="Position" data-vi="Vị trí">직급</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(3)" id="th-3" aria-sort="none"><span class="lang-th" data-ko="유형" data-en="Type" data-vi="Loại">유형</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(4)" id="th-4" aria-sort="none"><span class="lang-th" data-ko="건물" data-en="Building" data-vi="Tòa nhà">건물</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(5)" id="th-5" aria-sort="none"><span class="lang-th" data-ko="라인" data-en="Line" data-vi="Dây chuyền">라인</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(6)" id="th-6" aria-sort="none"><span class="lang-th" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(7)" id="th-7" aria-sort="none"><span class="lang-th" data-ko="근무일" data-en="Work" data-vi="Làm việc">근무일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(8)" id="th-8" aria-sort="none"><span class="lang-th" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(9)" id="th-9" aria-sort="none"><span class="lang-th" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(10)" id="th-10" aria-sort="none"><span class="lang-th" data-ko="입사일" data-en="Start" data-vi="Ngày vào">입사일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(11)" id="th-11" aria-sort="none"><span class="lang-th" data-ko="퇴사일" data-en="End" data-vi="Ngày nghỉ">퇴사일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(12)" id="th-12" aria-sort="none"><span class="lang-th" data-ko="재직" data-en="Tenure" data-vi="Thâm niên">재직</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col"><span class="lang-th" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></th>
                 </tr>
             </thead>
             <tbody id="employeeTableBody">
@@ -6397,11 +6607,11 @@ class CompleteDashboardBuilder:
 
         # Employee Detail Modal
         modals_html.append("""
-<div class="modal fade" id="employeeDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="employeeDetailModal" tabindex="-1" role="dialog" aria-labelledby="employeeDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
+                <h5 class="modal-title" id="employeeDetailModalLabel">
                     <span class="lang-modal-title" data-ko="직원 상세 정보" data-en="Employee Details" data-vi="Thông tin nhân viên">직원 상세 정보</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -6631,8 +6841,8 @@ class CompleteDashboardBuilder:
         # Issue Summary Modal (for Executive Summary clickable items)
         # 이슈 요약 모달 (경영진 요약 클릭 항목용)
         modals_html.append("""
-<div class="modal fade" id="issueSummaryModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="issueSummaryModal" tabindex="-1" role="dialog" aria-labelledby="issueSummaryModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title" id="issueSummaryModalTitle">이슈 상세</h5>
@@ -6658,6 +6868,165 @@ class CompleteDashboardBuilder:
         # Use string concatenation to set initial language from Python
         # 파이썬에서 초기 언어를 설정하기 위해 문자열 결합 사용
         return f"""
+// ============================================
+// Debug Mode & Security Utilities
+// 디버그 모드 및 보안 유틸리티
+// ============================================
+
+const DEBUG_MODE = false;  // Set to true for development / 개발시 true로 설정
+
+// Safe logging - only logs in debug mode
+// 안전한 로깅 - 디버그 모드에서만 로그 출력
+function debugLog(...args) {{
+    if (DEBUG_MODE) console.log(...args);
+}}
+
+// HTML sanitization to prevent XSS
+// XSS 방지를 위한 HTML 새니타이징
+function sanitizeHTML(str) {{
+    if (typeof str !== 'string') return str;
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}}
+
+// Safe innerHTML setter - sanitizes unless content is trusted HTML
+// 안전한 innerHTML 설정 - 신뢰할 수 있는 HTML이 아니면 새니타이징
+function setInnerHTML(element, html, trusted = false) {{
+    if (trusted) {{
+        element.innerHTML = html;
+    }} else {{
+        element.innerHTML = sanitizeHTML(html);
+    }}
+}}
+
+// ============================================
+// Loading Indicator (P0 Fix)
+// 로딩 인디케이터 (P0 수정)
+// ============================================
+
+let loadingCount = 0;
+
+function showLoading(message) {{
+    loadingCount++;
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {{
+        overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-message" id="loadingMessage"></div>
+        `;
+        document.body.appendChild(overlay);
+    }}
+    const msgElem = document.getElementById('loadingMessage');
+    if (msgElem && message) {{
+        msgElem.textContent = message;
+    }}
+    overlay.classList.add('show');
+}}
+
+function hideLoading() {{
+    loadingCount = Math.max(0, loadingCount - 1);
+    if (loadingCount === 0) {{
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {{
+            overlay.classList.remove('show');
+        }}
+    }}
+}}
+
+// ============================================
+// Error Boundary (P0 Fix)
+// 에러 경계 (P0 수정)
+// ============================================
+
+// Global error handler
+// 전역 에러 핸들러
+window.onerror = function(message, source, lineno, colno, error) {{
+    console.error('Dashboard error:', {{ message, source, lineno, colno, error }});
+    showError(message);
+    return true; // Prevent default error handling / 기본 에러 처리 방지
+}};
+
+// Promise rejection handler
+// Promise 거부 핸들러
+window.onunhandledrejection = function(event) {{
+    console.error('Unhandled promise rejection:', event.reason);
+    showError(event.reason?.message || 'An unexpected error occurred');
+}};
+
+function showError(message) {{
+    hideLoading(); // Clear any loading state / 로딩 상태 초기화
+
+    let errorBoundary = document.getElementById('errorBoundary');
+    if (!errorBoundary) {{
+        errorBoundary = document.createElement('div');
+        errorBoundary.id = 'errorBoundary';
+        errorBoundary.className = 'error-boundary';
+        document.body.insertBefore(errorBoundary, document.body.firstChild);
+    }}
+
+    const errorMessages = {{
+        ko: 'オ류가 발생했습니다',
+        en: 'An error occurred',
+        vi: 'Đã xảy ra lỗi'
+    }};
+
+    const retryMessages = {{
+        ko: '다시 시도',
+        en: 'Retry',
+        vi: 'Thử lại'
+    }};
+
+    const dismissMessages = {{
+        ko: '닫기',
+        en: 'Dismiss',
+        vi: 'Đóng'
+    }};
+
+    errorBoundary.innerHTML = `
+        <div class="error-boundary-content">
+            <span class="error-boundary-icon">⚠️</span>
+            <div>
+                <strong>${{errorMessages[currentLanguage] || errorMessages.en}}</strong>
+                <p>${{sanitizeHTML(message)}}</p>
+            </div>
+            <div class="error-boundary-actions">
+                <button onclick="location.reload()" class="btn btn-primary btn-sm">
+                    ${{retryMessages[currentLanguage] || retryMessages.en}}
+                </button>
+                <button onclick="dismissError()" class="btn btn-outline-secondary btn-sm">
+                    ${{dismissMessages[currentLanguage] || dismissMessages.en}}
+                </button>
+            </div>
+        </div>
+    `;
+    errorBoundary.style.display = 'block';
+}}
+
+function dismissError() {{
+    const errorBoundary = document.getElementById('errorBoundary');
+    if (errorBoundary) {{
+        errorBoundary.style.display = 'none';
+    }}
+}}
+
+// Safe function wrapper for error boundary
+// 에러 경계를 위한 안전한 함수 래퍼
+function safeExecute(fn, fallback = null) {{
+    return function(...args) {{
+        try {{
+            return fn.apply(this, args);
+        }} catch (error) {{
+            console.error('Error in function:', error);
+            showError(error.message);
+            return fallback;
+        }}
+    }};
+}}
+
 // ============================================
 // Language Switching
 // ============================================
@@ -6706,7 +7075,7 @@ function switchLanguage(lang) {
     // Save preference
     localStorage.setItem('dashboard_language', lang);
 
-    console.log(`✅ Language switched to: ${lang}`);
+    debugLog(`✅ Language switched to: ${lang}`);
 }
 
 // Load saved language preference on page load
@@ -6767,7 +7136,7 @@ function downloadDashboard() {{
     // 토스트 알림 생성
     showDownloadToast(messages[currentLanguage] || messages.ko, filename);
 
-    console.log(`📥 Dashboard downloaded: ${{filename}}`);
+    debugLog(`📥 Dashboard downloaded: ${{filename}}`);
 }}
 
 function showDownloadToast(message, filename) {{
@@ -7344,14 +7713,14 @@ function calculateTeamKPIChange(kpiKey) {{
             prevMonthEnd.setMonth(prevMonthEnd.getMonth() + 1);
             prevMonthEnd.setDate(0);
 
-            console.log(`🔍 [${{teamName}}] Calculating previous month (${{previousMonth.month}}) employee count:`);
-            console.log(`   Month-end: ${{prevMonthEnd.toISOString().split('T')[0]}}`);
-            console.log(`   Total members in team: ${{members.length}}`);
+            debugLog(`🔍 [${{teamName}}] Calculating previous month (${{previousMonth.month}}) employee count:`);
+            debugLog(`   Month-end: ${{prevMonthEnd.toISOString().split('T')[0]}}`);
+            debugLog(`   Total members in team: ${{members.length}}`);
 
             // ✅ Use common function (month-end basis)
             previousValue = countActiveEmployees(members, prevMonthEnd);
 
-            console.log(`   ➡️ Result: ${{previousValue}} employees were active in ${{previousMonth.month}}`);
+            debugLog(`   ➡️ Result: ${{previousValue}} employees were active in ${{previousMonth.month}}`);
         }} else {{
             // For other metrics, calculate team-specific value from previous month
             previousValue = config.calculateTeamValue(members, previousMonth, teamName);
@@ -8621,7 +8990,7 @@ function initLazyChartLoading() {{
                     const kpiKey = chartContainer.dataset.kpiKey;
 
                     if (modalId && kpiKey && !chartLoadState[modalId]) {{
-                        console.log(`🔍 Lazy loading charts for modal: ${{modalId}}`);
+                        debugLog(`🔍 Lazy loading charts for modal: ${{modalId}}`);
                         const modalNum = parseInt(modalId.replace('kpiModal', ''));
                         createUnifiedModalCharts(modalNum, kpiKey);
                         chartLoadState[modalId] = true;
@@ -8656,9 +9025,9 @@ function destroyModalCharts(modalNum) {{
             try {{
                 modalCharts[key].destroy();
                 delete modalCharts[key];
-                console.log(`🗑️ Destroyed chart: ${{key}}`);
+                debugLog(`🗑️ Destroyed chart: ${{key}}`);
             }} catch (e) {{
-                console.warn(`Failed to destroy chart ${{key}}:`, e);
+                debugLog(`Failed to destroy chart ${{key}}:`, e);
             }}
         }}
     }});
@@ -8690,7 +9059,7 @@ const handleChartResize = debounce(() => {{
             chart.resize();
         }}
     }});
-    console.log('📐 Charts resized for responsive layout');
+    debugLog('📐 Charts resized for responsive layout');
 }}, 250);
 
 // ============================================
@@ -8705,11 +9074,11 @@ const handleChartResize = debounce(() => {{
 function createUnifiedModalCharts(modalNum, kpiKey) {{
     const config = kpiConfig[kpiKey];
     if (!config) {{
-        console.error(`KPI config not found for: ${{kpiKey}}`);
+        debugLog(`KPI config not found for: ${{kpiKey}}`);
         return;
     }}
 
-    console.log(`🎨 Creating unified modal charts for Modal ${{modalNum}} - ${{config.nameKo}}`);
+    debugLog(`🎨 Creating unified modal charts for Modal ${{modalNum}} - ${{config.nameKo}}`);
 
     // 1. 주차별 KPI 트렌드
     createKPIWeeklyTrendChart(modalNum, kpiKey);
@@ -8826,7 +9195,7 @@ function createKPIWeeklyTrendChart(modalNum, kpiKey) {{
     const canvasId = `modalChart${{modalNum}}_weekly`;
     const ctx = document.getElementById(canvasId);
     if (!ctx) {{
-        console.error(`Canvas not found: ${{canvasId}}`);
+        debugLog(`Canvas not found: ${{canvasId}}`);
         return;
     }}
 
@@ -9360,7 +9729,7 @@ function createTeamDistributionChart(modalNum, kpiKey) {{
     const canvasId = `modalChart${{modalNum}}_teams`;
     const ctx = document.getElementById(canvasId);
     if (!ctx) {{
-        console.error(`Canvas not found: ${{canvasId}}`);
+        debugLog(`Canvas not found: ${{canvasId}}`);
         return;
     }}
 
@@ -9544,7 +9913,7 @@ function createTypeBreakdownChart(modalNum, kpiKey) {{
     const canvasId = `modalChart${{modalNum}}_types`;
     const ctx = document.getElementById(canvasId);
     if (!ctx) {{
-        console.error(`Canvas not found: ${{canvasId}}`);
+        debugLog(`Canvas not found: ${{canvasId}}`);
         return;
     }}
 
@@ -9662,7 +10031,7 @@ function createTeamChangeBarChart(modalNum, kpiKey) {{
     const canvasId = `modalChart${{modalNum}}_change`;
     const ctx = document.getElementById(canvasId);
     if (!ctx) {{
-        console.error(`Canvas not found: ${{canvasId}}`);
+        debugLog(`Canvas not found: ${{canvasId}}`);
         return;
     }}
 
@@ -9743,7 +10112,7 @@ function createKPITreemapAndTable(modalNum, kpiKey) {{
     const container = document.getElementById(containerId);
 
     if (!container) {{
-        console.error(`Container not found: ${{containerId}}`);
+        debugLog(`Container not found: ${{containerId}}`);
         return;
     }}
 
@@ -10554,11 +10923,11 @@ let teamDetailCharts = {{}};
 function createTeamDetailCharts(teamName, kpiKey) {{
     const config = kpiConfig[kpiKey];
     if (!config) {{
-        console.error(`KPI config not found for: ${{kpiKey}}`);
+        debugLog(`KPI config not found for: ${{kpiKey}}`);
         return;
     }}
 
-    console.log(`🎨 Creating team detail charts for ${{teamName}} - ${{config.nameKo}}`);
+    debugLog(`🎨 Creating team detail charts for ${{teamName}} - ${{config.nameKo}}`);
 
     // Update modal title
     document.getElementById('teamDetailModalTitle').textContent = `${{teamName}} - ${{config.nameKo}} 상세 분석`;
@@ -10732,7 +11101,7 @@ function createTeamRoleTreemap(teamName, kpiKey) {{
     const members = team.members || [];
 
     // Debug: Check team data structure
-    console.log(`🔍 Treemap Debug for ${{teamName}}:`, {{
+    debugLog(`🔍 Treemap Debug for ${{teamName}}:`, {{
         teamExists: !!team,
         membersExists: !!team.members,
         membersLength: members.length,
@@ -10826,7 +11195,7 @@ function createTeamRoleTreemap(teamName, kpiKey) {{
     }});
 
     // Debug: Log hierarchy data structure
-    console.log(`📊 Treemap Data for ${{teamName}}:`, {{
+    debugLog(`📊 Treemap Data for ${{teamName}}:`, {{
         totalRoles: hierarchyData.children.length,
         activeMembers: activeMembers.length,
         hierarchyData: hierarchyData,
@@ -11398,7 +11767,7 @@ function createTeamSunburstChart(teamName, kpiKey) {{
     document.querySelectorAll('.legend-item').forEach(item => {{
         item.addEventListener('click', function() {{
             const role = this.getAttribute('data-role');
-            console.log('범례 클릭:', role);
+            debugLog('범례 클릭:', role);
             // Could add visual feedback on sunburst chart here
         }});
     }});
@@ -11666,7 +12035,7 @@ function createEnhancedTotalEmployeesCharts() {
         }
     });
 
-    console.log('주차별 데이터 확인:', allWeeklyData.length, 'weeks');
+    debugLog('주차별 데이터 확인:', allWeeklyData.length, 'weeks');
 
     if (allWeeklyData.length > 0) {
         modalCharts['modal1_weekly'] = createWeeklyTrendChart(
@@ -11912,17 +12281,17 @@ function createTreemapAndTable() {{
     const currentMonth = metricsArray[metricsArray.length - 1];
     const previousMonth = metricsArray.length > 1 ? metricsArray[metricsArray.length - 2] : null;
 
-    console.log('Treemap Debug:');
-    console.log('  metricsArray months:', metricsArray.map(m => m.month));
-    console.log('  currentMonth:', currentMonth.month);
-    console.log('  previousMonth:', previousMonth ? previousMonth.month : 'none');
+    debugLog('Treemap Debug:');
+    debugLog('  metricsArray months:', metricsArray.map(m => m.month));
+    debugLog('  currentMonth:', currentMonth.month);
+    debugLog('  previousMonth:', previousMonth ? previousMonth.month : 'none');
 
     // Format month labels (remove leading zero)
     const currentMonthLabel = parseInt(currentMonth.month.split('-')[1]) + '월';
     const prevMonthLabel = previousMonth ? parseInt(previousMonth.month.split('-')[1]) + '월' : '';
 
-    console.log('  currentMonthLabel:', currentMonthLabel);
-    console.log('  prevMonthLabel:', prevMonthLabel);
+    debugLog('  currentMonthLabel:', currentMonthLabel);
+    debugLog('  prevMonthLabel:', prevMonthLabel);
 
     // Determine reference date labels dynamically based on report generation date
     const reportDate = new Date('{report_date_str}');  // Report generation date from Python
@@ -11959,11 +12328,11 @@ function createTreemapAndTable() {{
     const currentTeamStats = monthlyTeamCounts[currentMonth.month] || {{}};
     const prevTeamStats = previousMonth ? (monthlyTeamCounts[previousMonth.month] || {{}}) : {{}};
 
-    console.log('  Using pre-calculated monthlyTeamCounts');
-    console.log('  currentMonth:', currentMonth.month, 'stats:', currentTeamStats);
-    console.log('  previousMonth:', previousMonth ? previousMonth.month : 'none', 'stats:', prevTeamStats);
+    debugLog('  Using pre-calculated monthlyTeamCounts');
+    debugLog('  currentMonth:', currentMonth.month, 'stats:', currentTeamStats);
+    debugLog('  previousMonth:', previousMonth ? previousMonth.month : 'none', 'stats:', prevTeamStats);
 
-    console.log('  currentTeamStats:', currentTeamStats);
+    debugLog('  currentTeamStats:', currentTeamStats);
 
     // Create title
     const title = document.createElement('h4');
@@ -12741,17 +13110,17 @@ function createTreemapAndTable() {{
  * @param {string} kpiKey - The KPI key to analyze (e.g., 'absence_rate', 'total_employees')
  */
 function showTeamDetailModal(teamName, kpiKey) {{
-    console.log(`📊 Opening team detail modal for: ${{teamName}}, KPI: ${{kpiKey}}`);
+    debugLog(`📊 Opening team detail modal for: ${{teamName}}, KPI: ${{kpiKey}}`);
 
     // Validate inputs
     if (!teamData[teamName]) {{
-        console.error('Team data not found for:', teamName);
+        debugLog('Team data not found for:', teamName);
         alert('팀 데이터를 찾을 수 없습니다: ' + teamName);
         return;
     }}
 
     if (!kpiConfig[kpiKey]) {{
-        console.error('KPI config not found for:', kpiKey);
+        debugLog('KPI config not found for:', kpiKey);
         alert('KPI 설정을 찾을 수 없습니다: ' + kpiKey);
         return;
     }}
@@ -12775,12 +13144,12 @@ function showTeamDetailModal(teamName, kpiKey) {{
 
 // OLD VERSION - Kept for reference
 function showTeamDetailModal_OLD(teamName) {
-    console.log('Opening team detail modal for:', teamName);
+    debugLog('Opening team detail modal for:', teamName);
 
     // Get team data
     const team = teamData[teamName];
     if (!team || !team.members) {
-        console.error('Team data not found for:', teamName);
+        debugLog('Team data not found for:', teamName);
         alert('팀 데이터를 찾을 수 없습니다: ' + teamName);
         return;
     }
@@ -13283,11 +13652,11 @@ function showModal5() {{
  * 신규 입사자 종합 분석
  */
 function createRecentHiresAnalysis() {{
-    console.log('📊 Creating Recent Hires Comprehensive Analysis');
+    debugLog('📊 Creating Recent Hires Comprehensive Analysis');
 
     // Get recent hires data
     const recentHires = employeeDetails.filter(e => e.hired_this_month);
-    console.log(`Total recent hires: ${{recentHires.length}}`);
+    debugLog(`Total recent hires: ${{recentHires.length}}`);
 
     if (recentHires.length === 0) {{
         document.getElementById('recentHiresOverview').innerHTML = '<div class="col-12"><p class="text-muted text-center">신규 입사자 데이터가 없습니다.</p></div>';
@@ -14068,7 +14437,7 @@ function showModal13() {{
     setTimeout(() => {{
         const targetData = monthlyMetrics[targetMonth];
         if (!targetData || !targetData.team_absence_breakdown) {{
-            console.error('No team absence breakdown data found');
+            debugLog('No team absence breakdown data found');
             return;
         }}
 
@@ -14345,13 +14714,13 @@ function showModal13() {{
 // ============================================
 
 function showIssueSummaryModal(type, index) {{
-    console.log('📊 Opening Issue Summary Modal:', type, index);
+    debugLog('📊 Opening Issue Summary Modal:', type, index);
 
     // Get executive summary data from modalData
     // modalData에서 경영진 요약 데이터 가져오기
     const summaryData = modalData.executive_summary;
     if (!summaryData) {{
-        console.error('No executive summary data found');
+        debugLog('No executive summary data found');
         return;
     }}
 
@@ -14788,7 +15157,7 @@ function updateModalChart(modalNum, filteredCount) {
     if (modalCharts[`modal${modalNum}`]) {
         // For simplicity, we'll just note that the chart reflects filtered data
         // Full chart re-rendering with filtered trend data would require more complex logic
-        console.log(`Modal ${modalNum} filtered to ${filteredCount} records`);
+        debugLog(`Modal ${modalNum} filtered to ${filteredCount} records`);
     }
 }
 
@@ -15066,10 +15435,17 @@ function toggleEmployeeSelection(employeeId) {
 function filterEmployees(filter) {
     currentFilter = filter;
 
+    // Update button states with ARIA attributes
+    // ARIA 속성으로 버튼 상태 업데이트
     document.querySelectorAll('.btn-group button').forEach(btn => {
         btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
     });
-    document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
+    const activeBtn = document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-pressed', 'true');
+    }
 
     let filtered = employeeDetails;
 
@@ -15085,6 +15461,10 @@ function filterEmployees(filter) {
         case 'new60': filtered = employeeDetails.filter(e => e.under_60_days); break;
         case 'pregnant': filtered = employeeDetails.filter(e => e.is_pregnant); break;
     }
+
+    // P0 Fix: Save filter state to localStorage
+    // P0 수정: 필터 상태를 localStorage에 저장
+    savePreferencesToStorage();
 
     renderEmployeeTable(filtered);
 }
@@ -15139,15 +15519,34 @@ function updateFilterCounts() {
     document.getElementById('countPregnant').textContent = employeeDetails.filter(e => e.is_pregnant).length;
 }
 
-function searchEmployees() {
+// Current search term for highlighting
+// 하이라이팅을 위한 현재 검색어
+let currentSearchTerm = '';
+
+// P1 Fix: Highlight matching text in search results
+// P1 수정: 검색 결과에서 일치하는 텍스트 하이라이팅
+function highlightText(text, searchTerm) {{
+    if (!searchTerm || !text) return sanitizeHTML(String(text));
+    const safeText = sanitizeHTML(String(text));
+    const escapedTerm = searchTerm.replace(/[.*+?^${{}}()|[\\]\\\\]/g, '\\\\$&');
+    const regex = new RegExp(`(${{escapedTerm}})`, 'gi');
+    return safeText.replace(regex, '<mark class="search-highlight">$1</mark>');
+}}
+
+function searchEmployees() {{
     // Search employees by multiple fields (ID, Name, Position, Type, Building, Line)
     // 여러 필드로 직원 검색 (사번, 이름, 직급, 유형, 건물, 라인)
     const searchTerm = document.getElementById('employeeSearch').value.toLowerCase();
+    currentSearchTerm = searchTerm;
 
-    if (!searchTerm) {
+    // Save search preference
+    // 검색 환경설정 저장
+    savePreferencesToStorage();
+
+    if (!searchTerm) {{
         renderEmployeeTable(employeeDetails);
         return;
-    }
+    }}
 
     const filtered = employeeDetails.filter(emp => {{
         return (
@@ -15162,7 +15561,7 @@ function searchEmployees() {
     }});
 
     renderEmployeeTable(filtered);
-}
+}}
 
 function sortTable(columnIndex) {
     // Toggle sort direction if clicking same column, otherwise reset to ascending
@@ -15199,7 +15598,7 @@ function showEmployeeDetailModal(employeeId) {
     const employee = employeeDetails.find(emp => emp.employee_id === employeeId || emp.employee_no === employeeId);
 
     if (!employee) {
-        console.error('Employee not found:', employeeId);
+        debugLog('Employee not found:', employeeId);
         return;
     }
 
@@ -15394,12 +15793,20 @@ function resetColumnVisibility() {
 // localStorage에 환경설정 저장
 function savePreferencesToStorage() {{
     try {{
+        const searchInput = document.getElementById('employeeSearch');
         const prefs = {{
             columnVisibility: columnVisibility,
             sortColumn: currentSortColumn,
             sortAsc: currentSortAsc,
             pageSize: pageSize,
-            language: currentLanguage
+            language: currentLanguage,
+            // P0 Fix: Preserve filter state across sessions
+            // P0 수정: 세션 간 필터 상태 유지
+            currentFilter: currentFilter,
+            searchTerm: searchInput ? searchInput.value : '',
+            // Preserve selection across pagination
+            // 페이지네이션 간 선택 유지
+            selectedEmployees: Array.from(selectedEmployees)
         }};
         localStorage.setItem('hrDashboardPrefs', JSON.stringify(prefs));
     }} catch (e) {{
@@ -15445,6 +15852,36 @@ function loadPreferencesFromStorage() {{
             if (prefs.language && ['ko', 'en', 'vi'].includes(prefs.language)) {{
                 currentLanguage = prefs.language;
                 updateLanguageSelector();
+            }}
+
+            // P0 Fix: Restore filter state
+            // P0 수정: 필터 상태 복원
+            if (prefs.currentFilter && typeof prefs.currentFilter === 'string') {{
+                currentFilter = prefs.currentFilter;
+                // Delay filter application to ensure DOM is ready
+                // DOM이 준비될 때까지 필터 적용 지연
+                setTimeout(() => {{
+                    filterEmployees(currentFilter);
+                }}, 100);
+            }}
+
+            // Restore search term
+            // 검색어 복원
+            if (prefs.searchTerm && typeof prefs.searchTerm === 'string') {{
+                const searchInput = document.getElementById('employeeSearch');
+                if (searchInput) {{
+                    searchInput.value = prefs.searchTerm;
+                    if (prefs.searchTerm.length > 0) {{
+                        setTimeout(() => searchEmployees(), 150);
+                    }}
+                }}
+            }}
+
+            // Restore selected employees
+            // 선택된 직원 복원
+            if (prefs.selectedEmployees && Array.isArray(prefs.selectedEmployees)) {{
+                selectedEmployees = new Set(prefs.selectedEmployees);
+                updateSelectionUI();
             }}
         }}
     }} catch (e) {{
@@ -15558,7 +15995,7 @@ function updateSelectionUI() {
 
 function exportFiltered(format) {
     // Stub - export current filtered view
-    console.log(`Exporting filtered data as ${format}`);
+    debugLog(`Exporting filtered data as ${format}`);
     if (format === 'csv') exportToCSV();
     if (format === 'json') exportToJSON();
     if (format === 'pdf') alert('PDF export feature coming soon!');
@@ -15566,12 +16003,12 @@ function exportFiltered(format) {
 
 function exportSelected(format) {
     // Stub - export selected rows only
-    console.log(`Exporting ${selectedEmployees.size} selected employees as ${format}`);
+    debugLog(`Exporting ${selectedEmployees.size} selected employees as ${format}`);
 }
 
 function printSelected() {
     // Stub - print selected employees
-    console.log(`Printing ${selectedEmployees.size} selected employees`);
+    debugLog(`Printing ${selectedEmployees.size} selected employees`);
 }
 
 function updateQuickStats(employees) {
@@ -15624,7 +16061,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Phase 3: Performance Optimization & Mobile Support Initialization
     // ============================================
 
-    console.log('🚀 Initializing Phase 3 optimizations...');
+    debugLog('🚀 Initializing Phase 3 optimizations...');
 
     // 1. Initialize Lazy Chart Loading with Intersection Observer
     initLazyChartLoading();
@@ -15650,14 +16087,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const modalNum = parseInt(modalId.replace(/\\D/g, '')); // Extract number from ID
             if (modalNum) {{
                 destroyModalCharts(modalNum);
-                console.log(`🗑️ Cleaned up charts for modal ${{modalNum}}`);
+                debugLog(`🗑️ Cleaned up charts for modal ${{modalNum}}`);
             }}
         }});
     }});
 
     // 4. Touch event optimization for mobile devices
     if ('ontouchstart' in window) {{
-        console.log('📱 Touch device detected - enabling mobile optimizations');
+        debugLog('📱 Touch device detected - enabling mobile optimizations');
 
         // Add touch event listeners to KPI cards for better mobile UX
         document.querySelectorAll('.kpi-card').forEach(card => {{
@@ -15695,7 +16132,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }});
 
     // 6. Log device and viewport info for debugging
-    console.log('📐 Viewport:', {{
+    debugLog('📐 Viewport:', {{
         width: window.innerWidth,
         height: window.innerHeight,
         devicePixelRatio: window.devicePixelRatio,
@@ -15705,13 +16142,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 7. Performance monitoring
     if (window.performance && window.performance.memory) {{
-        console.log('💾 Memory usage:', {{
+        debugLog('💾 Memory usage:', {{
             usedJSHeapSize: (window.performance.memory.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
             totalJSHeapSize: (window.performance.memory.totalJSHeapSize / 1048576).toFixed(2) + ' MB'
         }});
     }}
 
-    console.log('✅ Phase 3 optimizations initialized successfully!');
+    debugLog('✅ Phase 3 optimizations initialized successfully!');
 });
 
 // ============================================
@@ -15745,7 +16182,7 @@ function exportToCSV() {
     const csv = headers.concat(rows).join('\\n');
     downloadFile(csv, filename, 'text/csv;charset=utf-8;');
 
-    console.log(`✅ Exported ${employeeDetails.length} employees to CSV`);
+    debugLog(`✅ Exported ${employeeDetails.length} employees to CSV`);
 }
 
 function exportToJSON() {
@@ -15753,7 +16190,7 @@ function exportToJSON() {
     const json = JSON.stringify(employeeDetails, null, 2);
     downloadFile(json, filename, 'application/json');
 
-    console.log(`✅ Exported ${employeeDetails.length} employees to JSON`);
+    debugLog(`✅ Exported ${employeeDetails.length} employees to JSON`);
 }
 
 function exportMetricsToJSON() {
@@ -15770,7 +16207,7 @@ function exportMetricsToJSON() {
     const json = JSON.stringify(exportData, null, 2);
     downloadFile(json, filename, 'application/json');
 
-    console.log(`✅ Exported metrics for ${availableMonths.length} months to JSON`);
+    debugLog(`✅ Exported metrics for ${availableMonths.length} months to JSON`);
 }
 
 function downloadFile(content, filename, mimeType) {
@@ -17376,7 +17813,7 @@ function exportTeamAnalysis() {{
         );
 
     }} catch (error) {{
-        console.error('Export error:', error);
+        debugLog('Export error:', error);
         showToast('내보내기 오류', '팀 분석 데이터 내보내기 중 오류가 발생했습니다.', 'error');
     }}
 }}
@@ -17448,7 +17885,7 @@ function exportTeamAnalysisJSON() {{
         );
 
     }} catch (error) {{
-        console.error('Export error:', error);
+        debugLog('Export error:', error);
         showToast('내보내기 오류', '팀 분석 데이터 내보내기 중 오류가 발생했습니다.', 'error');
     }}
 }}
@@ -17462,10 +17899,10 @@ if (teamanalysisTab) {{
     }});
 }}
 
-console.log('✅ Dashboard initialized');
-console.log('📊 Months:', availableMonths);
-console.log('👥 Employees:', employeeDetails.length);
-console.log('📋 Modal data:', modalData);
+debugLog('✅ Dashboard initialized');
+debugLog('📊 Months:', availableMonths);
+debugLog('👥 Employees:', employeeDetails.length);
+debugLog('📋 Modal data:', modalData);
 """
 
 
