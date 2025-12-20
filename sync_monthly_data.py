@@ -113,13 +113,31 @@ def main():
             size_kb = int(file.get('size', 0)) / 1024
             print(f"  ✅ {file['name']:40s} → {local_path}  ({size_kb:.1f} KB)")
         
-        # Copy attendance to converted
-        import shutil
+        # Convert attendance with column standardization
+        # 출석 데이터 변환 및 컬럼 표준화
+        import pandas as pd
         orig = f'input_files/attendance/original/attendance data {month_name}.csv'
         conv = f'input_files/attendance/converted/attendance data {month_name}_converted.csv'
         if Path(orig).exists():
-            shutil.copy(orig, conv)
+            df = pd.read_csv(orig)
+
+            # Column name mapping for standardization
+            # 컬럼명 표준화 매핑
+            column_mapping = {
+                'Sequence': 'No.',
+                'Company Code': 'CoCode',
+                'Combination Department Code': 'Department',
+                'Personnel Number': 'ID No',
+                'Attendance Name': 'compAdd',
+                'Work Time Code': 'WTime'
+            }
+
+            # Apply mapping only for columns that exist
+            # 존재하는 컬럼만 매핑 적용
+            df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
+            df.to_csv(conv, index=False)
             print(f"\n✅ Created converted attendance file: {conv}")
+            print(f"   Columns standardized: {list(df.columns)}")
         
         print(f"\n✅ All {month_name} {args.year} data synced successfully!")
         return 0
