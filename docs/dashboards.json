@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "description": "HR Dashboard manifest file",
-  "lastUpdated": "2025-12-20 13:17:49",
+  "lastUpdated": "2025-12-20 13:31:52",
   "dashboards": [
     {
       "file": "HR_Dashboard_Complete_2025_12.html",
@@ -26,36 +26,25 @@
       }
     },
     {
-      "file": "HR_Dashboard_Complete_2024_11.html",
-      "year": 2024,
-      "month": 11,
-      "updated": "2025-12-17 14:40",
-      "stats": {
-        "total": "349",
-        "absenceRate": "13.9%",
-        "resignationRate": "-"
-      }
-    },
-    {
-      "file": "HR_Dashboard_Complete_2024_10.html",
-      "year": 2024,
+      "file": "HR_Dashboard_Complete_2025_10.html",
+      "year": 2025,
       "month": 10,
-      "updated": "2025-12-17 14:40",
+      "updated": "2025-12-20 13:31",
       "stats": {
-        "total": "343",
-        "absenceRate": "13.8%",
-        "resignationRate": "-"
+        "total": "411",
+        "absenceRate": "12.9%",
+        "resignationRate": "3.9%"
       }
     },
     {
-      "file": "HR_Dashboard_Complete_2024_09.html",
-      "year": 2024,
+      "file": "HR_Dashboard_Complete_2025_09.html",
+      "year": 2025,
       "month": 9,
-      "updated": "2025-12-17 14:40",
+      "updated": "2025-12-20 13:31",
       "stats": {
-        "total": "332",
-        "absenceRate": "11.5%",
-        "resignationRate": "-"
+        "total": "398",
+        "absenceRate": "10.4%",
+        "resignationRate": "5.1%"
       }
     }
   ]

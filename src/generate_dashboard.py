@@ -26,6 +26,7 @@ import shutil
 from pathlib import Path
 import argparse
 from datetime import datetime
+import pandas as pd
 
 # Add parent directory to path for imports
 # 부모 디렉토리를 import 경로에 추가
@@ -33,6 +34,67 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.visualization.complete_dashboard_builder import CompleteDashboardBuilder
+
+
+def detect_data_year(month: int, project_root: Path) -> int:
+    """
+    Detect actual year from data file by analyzing dates
+    데이터 파일의 날짜를 분석하여 실제 연도 감지
+
+    Args:
+        month: Target month / 대상 월
+        project_root: Project root path / 프로젝트 루트 경로
+
+    Returns:
+        int: Detected year or current year as fallback / 감지된 연도 또는 현재 연도
+    """
+    month_names = {
+        1: 'january', 2: 'february', 3: 'march', 4: 'april',
+        5: 'may', 6: 'june', 7: 'july', 8: 'august',
+        9: 'september', 10: 'october', 11: 'november', 12: 'december'
+    }
+
+    month_name = month_names.get(month, '')
+    data_file = project_root / "input_files" / f"basic manpower data {month_name}.csv"
+
+    if not data_file.exists():
+        print(f"⚠️  Data file not found: {data_file}")
+        return datetime.now().year
+
+    try:
+        df = pd.read_csv(data_file)
+
+        # Check Entrance Date column for year detection
+        # 입사일 컬럼에서 연도 감지
+        if 'Entrance Date' in df.columns:
+            dates = pd.to_datetime(df['Entrance Date'], errors='coerce')
+            valid_dates = dates.dropna()
+
+            if len(valid_dates) > 0:
+                # Get the most common year from recent entries
+                # 최근 항목에서 가장 많은 연도 가져오기
+                years = valid_dates.dt.year
+                # Filter to reasonable years (2020-2030)
+                years = years[(years >= 2020) & (years <= 2030)]
+
+                if len(years) > 0:
+                    # Use the year that appears most in recent dates (last 100 entries)
+                    recent_years = years.tail(100)
+                    detected_year = recent_years.mode().iloc[0] if len(recent_years.mode()) > 0 else years.max()
+                    return int(detected_year)
+
+        # Fallback: check Stop working Date
+        # 대체: 퇴사일 확인
+        if 'Stop working Date' in df.columns:
+            dates = pd.to_datetime(df['Stop working Date'], errors='coerce')
+            valid_dates = dates.dropna()
+            if len(valid_dates) > 0:
+                return int(valid_dates.dt.year.max())
+
+    except Exception as e:
+        print(f"⚠️  Error detecting year: {e}")
+
+    return datetime.now().year
 
 
 def update_dashboards_json(year: int, month: int, stats: dict, project_root: Path):
@@ -173,6 +235,25 @@ def main():
     # Parse command line arguments
     # 명령줄 인수 파싱
     args = parse_arguments()
+
+    # Auto-detect year from data file
+    # 데이터 파일에서 연도 자동 감지
+    detected_year = detect_data_year(args.month, project_root)
+
+    # Validate and correct year if needed
+    # 필요 시 연도 검증 및 수정
+    if args.year != detected_year:
+        print("=" * 70)
+        print("⚠️  YEAR MISMATCH DETECTED / 연도 불일치 감지")
+        print("=" * 70)
+        print(f"   Specified year / 지정된 연도: {args.year}")
+        print(f"   Detected year / 감지된 연도: {detected_year}")
+        print()
+        print(f"🔄 Auto-correcting to {detected_year}")
+        print(f"🔄 {detected_year}년으로 자동 수정합니다")
+        print("=" * 70)
+        print()
+        args.year = detected_year
 
     # Format target month as YYYY-MM
     # 대상 월을 YYYY-MM 형식으로 포맷
