@@ -1,13 +1,13 @@
 {
   "version": "1.0.0",
   "description": "HR Dashboard manifest file",
-  "lastUpdated": "2025-12-20 13:37:16",
+  "lastUpdated": "2025-12-20 14:18:39",
   "dashboards": [
     {
       "file": "HR_Dashboard_Complete_2025_12.html",
       "year": 2025,
       "month": 12,
-      "updated": "2025-12-20 13:37",
+      "updated": "2025-12-20 14:18",
       "stats": {
         "total": "411",
         "absenceRate": "12.3%",
@@ -18,7 +18,7 @@
       "file": "HR_Dashboard_Complete_2025_11.html",
       "year": 2025,
       "month": 11,
-      "updated": "2025-12-20 13:17",
+      "updated": "2025-12-20 14:18",
       "stats": {
         "total": "405",
         "absenceRate": "13.1%",
@@ -29,7 +29,7 @@
       "file": "HR_Dashboard_Complete_2025_10.html",
       "year": 2025,
       "month": 10,
-      "updated": "2025-12-20 13:31",
+      "updated": "2025-12-20 14:18",
       "stats": {
         "total": "411",
         "absenceRate": "12.9%",
@@ -40,7 +40,7 @@
       "file": "HR_Dashboard_Complete_2025_09.html",
       "year": 2025,
       "month": 9,
-      "updated": "2025-12-20 13:31",
+      "updated": "2025-12-20 14:18",
       "stats": {
         "total": "398",
         "absenceRate": "10.4%",

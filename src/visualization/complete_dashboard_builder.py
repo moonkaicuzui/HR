@@ -1588,6 +1588,84 @@ class CompleteDashboardBuilder:
         background: #f8f9fa;
     }
 
+    /* Top Navigation Bar / 상단 네비게이션 바 */
+    .top-navbar {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 12px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+    }
+
+    .nav-icon {
+        font-size: 1.5rem;
+    }
+
+    .nav-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 8px;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: rgba(255,255,255,0.8);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .nav-link:hover {
+        background: rgba(255,255,255,0.15);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+    }
+
+    .nav-link-icon {
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        .nav-title {
+            display: none;
+        }
+        .nav-link-text {
+            display: none;
+        }
+        .nav-link {
+            padding: 10px 14px;
+        }
+        .nav-link-icon {
+            font-size: 1.3rem;
+        }
+    }
+
     .dashboard-header {
         background: var(--primary-gradient);
         color: white;
@@ -2982,6 +3060,26 @@ class CompleteDashboardBuilder:
         report_date_vi = self.report_date.strftime('%d/%m/%Y')
 
         return f"""
+<!-- Top Navigation Bar / 상단 네비게이션 바 -->
+<nav class="top-navbar">
+    <div class="container-xl d-flex justify-content-between align-items-center">
+        <div class="nav-brand">
+            <span class="nav-icon">📊</span>
+            <span class="nav-title lang-text" data-ko="HR 관리 시스템" data-en="HR Management System" data-vi="Hệ thống quản lý HR">HR 관리 시스템</span>
+        </div>
+        <div class="nav-links">
+            <a href="selector.html" class="nav-link active" title="HR Dashboard">
+                <span class="nav-link-icon">👥</span>
+                <span class="nav-link-text lang-text" data-ko="HR 대시보드" data-en="HR Dashboard" data-vi="Bảng điều khiển HR">HR 대시보드</span>
+            </a>
+            <a href="https://moonkaicuzui.github.io/qip-dashboard/" class="nav-link" title="Incentive Dashboard">
+                <span class="nav-link-icon">💰</span>
+                <span class="nav-link-text lang-text" data-ko="인센티브 대시보드" data-en="Incentive Dashboard" data-vi="Bảng khuyến khích">인센티브 대시보드</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
 <div class="dashboard-header">
     <div class="container-xl position-relative">
         <!-- Language Switcher & Download Button -->
