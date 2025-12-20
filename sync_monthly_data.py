@@ -4,8 +4,55 @@ Standalone Google Drive synchronization script
 독립 실행형 구글 드라이브 동기화 스크립트
 """
 import sys
+import json
 from pathlib import Path
+from datetime import datetime
 from src.integration.google_drive_manager import GoogleDriveManager
+
+
+def update_sync_manifest(month: int, year: int, month_name: str, project_root: Path):
+    """
+    Update sync manifest with year info from Google Drive folder
+    Google Drive 폴더 정보로 동기화 매니페스트 업데이트
+
+    Args:
+        month: Month number (1-12) / 월 번호 (1-12)
+        year: Year from Google Drive folder / Google Drive 폴더의 연도
+        month_name: Month name (e.g., 'september') / 월 이름 (예: 'september')
+        project_root: Project root path / 프로젝트 루트 경로
+    """
+    manifest_path = project_root / "input_files" / "sync_manifest.json"
+
+    # Load existing manifest or create new
+    # 기존 매니페스트 로드 또는 새로 생성
+    if manifest_path.exists():
+        with open(manifest_path, 'r', encoding='utf-8') as f:
+            manifest = json.load(f)
+    else:
+        manifest = {
+            "description": "Sync manifest tracking Google Drive folder sources",
+            "description_ko": "Google Drive 폴더 소스를 추적하는 동기화 매니페스트",
+            "months": {}
+        }
+
+    # Update month entry with year from Google Drive folder name
+    # Google Drive 폴더명의 연도로 월 항목 업데이트
+    manifest["months"][month_name] = {
+        "year": year,
+        "month": month,
+        "folder": f"{year}_{month:02d}",
+        "synced_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    manifest["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Save manifest
+    # 매니페스트 저장
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+    print(f"📋 Updated sync manifest: {manifest_path}")
+    print(f"   {month_name} → {year}_{month:02d} (from Google Drive folder)")
 
 def main():
     import argparse
@@ -138,7 +185,12 @@ def main():
             df.to_csv(conv, index=False)
             print(f"\n✅ Created converted attendance file: {conv}")
             print(f"   Columns standardized: {list(df.columns)}")
-        
+
+        # Update sync manifest with year info from Google Drive folder
+        # Google Drive 폴더 정보로 동기화 매니페스트 업데이트
+        project_root = Path(__file__).parent
+        update_sync_manifest(args.month, args.year, month_name, project_root)
+
         print(f"\n✅ All {month_name} {args.year} data synced successfully!")
         return 0
         

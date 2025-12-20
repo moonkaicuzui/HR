@@ -38,8 +38,8 @@ from src.visualization.complete_dashboard_builder import CompleteDashboardBuilde
 
 def detect_data_year(month: int, project_root: Path) -> int:
     """
-    Detect actual year from data file by analyzing dates
-    데이터 파일의 날짜를 분석하여 실제 연도 감지
+    Detect actual year from sync manifest (based on Google Drive folder name)
+    동기화 매니페스트에서 연도 감지 (Google Drive 폴더명 기준)
 
     Args:
         month: Target month / 대상 월
@@ -55,44 +55,31 @@ def detect_data_year(month: int, project_root: Path) -> int:
     }
 
     month_name = month_names.get(month, '')
-    data_file = project_root / "input_files" / f"basic manpower data {month_name}.csv"
+    manifest_path = project_root / "input_files" / "sync_manifest.json"
 
+    # Try to read year from sync manifest (created by sync_monthly_data.py)
+    # 동기화 매니페스트에서 연도 읽기 시도 (sync_monthly_data.py에서 생성)
+    if manifest_path.exists():
+        try:
+            with open(manifest_path, 'r', encoding='utf-8') as f:
+                manifest = json.load(f)
+
+            if month_name in manifest.get("months", {}):
+                year = manifest["months"][month_name].get("year")
+                if year:
+                    print(f"📋 Year detected from sync manifest: {year}")
+                    print(f"   Source: Google Drive folder {manifest['months'][month_name].get('folder', 'unknown')}")
+                    return int(year)
+        except Exception as e:
+            print(f"⚠️  Error reading sync manifest: {e}")
+
+    # Fallback: check if data file exists
+    # 대체: 데이터 파일 존재 확인
+    data_file = project_root / "input_files" / f"basic manpower data {month_name}.csv"
     if not data_file.exists():
         print(f"⚠️  Data file not found: {data_file}")
-        return datetime.now().year
-
-    try:
-        df = pd.read_csv(data_file)
-
-        # Check Entrance Date column for year detection
-        # 입사일 컬럼에서 연도 감지
-        if 'Entrance Date' in df.columns:
-            dates = pd.to_datetime(df['Entrance Date'], errors='coerce')
-            valid_dates = dates.dropna()
-
-            if len(valid_dates) > 0:
-                # Get the most common year from recent entries
-                # 최근 항목에서 가장 많은 연도 가져오기
-                years = valid_dates.dt.year
-                # Filter to reasonable years (2020-2030)
-                years = years[(years >= 2020) & (years <= 2030)]
-
-                if len(years) > 0:
-                    # Use the year that appears most in recent dates (last 100 entries)
-                    recent_years = years.tail(100)
-                    detected_year = recent_years.mode().iloc[0] if len(recent_years.mode()) > 0 else years.max()
-                    return int(detected_year)
-
-        # Fallback: check Stop working Date
-        # 대체: 퇴사일 확인
-        if 'Stop working Date' in df.columns:
-            dates = pd.to_datetime(df['Stop working Date'], errors='coerce')
-            valid_dates = dates.dropna()
-            if len(valid_dates) > 0:
-                return int(valid_dates.dt.year.max())
-
-    except Exception as e:
-        print(f"⚠️  Error detecting year: {e}")
+        print(f"⚠️  Sync manifest not found for {month_name}")
+        print(f"💡 Run: python sync_monthly_data.py --month {month} --year YYYY")
 
     return datetime.now().year
 
