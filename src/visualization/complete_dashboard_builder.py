@@ -2081,6 +2081,182 @@ class CompleteDashboardBuilder:
         border-bottom: none;
     }
 
+    /* Clickable Issue Items / 클릭 가능한 이슈 아이템 */
+    .issue-item-clickable {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+    }
+
+    .issue-item-clickable:hover {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+    }
+
+    .issue-item-clickable:last-child {
+        border-bottom: none;
+    }
+
+    .issue-item-clickable .issue-arrow {
+        font-size: 14px;
+        opacity: 0.5;
+        margin-left: auto;
+        transition: opacity 0.2s ease;
+    }
+
+    .issue-item-clickable:hover .issue-arrow {
+        opacity: 1;
+    }
+
+    /* Positive Changes Section / 긍정적 변화 섹션 */
+    .positive-section {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .positive-item-clickable {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+    }
+
+    .positive-item-clickable:hover {
+        background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+    }
+
+    .positive-item-clickable:last-child {
+        border-bottom: none;
+    }
+
+    .positive-item-clickable .positive-arrow {
+        font-size: 14px;
+        opacity: 0.5;
+        margin-left: auto;
+        transition: opacity 0.2s ease;
+    }
+
+    .positive-item-clickable:hover .positive-arrow {
+        opacity: 1;
+    }
+
+    .positive-severity {
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .positive-text {
+        font-size: 13px;
+        color: #155724;
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    /* Three Column Layout for Summary / 요약 3열 레이아웃 */
+    .summary-columns-three {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 992px) {
+        .summary-columns-three {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .summary-columns-three {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Issue Summary Modal Styles / 이슈 요약 모달 스타일 */
+    .issue-modal-content {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .issue-detail-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    .issue-detail-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .issue-detail-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .issue-metric-box {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .issue-metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .issue-metric-label {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    .issue-detail-table {
+        width: 100%;
+        font-size: 13px;
+    }
+
+    .issue-detail-table th {
+        background: #e9ecef;
+        padding: 10px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .issue-detail-table td {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .issue-detail-table tr:hover {
+        background: #f8f9fa;
+    }
+
     .issue-severity {
         font-size: 16px;
         flex-shrink: 0;
@@ -2090,6 +2266,7 @@ class CompleteDashboardBuilder:
         font-size: 13px;
         color: #495057;
         line-height: 1.4;
+        flex: 1;
     }
 
     .action-buttons {
@@ -3229,9 +3406,17 @@ class CompleteDashboardBuilder:
                 if worst_team[1] > ABSENCE_TARGET * 1.5:  # 50% above target
                     issues.append({
                         'severity': '🚨' if worst_team[1] > ABSENCE_TARGET * 2 else '⚠️',
+                        'type': 'absence_high',
                         'ko': f'{worst_team[0]}팀 결근율 {worst_team[1]:.1f}% (전사 평균 대비 높음)',
                         'en': f'{worst_team[0]} team absence {worst_team[1]:.1f}% (above company avg)',
-                        'vi': f'Nhóm {worst_team[0]} vắng {worst_team[1]:.1f}% (cao hơn TB công ty)'
+                        'vi': f'Nhóm {worst_team[0]} vắng {worst_team[1]:.1f}% (cao hơn TB công ty)',
+                        'details': {
+                            'metric': 'absence_rate_excl_maternity',
+                            'current': worst_team[1],
+                            'previous': None,
+                            'team': worst_team[0],
+                            'team_count': worst_team[2]
+                        }
                     })
 
         # Issue 2: High new employee turnover risk
@@ -3241,9 +3426,16 @@ class CompleteDashboardBuilder:
             if turnover_risk_pct > 10:
                 issues.append({
                     'severity': '⚠️',
+                    'type': 'under60_high',
                     'ko': f'60일 미만 재직자 {under_60_days}명 ({turnover_risk_pct:.1f}%) - 이탈 위험군',
                     'en': f'{under_60_days} employees under 60 days ({turnover_risk_pct:.1f}%) - turnover risk',
-                    'vi': f'{under_60_days} NV dưới 60 ngày ({turnover_risk_pct:.1f}%) - rủi ro nghỉ việc'
+                    'vi': f'{under_60_days} NV dưới 60 ngày ({turnover_risk_pct:.1f}%) - rủi ro nghỉ việc',
+                    'details': {
+                        'metric': 'under_60_days',
+                        'current': under_60_days,
+                        'previous': None,
+                        'percentage': turnover_risk_pct
+                    }
                 })
 
         # Issue 3: Data quality issues
@@ -3251,9 +3443,15 @@ class CompleteDashboardBuilder:
         if data_errors > 0:
             issues.append({
                 'severity': '⚠️' if data_errors < 10 else '🚨',
+                'type': 'data_errors',
                 'ko': f'데이터 오류 {data_errors}건 - 정정 필요',
                 'en': f'{data_errors} data errors - correction needed',
-                'vi': f'{data_errors} lỗi dữ liệu - cần sửa'
+                'vi': f'{data_errors} lỗi dữ liệu - cần sửa',
+                'details': {
+                    'metric': 'data_errors',
+                    'current': data_errors,
+                    'previous': None
+                }
             })
 
         # Issue 4: High resignation rate
@@ -3261,9 +3459,15 @@ class CompleteDashboardBuilder:
         if resignation_rate > 5:
             issues.append({
                 'severity': '🚨' if resignation_rate > 10 else '⚠️',
+                'type': 'resignation_high',
                 'ko': f'퇴사율 {resignation_rate:.1f}% - 주의 필요',
                 'en': f'Resignation rate {resignation_rate:.1f}% - attention needed',
-                'vi': f'Tỷ lệ nghỉ việc {resignation_rate:.1f}% - cần chú ý'
+                'vi': f'Tỷ lệ nghỉ việc {resignation_rate:.1f}% - cần chú ý',
+                'details': {
+                    'metric': 'resignation_rate',
+                    'current': resignation_rate,
+                    'previous': None
+                }
             })
 
         # Issue 5: Unauthorized absence concentration
@@ -3271,9 +3475,15 @@ class CompleteDashboardBuilder:
         if unauthorized_count >= 3:
             issues.append({
                 'severity': '🚨',
+                'type': 'unauthorized_high',
                 'ko': f'무단결근 {unauthorized_count}명 집중 발생',
                 'en': f'Unauthorized absence concentrated: {unauthorized_count} employees',
-                'vi': f'Vắng không phép tập trung: {unauthorized_count} NV'
+                'vi': f'Vắng không phép tập trung: {unauthorized_count} NV',
+                'details': {
+                    'metric': 'unauthorized_absence_rate',
+                    'current': unauthorized_count,
+                    'previous': None
+                }
             })
 
         # Sort issues by severity and take top 3
@@ -3281,6 +3491,130 @@ class CompleteDashboardBuilder:
         severity_order = {'🚨': 0, '⚠️': 1, '✅': 2}
         issues.sort(key=lambda x: severity_order.get(x['severity'], 2))
         top_issues = issues[:3]
+
+        # ========================================
+        # Detect Positive Changes / 긍정적 변화 감지
+        # ========================================
+        positive_changes = []
+
+        # Positive 1: Resignation rate decreased significantly
+        # 긍정 1: 퇴사율 크게 감소
+        resignation_change = self.calculator.get_month_over_month_change('resignation_rate', self.target_month)
+        if resignation_change and resignation_change['absolute'] < -1:
+            positive_changes.append({
+                'id': 'positive_resignation',
+                'type': 'resignation_improved',
+                'icon': '📉',
+                'ko': f"퇴사율 {abs(resignation_change['absolute']):.1f}%p 감소 ({resignation_change['percentage']:.1f}% 개선)",
+                'en': f"Resignation rate down {abs(resignation_change['absolute']):.1f}%p ({abs(resignation_change['percentage']):.1f}% improvement)",
+                'vi': f"Tỷ lệ nghỉ việc giảm {abs(resignation_change['absolute']):.1f}%p ({abs(resignation_change['percentage']):.1f}% cải thiện)",
+                'details': {
+                    'metric': 'resignation_rate',
+                    'current': resignation_rate,
+                    'previous': resignation_rate - resignation_change['absolute'],
+                    'change': resignation_change
+                }
+            })
+
+        # Positive 2: Perfect attendance increased
+        # 긍정 2: 개근 직원 증가
+        perfect_attendance = metrics.get('perfect_attendance', 0)
+        perfect_change = self.calculator.get_month_over_month_change('perfect_attendance', self.target_month)
+        if perfect_change and perfect_change['absolute'] > 5:
+            positive_changes.append({
+                'id': 'positive_attendance',
+                'type': 'attendance_improved',
+                'icon': '🏆',
+                'ko': f"개근 직원 {perfect_change['absolute']:+.0f}명 증가 ({perfect_change['percentage']:.1f}% 증가)",
+                'en': f"Perfect attendance up {perfect_change['absolute']:+.0f} employees ({perfect_change['percentage']:.1f}%)",
+                'vi': f"Chuyên cần hoàn hảo tăng {perfect_change['absolute']:+.0f} NV ({perfect_change['percentage']:.1f}%)",
+                'details': {
+                    'metric': 'perfect_attendance',
+                    'current': perfect_attendance,
+                    'previous': perfect_attendance - perfect_change['absolute'],
+                    'change': perfect_change
+                }
+            })
+
+        # Positive 3: Under 60 days decreased (turnover risk reduced)
+        # 긍정 3: 60일 미만 감소 (이탈 위험 감소)
+        under60_change = self.calculator.get_month_over_month_change('under_60_days', self.target_month)
+        if under60_change and under60_change['absolute'] < -3:
+            positive_changes.append({
+                'id': 'positive_retention',
+                'type': 'retention_improved',
+                'icon': '🛡️',
+                'ko': f"60일 미만 재직자 {abs(under60_change['absolute']):.0f}명 감소 (이탈 위험 감소)",
+                'en': f"Under 60 days employees down {abs(under60_change['absolute']):.0f} (lower turnover risk)",
+                'vi': f"NV dưới 60 ngày giảm {abs(under60_change['absolute']):.0f} (rủi ro nghỉ việc giảm)",
+                'details': {
+                    'metric': 'under_60_days',
+                    'current': under_60_days,
+                    'previous': under_60_days - under60_change['absolute'],
+                    'change': under60_change
+                }
+            })
+
+        # Positive 4: Total employees increased (growth)
+        # 긍정 4: 총 인원 증가 (성장)
+        if total_change and total_change_val > 3:
+            positive_changes.append({
+                'id': 'positive_growth',
+                'type': 'headcount_growth',
+                'icon': '📈',
+                'ko': f"총 인원 {total_change_val:+.0f}명 증가 ({total_change['percentage']:.1f}% 성장)",
+                'en': f"Headcount up {total_change_val:+.0f} employees ({total_change['percentage']:.1f}% growth)",
+                'vi': f"Tổng nhân sự tăng {total_change_val:+.0f} NV ({total_change['percentage']:.1f}% tăng trưởng)",
+                'details': {
+                    'metric': 'total_employees',
+                    'current': total_employees,
+                    'previous': total_employees - total_change_val,
+                    'change': total_change
+                }
+            })
+
+        # Positive 5: Absence rate decreased
+        # 긍정 5: 결근율 감소
+        absence_change = self.calculator.get_month_over_month_change('absence_rate_excl_maternity', self.target_month)
+        if absence_change and absence_change['absolute'] < -0.5:
+            positive_changes.append({
+                'id': 'positive_absence',
+                'type': 'absence_improved',
+                'icon': '✨',
+                'ko': f"결근율 {abs(absence_change['absolute']):.1f}%p 감소 ({abs(absence_change['percentage']):.1f}% 개선)",
+                'en': f"Absence rate down {abs(absence_change['absolute']):.1f}%p ({abs(absence_change['percentage']):.1f}% improvement)",
+                'vi': f"Tỷ lệ vắng giảm {abs(absence_change['absolute']):.1f}%p ({abs(absence_change['percentage']):.1f}% cải thiện)",
+                'details': {
+                    'metric': 'absence_rate_excl_maternity',
+                    'current': absence_rate,
+                    'previous': absence_rate - absence_change['absolute'],
+                    'change': absence_change
+                }
+            })
+
+        # Positive 6: Long-term employees increased
+        # 긍정 6: 장기근속자 증가
+        long_term = metrics.get('long_term_employees', 0)
+        long_term_change = self.calculator.get_month_over_month_change('long_term_employees', self.target_month)
+        if long_term_change and long_term_change['absolute'] > 0:
+            positive_changes.append({
+                'id': 'positive_loyalty',
+                'type': 'loyalty_improved',
+                'icon': '🎖️',
+                'ko': f"장기근속자 {long_term_change['absolute']:+.0f}명 증가 (조직 안정성 향상)",
+                'en': f"Long-term employees up {long_term_change['absolute']:+.0f} (improved stability)",
+                'vi': f"NV lâu năm tăng {long_term_change['absolute']:+.0f} (ổn định hơn)",
+                'details': {
+                    'metric': 'long_term_employees',
+                    'current': long_term,
+                    'previous': long_term - long_term_change['absolute'],
+                    'change': long_term_change
+                }
+            })
+
+        # Take top 3 positive changes
+        # 상위 3개 긍정적 변화 선택
+        top_positive = positive_changes[:3]
 
         # Build Action Required list
         # Action Required 목록 생성
@@ -3327,31 +3661,87 @@ class CompleteDashboardBuilder:
         # Format month display
         year, month = self.target_month.split('-')
 
-        # Build HTML
+        # ========================================
+        # Add issue IDs and store data for modals
+        # 이슈 ID 추가 및 모달용 데이터 저장
+        # ========================================
+        for i, issue in enumerate(top_issues):
+            issue['id'] = f'issue_{i}'
+
+        # Store issue and positive data in modal_data for JavaScript access
+        # 모달용 JavaScript 접근을 위해 데이터 저장
+        self.modal_data['executive_summary'] = {
+            'issues': top_issues,
+            'positive_changes': top_positive,
+            'actions': actions,
+            'metrics': {
+                'total_employees': total_employees,
+                'absence_rate': absence_rate,
+                'resignation_rate': resignation_rate,
+                'unauthorized_count': unauthorized_count,
+                'perfect_attendance': perfect_attendance,
+                'under_60_days': under_60_days,
+                'long_term_employees': long_term,
+                'data_errors': data_errors
+            }
+        }
+
+        # Build Clickable Issues HTML
+        # 클릭 가능한 이슈 HTML 생성
         issues_html = ''
         if top_issues:
             issues_items = ''.join([
-                f'''<div class="issue-item">
+                f'''<div class="issue-item-clickable" onclick="showIssueSummaryModal('issue', {i})" title="클릭하여 상세 정보 보기">
                     <span class="issue-severity">{issue['severity']}</span>
                     <span class="issue-text lang-text" data-ko="{issue['ko']}" data-en="{issue['en']}" data-vi="{issue['vi']}">{issue['ko']}</span>
+                    <span class="issue-arrow">→</span>
                 </div>'''
-                for issue in top_issues
+                for i, issue in enumerate(top_issues)
             ])
             issues_html = f'''
             <div class="issues-section">
-                <div class="section-label lang-text" data-ko="📌 상위 이슈" data-en="📌 Top Issues" data-vi="📌 Vấn đề hàng đầu">📌 상위 이슈</div>
+                <div class="section-label lang-text" data-ko="🚨 주의 필요 사항" data-en="🚨 Issues" data-vi="🚨 Vấn đề">🚨 주의 필요 사항</div>
                 {issues_items}
             </div>'''
         else:
             issues_html = '''
             <div class="issues-section">
-                <div class="section-label lang-text" data-ko="📌 상위 이슈" data-en="📌 Top Issues" data-vi="📌 Vấn đề hàng đầu">📌 상위 이슈</div>
+                <div class="section-label lang-text" data-ko="🚨 주의 필요 사항" data-en="🚨 Issues" data-vi="🚨 Vấn đề">🚨 주의 필요 사항</div>
                 <div class="issue-item">
                     <span class="issue-severity">✅</span>
                     <span class="issue-text lang-text" data-ko="현재 특이사항 없음" data-en="No significant issues" data-vi="Không có vấn đề đáng kể">현재 특이사항 없음</span>
                 </div>
             </div>'''
 
+        # Build Clickable Positive Changes HTML
+        # 클릭 가능한 긍정적 변화 HTML 생성
+        positive_html = ''
+        if top_positive:
+            positive_items = ''.join([
+                f'''<div class="positive-item-clickable" onclick="showIssueSummaryModal('positive', {i})" title="클릭하여 상세 정보 보기">
+                    <span class="positive-severity">{item['icon']}</span>
+                    <span class="positive-text lang-text" data-ko="{item['ko']}" data-en="{item['en']}" data-vi="{item['vi']}">{item['ko']}</span>
+                    <span class="positive-arrow">→</span>
+                </div>'''
+                for i, item in enumerate(top_positive)
+            ])
+            positive_html = f'''
+            <div class="positive-section">
+                <div class="section-label lang-text" data-ko="✅ 긍정적 변화" data-en="✅ Positive Changes" data-vi="✅ Thay đổi tích cực">✅ 긍정적 변화</div>
+                {positive_items}
+            </div>'''
+        else:
+            positive_html = '''
+            <div class="positive-section">
+                <div class="section-label lang-text" data-ko="✅ 긍정적 변화" data-en="✅ Positive Changes" data-vi="✅ Thay đổi tích cực">✅ 긍정적 변화</div>
+                <div class="issue-item">
+                    <span class="issue-severity">➖</span>
+                    <span class="issue-text lang-text" data-ko="전월 대비 유의미한 변화 없음" data-en="No significant changes from last month" data-vi="Không có thay đổi đáng kể">전월 대비 유의미한 변화 없음</span>
+                </div>
+            </div>'''
+
+        # Build Actions HTML
+        # 액션 HTML 생성
         actions_html = ''
         if actions:
             action_items = ''.join([
@@ -3418,9 +3808,10 @@ class CompleteDashboardBuilder:
         <!-- Divider -->
         <div class="summary-divider"></div>
 
-        <!-- Two Column Layout: Issues + Actions -->
-        <div class="summary-columns">
+        <!-- Three Column Layout: Issues + Positive Changes + Actions -->
+        <div class="summary-columns-three">
             {issues_html}
+            {positive_html}
             {actions_html}
         </div>
     </div>
@@ -6204,6 +6595,29 @@ class CompleteDashboardBuilder:
                         <canvas id="modalChart13_authorizedBreakdown"></canvas>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+""")
+
+        # Issue Summary Modal (for Executive Summary clickable items)
+        # 이슈 요약 모달 (경영진 요약 클릭 항목용)
+        modals_html.append("""
+<div class="modal fade" id="issueSummaryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="issueSummaryModalTitle">이슈 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body issue-modal-content" id="issueSummaryModalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <span class="lang-text" data-ko="닫기" data-en="Close" data-vi="Đóng">닫기</span>
+                </button>
             </div>
         </div>
     </div>
@@ -13894,6 +14308,234 @@ function showModal13() {{
             }}
         }});
     }}, 300);
+}}
+
+// ============================================
+// Issue Summary Modal Function
+// 이슈 요약 모달 함수
+// ============================================
+
+function showIssueSummaryModal(type, index) {{
+    console.log('📊 Opening Issue Summary Modal:', type, index);
+
+    // Get executive summary data from modalData
+    // modalData에서 경영진 요약 데이터 가져오기
+    const summaryData = modalData.executive_summary;
+    if (!summaryData) {{
+        console.error('No executive summary data found');
+        return;
+    }}
+
+    let item, modalTitle, modalIcon, detailColor;
+
+    if (type === 'issue') {{
+        item = summaryData.issues[index];
+        if (!item) return;
+        modalTitle = currentLanguage === 'ko' ? '이슈 상세 분석' :
+                     currentLanguage === 'vi' ? 'Phân tích chi tiết vấn đề' : 'Issue Detail Analysis';
+        modalIcon = item.severity || '⚠️';
+        detailColor = '#dc3545';
+    }} else if (type === 'positive') {{
+        item = summaryData.positive_changes[index];
+        if (!item) return;
+        modalTitle = currentLanguage === 'ko' ? '긍정적 변화 상세' :
+                     currentLanguage === 'vi' ? 'Chi tiết thay đổi tích cực' : 'Positive Change Details';
+        modalIcon = item.icon || '✅';
+        detailColor = '#28a745';
+    }} else {{
+        return;
+    }}
+
+    // Get description based on language
+    // 언어별 설명 가져오기
+    const description = item[currentLanguage] || item['ko'];
+
+    // Build metrics HTML if details available
+    // 상세 데이터가 있으면 메트릭 HTML 생성
+    let metricsHtml = '';
+    if (item.details) {{
+        const d = item.details;
+        const current = (d.current !== undefined && d.current !== null) ? d.current : '-';
+        const previous = (d.previous !== undefined && d.previous !== null) ? d.previous : '-';
+        const change = d.change;
+
+        let changeText = '-';
+        let changeColor = '#6c757d';
+        if (change) {{
+            const absChange = Math.abs(change.absolute);
+            const sign = change.absolute >= 0 ? '+' : '';
+            changeText = `${{sign}}${{change.absolute.toFixed(1)}}`;
+
+            // Color based on type (for issues, increase is bad; for positive, increase is good)
+            if (type === 'issue') {{
+                changeColor = change.absolute > 0 ? '#dc3545' : '#28a745';
+            }} else {{
+                changeColor = change.absolute > 0 ? '#28a745' : '#dc3545';
+            }}
+        }}
+
+        const currentLabel = currentLanguage === 'ko' ? '현재' :
+                            currentLanguage === 'vi' ? 'Hiện tại' : 'Current';
+        const previousLabel = currentLanguage === 'ko' ? '전월' :
+                             currentLanguage === 'vi' ? 'Tháng trước' : 'Previous';
+        const changeLabel = currentLanguage === 'ko' ? '변화' :
+                           currentLanguage === 'vi' ? 'Thay đổi' : 'Change';
+
+        metricsHtml = `
+            <div class="issue-detail-metrics mt-3">
+                <div class="issue-metric-box">
+                    <div class="issue-metric-value" style="color: ${{detailColor}}">${{typeof current === 'number' ? current.toFixed(1) : current}}</div>
+                    <div class="issue-metric-label">${{currentLabel}}</div>
+                </div>
+                <div class="issue-metric-box">
+                    <div class="issue-metric-value" style="color: #6c757d">${{typeof previous === 'number' ? previous.toFixed(1) : previous}}</div>
+                    <div class="issue-metric-label">${{previousLabel}}</div>
+                </div>
+                <div class="issue-metric-box">
+                    <div class="issue-metric-value" style="color: ${{changeColor}}">${{changeText}}</div>
+                    <div class="issue-metric-label">${{changeLabel}}</div>
+                </div>
+            </div>
+        `;
+    }}
+
+    // Build action suggestions based on issue type
+    // 이슈 유형별 조치 제안 생성
+    let actionHtml = '';
+    const actionTitle = currentLanguage === 'ko' ? '권장 조치' :
+                       currentLanguage === 'vi' ? 'Hành động đề xuất' : 'Recommended Actions';
+
+    if (item.type) {{
+        const actions = getActionSuggestions(item.type, currentLanguage);
+        if (actions.length > 0) {{
+            actionHtml = `
+                <div class="mt-4">
+                    <h6 class="fw-bold"><span style="color: ${{detailColor}}">📋</span> ${{actionTitle}}</h6>
+                    <ul class="list-unstyled mt-2">
+                        ${{actions.map(a => `<li class="mb-2">• ${{a}}</li>`).join('')}}
+                    </ul>
+                </div>
+            `;
+        }}
+    }}
+
+    // Build related KPI link
+    // 관련 KPI 링크 생성
+    let relatedKpiHtml = '';
+    const relatedKpiTitle = currentLanguage === 'ko' ? '관련 KPI 상세 보기' :
+                           currentLanguage === 'vi' ? 'Xem chi tiết KPI' : 'View Related KPI Details';
+
+    if (item.details && item.details.metric) {{
+        const metricToModal = {{
+            'resignation_rate': 4,
+            'absence_rate_excl_maternity': 2,
+            'unauthorized_absence_rate': 3,
+            'under_60_days': 7,
+            'perfect_attendance': 9,
+            'long_term_employees': 10,
+            'total_employees': 1,
+            'data_errors': 11
+        }};
+        const modalNum = metricToModal[item.details.metric];
+        if (modalNum) {{
+            relatedKpiHtml = `
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('issueSummaryModal').querySelector('.btn-close').click(); setTimeout(() => showModal${{modalNum}}(), 300);">
+                        <i class="bi bi-graph-up"></i> ${{relatedKpiTitle}} →
+                    </button>
+                </div>
+            `;
+        }}
+    }}
+
+    // Set modal content
+    // 모달 내용 설정
+    document.getElementById('issueSummaryModalTitle').innerHTML = `${{modalIcon}} ${{modalTitle}}`;
+    document.getElementById('issueSummaryModalBody').innerHTML = `
+        <div class="issue-detail-card" style="border-left: 4px solid ${{detailColor}}">
+            <div class="issue-detail-title">
+                <span style="font-size: 24px;">${{modalIcon}}</span>
+                <span>${{description}}</span>
+            </div>
+            ${{metricsHtml}}
+            ${{actionHtml}}
+            ${{relatedKpiHtml}}
+        </div>
+    `;
+
+    // Show modal
+    // 모달 표시
+    const modal = new bootstrap.Modal(document.getElementById('issueSummaryModal'));
+    modal.show();
+}}
+
+// Get action suggestions based on issue type
+// 이슈 유형별 조치 제안
+function getActionSuggestions(issueType, lang) {{
+    const suggestions = {{
+        'resignation_high': {{
+            ko: ['퇴사 면담 실시 및 원인 분석', '복리후생 개선 검토', '직무 만족도 설문 조사 실시'],
+            en: ['Conduct exit interviews to analyze causes', 'Review benefits and compensation', 'Survey job satisfaction'],
+            vi: ['Thực hiện phỏng vấn nghỉ việc', 'Xem xét cải thiện phúc lợi', 'Khảo sát mức độ hài lòng']
+        }},
+        'resignation_improved': {{
+            ko: ['현재 유지 정책 지속', '긍정적 요인 파악 및 확대 적용', '직원 만족도 추적 모니터링'],
+            en: ['Continue current retention policies', 'Identify positive factors and expand', 'Track employee satisfaction'],
+            vi: ['Tiếp tục chính sách giữ chân', 'Xác định yếu tố tích cực', 'Theo dõi sự hài lòng']
+        }},
+        'absence_high': {{
+            ko: ['결근 패턴 분석 및 원인 파악', '근무 환경 개선 검토', '출퇴근 관리 강화'],
+            en: ['Analyze absence patterns', 'Review work environment', 'Strengthen attendance management'],
+            vi: ['Phân tích mẫu vắng mặt', 'Xem xét môi trường làm việc', 'Tăng cường quản lý chuyên cần']
+        }},
+        'absence_improved': {{
+            ko: ['현재 출퇴근 관리 정책 유지', '우수 팀 사례 공유', '개선 요인 문서화'],
+            en: ['Maintain current attendance policies', 'Share best team practices', 'Document improvement factors'],
+            vi: ['Duy trì chính sách hiện tại', 'Chia sẻ thực tiễn tốt nhất', 'Ghi chép yếu tố cải thiện']
+        }},
+        'unauthorized_high': {{
+            ko: ['무단 결근자 개별 면담 실시', '근태 관리 정책 재검토', '경고 조치 및 교육 실시'],
+            en: ['Individual interviews with absentees', 'Review attendance policy', 'Issue warnings and provide training'],
+            vi: ['Phỏng vấn cá nhân với người vắng', 'Xem lại chính sách', 'Đưa ra cảnh báo và đào tạo']
+        }},
+        'early_resignation': {{
+            ko: ['신입사원 온보딩 프로그램 강화', '멘토링 제도 도입 검토', '조기 적응 지원 프로그램 개발'],
+            en: ['Strengthen onboarding program', 'Consider mentoring system', 'Develop early adaptation support'],
+            vi: ['Tăng cường chương trình hội nhập', 'Xem xét hệ thống cố vấn', 'Phát triển hỗ trợ thích ứng']
+        }},
+        'under60_high': {{
+            ko: ['신규 입사자 집중 관리', '이탈 방지 프로그램 가동', '1:1 면담으로 고충 파악'],
+            en: ['Focus on new employee management', 'Activate retention program', 'Conduct 1:1 interviews'],
+            vi: ['Tập trung quản lý NV mới', 'Kích hoạt chương trình giữ chân', 'Phỏng vấn 1:1']
+        }},
+        'retention_improved': {{
+            ko: ['현재 신입사원 관리 정책 유지', '성공적인 온보딩 요소 분석', '우수 사례 전파'],
+            en: ['Continue new hire management', 'Analyze successful onboarding', 'Share best practices'],
+            vi: ['Tiếp tục quản lý NV mới', 'Phân tích hội nhập thành công', 'Chia sẻ thực tiễn tốt']
+        }},
+        'attendance_improved': {{
+            ko: ['개근자 인센티브 프로그램 유지', '출석률 우수 팀 표창', '근무 환경 만족도 지속 모니터링'],
+            en: ['Continue perfect attendance incentives', 'Recognize high-attendance teams', 'Monitor work satisfaction'],
+            vi: ['Duy trì khuyến khích chuyên cần', 'Công nhận nhóm xuất sắc', 'Theo dõi sự hài lòng']
+        }},
+        'headcount_growth': {{
+            ko: ['신규 인력 온보딩 프로세스 점검', '조직 역량 강화 계획 수립', '성장에 따른 인프라 확충 검토'],
+            en: ['Review onboarding process', 'Plan organizational capability', 'Review infrastructure for growth'],
+            vi: ['Xem xét quy trình hội nhập', 'Lập kế hoạch năng lực', 'Xem xét cơ sở hạ tầng']
+        }},
+        'loyalty_improved': {{
+            ko: ['장기근속자 유지 전략 강화', '경력 개발 프로그램 확대', '장기근속 보상 제도 검토'],
+            en: ['Strengthen retention for long-term employees', 'Expand career development', 'Review tenure rewards'],
+            vi: ['Tăng cường giữ chân NV lâu năm', 'Mở rộng phát triển nghề nghiệp', 'Xem xét phần thưởng']
+        }},
+        'data_errors': {{
+            ko: ['데이터 입력 프로세스 점검', '담당자 교육 실시', '자동 검증 시스템 도입 검토'],
+            en: ['Review data entry process', 'Train responsible staff', 'Consider automated validation'],
+            vi: ['Xem xét quy trình nhập liệu', 'Đào tạo nhân viên', 'Xem xét xác thực tự động']
+        }}
+    }};
+
+    return suggestions[issueType]?.[lang] || suggestions[issueType]?.['en'] || [];
 }}
 
 // ============================================

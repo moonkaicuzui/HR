@@ -1323,6 +1323,182 @@ if (typeof module !== 'undefined' && module.exports) {
         border-bottom: none;
     }
 
+    /* Clickable Issue Items / 클릭 가능한 이슈 아이템 */
+    .issue-item-clickable {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+    }
+
+    .issue-item-clickable:hover {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+    }
+
+    .issue-item-clickable:last-child {
+        border-bottom: none;
+    }
+
+    .issue-item-clickable .issue-arrow {
+        font-size: 14px;
+        opacity: 0.5;
+        margin-left: auto;
+        transition: opacity 0.2s ease;
+    }
+
+    .issue-item-clickable:hover .issue-arrow {
+        opacity: 1;
+    }
+
+    /* Positive Changes Section / 긍정적 변화 섹션 */
+    .positive-section {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .positive-item-clickable {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+    }
+
+    .positive-item-clickable:hover {
+        background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+    }
+
+    .positive-item-clickable:last-child {
+        border-bottom: none;
+    }
+
+    .positive-item-clickable .positive-arrow {
+        font-size: 14px;
+        opacity: 0.5;
+        margin-left: auto;
+        transition: opacity 0.2s ease;
+    }
+
+    .positive-item-clickable:hover .positive-arrow {
+        opacity: 1;
+    }
+
+    .positive-severity {
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .positive-text {
+        font-size: 13px;
+        color: #155724;
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    /* Three Column Layout for Summary / 요약 3열 레이아웃 */
+    .summary-columns-three {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 992px) {
+        .summary-columns-three {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .summary-columns-three {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Issue Summary Modal Styles / 이슈 요약 모달 스타일 */
+    .issue-modal-content {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .issue-detail-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    .issue-detail-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .issue-detail-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .issue-metric-box {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .issue-metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .issue-metric-label {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    .issue-detail-table {
+        width: 100%;
+        font-size: 13px;
+    }
+
+    .issue-detail-table th {
+        background: #e9ecef;
+        padding: 10px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .issue-detail-table td {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .issue-detail-table tr:hover {
+        background: #f8f9fa;
+    }
+
     .issue-severity {
         font-size: 16px;
         flex-shrink: 0;
@@ -1332,6 +1508,7 @@ if (typeof module !== 'undefined' && module.exports) {
         font-size: 13px;
         color: #495057;
         line-height: 1.4;
+        flex: 1;
     }
 
     .action-buttons {
@@ -2432,17 +2609,36 @@ if (typeof module !== 'undefined' && module.exports) {
         <!-- Divider -->
         <div class="summary-divider"></div>
 
-        <!-- Two Column Layout: Issues + Actions -->
-        <div class="summary-columns">
+        <!-- Three Column Layout: Issues + Positive Changes + Actions -->
+        <div class="summary-columns-three">
             
             <div class="issues-section">
-                <div class="section-label lang-text" data-ko="📌 상위 이슈" data-en="📌 Top Issues" data-vi="📌 Vấn đề hàng đầu">📌 상위 이슈</div>
-                <div class="issue-item">
+                <div class="section-label lang-text" data-ko="🚨 주의 필요 사항" data-en="🚨 Issues" data-vi="🚨 Vấn đề">🚨 주의 필요 사항</div>
+                <div class="issue-item-clickable" onclick="showIssueSummaryModal('issue', 0)" title="클릭하여 상세 정보 보기">
                     <span class="issue-severity">🚨</span>
                     <span class="issue-text lang-text" data-ko="QIP MANAGER & OFFICE & OCPT팀 결근율 25.0% (전사 평균 대비 높음)" data-en="QIP MANAGER & OFFICE & OCPT team absence 25.0% (above company avg)" data-vi="Nhóm QIP MANAGER & OFFICE & OCPT vắng 25.0% (cao hơn TB công ty)">QIP MANAGER & OFFICE & OCPT팀 결근율 25.0% (전사 평균 대비 높음)</span>
-                </div><div class="issue-item">
+                    <span class="issue-arrow">→</span>
+                </div><div class="issue-item-clickable" onclick="showIssueSummaryModal('issue', 1)" title="클릭하여 상세 정보 보기">
                     <span class="issue-severity">🚨</span>
                     <span class="issue-text lang-text" data-ko="무단결근 13명 집중 발생" data-en="Unauthorized absence concentrated: 13 employees" data-vi="Vắng không phép tập trung: 13 NV">무단결근 13명 집중 발생</span>
+                    <span class="issue-arrow">→</span>
+                </div>
+            </div>
+            
+            <div class="positive-section">
+                <div class="section-label lang-text" data-ko="✅ 긍정적 변화" data-en="✅ Positive Changes" data-vi="✅ Thay đổi tích cực">✅ 긍정적 변화</div>
+                <div class="positive-item-clickable" onclick="showIssueSummaryModal('positive', 0)" title="클릭하여 상세 정보 보기">
+                    <span class="positive-severity">📉</span>
+                    <span class="positive-text lang-text" data-ko="퇴사율 2.4%p 감소 (-70.6% 개선)" data-en="Resignation rate down 2.4%p (70.6% improvement)" data-vi="Tỷ lệ nghỉ việc giảm 2.4%p (70.6% cải thiện)">퇴사율 2.4%p 감소 (-70.6% 개선)</span>
+                    <span class="positive-arrow">→</span>
+                </div><div class="positive-item-clickable" onclick="showIssueSummaryModal('positive', 1)" title="클릭하여 상세 정보 보기">
+                    <span class="positive-severity">🏆</span>
+                    <span class="positive-text lang-text" data-ko="개근 직원 +17명 증가 (20.7% 증가)" data-en="Perfect attendance up +17 employees (20.7%)" data-vi="Chuyên cần hoàn hảo tăng +17 NV (20.7%)">개근 직원 +17명 증가 (20.7% 증가)</span>
+                    <span class="positive-arrow">→</span>
+                </div><div class="positive-item-clickable" onclick="showIssueSummaryModal('positive', 2)" title="클릭하여 상세 정보 보기">
+                    <span class="positive-severity">🛡️</span>
+                    <span class="positive-text lang-text" data-ko="60일 미만 재직자 12명 감소 (이탈 위험 감소)" data-en="Under 60 days employees down 12 (lower turnover risk)" data-vi="NV dưới 60 ngày giảm 12 (rủi ro nghỉ việc giảm)">60일 미만 재직자 12명 감소 (이탈 위험 감소)</span>
+                    <span class="positive-arrow">→</span>
                 </div>
             </div>
             
@@ -5811,6 +6007,26 @@ if (typeof module !== 'undefined' && module.exports) {
                         <canvas id="modalChart13_authorizedBreakdown"></canvas>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="issueSummaryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="issueSummaryModalTitle">이슈 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body issue-modal-content" id="issueSummaryModalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <span class="lang-text" data-ko="닫기" data-en="Close" data-vi="Đóng">닫기</span>
+                </button>
             </div>
         </div>
     </div>
@@ -31945,6 +32161,121 @@ if (typeof module !== 'undefined' && module.exports) {
     "NEW": {
       "연차/유급휴가 (Annual Leave)": 9,
       "무단결근 (Unauthorized)": 1
+    }
+  },
+  "executive_summary": {
+    "issues": [
+      {
+        "severity": "🚨",
+        "type": "absence_high",
+        "ko": "QIP MANAGER & OFFICE & OCPT팀 결근율 25.0% (전사 평균 대비 높음)",
+        "en": "QIP MANAGER & OFFICE & OCPT team absence 25.0% (above company avg)",
+        "vi": "Nhóm QIP MANAGER & OFFICE & OCPT vắng 25.0% (cao hơn TB công ty)",
+        "details": {
+          "metric": "absence_rate_excl_maternity",
+          "current": 25.0,
+          "previous": null,
+          "team": "QIP MANAGER & OFFICE & OCPT",
+          "team_count": 5
+        },
+        "id": "issue_0"
+      },
+      {
+        "severity": "🚨",
+        "type": "unauthorized_high",
+        "ko": "무단결근 13명 집중 발생",
+        "en": "Unauthorized absence concentrated: 13 employees",
+        "vi": "Vắng không phép tập trung: 13 NV",
+        "details": {
+          "metric": "unauthorized_absence_rate",
+          "current": 13,
+          "previous": null
+        },
+        "id": "issue_1"
+      }
+    ],
+    "positive_changes": [
+      {
+        "id": "positive_resignation",
+        "type": "resignation_improved",
+        "icon": "📉",
+        "ko": "퇴사율 2.4%p 감소 (-70.6% 개선)",
+        "en": "Resignation rate down 2.4%p (70.6% improvement)",
+        "vi": "Tỷ lệ nghỉ việc giảm 2.4%p (70.6% cải thiện)",
+        "details": {
+          "metric": "resignation_rate",
+          "current": 1.0,
+          "previous": 3.4,
+          "change": {
+            "current": 1.0,
+            "previous": 3.4,
+            "absolute": -2.4,
+            "percentage": -70.6
+          }
+        }
+      },
+      {
+        "id": "positive_attendance",
+        "type": "attendance_improved",
+        "icon": "🏆",
+        "ko": "개근 직원 +17명 증가 (20.7% 증가)",
+        "en": "Perfect attendance up +17 employees (20.7%)",
+        "vi": "Chuyên cần hoàn hảo tăng +17 NV (20.7%)",
+        "details": {
+          "metric": "perfect_attendance",
+          "current": 99,
+          "previous": 82,
+          "change": {
+            "current": 99,
+            "previous": 82,
+            "absolute": 17,
+            "percentage": 20.7
+          }
+        }
+      },
+      {
+        "id": "positive_retention",
+        "type": "retention_improved",
+        "icon": "🛡️",
+        "ko": "60일 미만 재직자 12명 감소 (이탈 위험 감소)",
+        "en": "Under 60 days employees down 12 (lower turnover risk)",
+        "vi": "NV dưới 60 ngày giảm 12 (rủi ro nghỉ việc giảm)",
+        "details": {
+          "metric": "under_60_days",
+          "current": 18,
+          "previous": 30,
+          "change": {
+            "current": 18,
+            "previous": 30,
+            "absolute": -12,
+            "percentage": -40.0
+          }
+        }
+      }
+    ],
+    "actions": [
+      {
+        "ko": "장기결근 (5일+): 34명",
+        "en": "Long absence (5d+): 34",
+        "vi": "Vắng dài (5 ngày+): 34",
+        "filter": "long_absence"
+      },
+      {
+        "ko": "무단결근자: 13명",
+        "en": "Unauthorized absence: 13",
+        "vi": "Vắng không phép: 13",
+        "filter": "unauthorized"
+      }
+    ],
+    "metrics": {
+      "total_employees": 411,
+      "absence_rate": 8.3,
+      "resignation_rate": 1.0,
+      "unauthorized_count": 13,
+      "perfect_attendance": 99,
+      "under_60_days": 18,
+      "long_term_employees": 288,
+      "data_errors": 0
     }
   }
 }
@@ -75677,6 +76008,234 @@ function showModal13() {
             }
         });
     }, 300);
+}
+
+// ============================================
+// Issue Summary Modal Function
+// 이슈 요약 모달 함수
+// ============================================
+
+function showIssueSummaryModal(type, index) {
+    console.log('📊 Opening Issue Summary Modal:', type, index);
+
+    // Get executive summary data from modalData
+    // modalData에서 경영진 요약 데이터 가져오기
+    const summaryData = modalData.executive_summary;
+    if (!summaryData) {
+        console.error('No executive summary data found');
+        return;
+    }
+
+    let item, modalTitle, modalIcon, detailColor;
+
+    if (type === 'issue') {
+        item = summaryData.issues[index];
+        if (!item) return;
+        modalTitle = currentLanguage === 'ko' ? '이슈 상세 분석' :
+                     currentLanguage === 'vi' ? 'Phân tích chi tiết vấn đề' : 'Issue Detail Analysis';
+        modalIcon = item.severity || '⚠️';
+        detailColor = '#dc3545';
+    } else if (type === 'positive') {
+        item = summaryData.positive_changes[index];
+        if (!item) return;
+        modalTitle = currentLanguage === 'ko' ? '긍정적 변화 상세' :
+                     currentLanguage === 'vi' ? 'Chi tiết thay đổi tích cực' : 'Positive Change Details';
+        modalIcon = item.icon || '✅';
+        detailColor = '#28a745';
+    } else {
+        return;
+    }
+
+    // Get description based on language
+    // 언어별 설명 가져오기
+    const description = item[currentLanguage] || item['ko'];
+
+    // Build metrics HTML if details available
+    // 상세 데이터가 있으면 메트릭 HTML 생성
+    let metricsHtml = '';
+    if (item.details) {
+        const d = item.details;
+        const current = (d.current !== undefined && d.current !== null) ? d.current : '-';
+        const previous = (d.previous !== undefined && d.previous !== null) ? d.previous : '-';
+        const change = d.change;
+
+        let changeText = '-';
+        let changeColor = '#6c757d';
+        if (change) {
+            const absChange = Math.abs(change.absolute);
+            const sign = change.absolute >= 0 ? '+' : '';
+            changeText = `${sign}${change.absolute.toFixed(1)}`;
+
+            // Color based on type (for issues, increase is bad; for positive, increase is good)
+            if (type === 'issue') {
+                changeColor = change.absolute > 0 ? '#dc3545' : '#28a745';
+            } else {
+                changeColor = change.absolute > 0 ? '#28a745' : '#dc3545';
+            }
+        }
+
+        const currentLabel = currentLanguage === 'ko' ? '현재' :
+                            currentLanguage === 'vi' ? 'Hiện tại' : 'Current';
+        const previousLabel = currentLanguage === 'ko' ? '전월' :
+                             currentLanguage === 'vi' ? 'Tháng trước' : 'Previous';
+        const changeLabel = currentLanguage === 'ko' ? '변화' :
+                           currentLanguage === 'vi' ? 'Thay đổi' : 'Change';
+
+        metricsHtml = `
+            <div class="issue-detail-metrics mt-3">
+                <div class="issue-metric-box">
+                    <div class="issue-metric-value" style="color: ${detailColor}">${typeof current === 'number' ? current.toFixed(1) : current}</div>
+                    <div class="issue-metric-label">${currentLabel}</div>
+                </div>
+                <div class="issue-metric-box">
+                    <div class="issue-metric-value" style="color: #6c757d">${typeof previous === 'number' ? previous.toFixed(1) : previous}</div>
+                    <div class="issue-metric-label">${previousLabel}</div>
+                </div>
+                <div class="issue-metric-box">
+                    <div class="issue-metric-value" style="color: ${changeColor}">${changeText}</div>
+                    <div class="issue-metric-label">${changeLabel}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Build action suggestions based on issue type
+    // 이슈 유형별 조치 제안 생성
+    let actionHtml = '';
+    const actionTitle = currentLanguage === 'ko' ? '권장 조치' :
+                       currentLanguage === 'vi' ? 'Hành động đề xuất' : 'Recommended Actions';
+
+    if (item.type) {
+        const actions = getActionSuggestions(item.type, currentLanguage);
+        if (actions.length > 0) {
+            actionHtml = `
+                <div class="mt-4">
+                    <h6 class="fw-bold"><span style="color: ${detailColor}">📋</span> ${actionTitle}</h6>
+                    <ul class="list-unstyled mt-2">
+                        ${actions.map(a => `<li class="mb-2">• ${a}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+    }
+
+    // Build related KPI link
+    // 관련 KPI 링크 생성
+    let relatedKpiHtml = '';
+    const relatedKpiTitle = currentLanguage === 'ko' ? '관련 KPI 상세 보기' :
+                           currentLanguage === 'vi' ? 'Xem chi tiết KPI' : 'View Related KPI Details';
+
+    if (item.details && item.details.metric) {
+        const metricToModal = {
+            'resignation_rate': 4,
+            'absence_rate_excl_maternity': 2,
+            'unauthorized_absence_rate': 3,
+            'under_60_days': 7,
+            'perfect_attendance': 9,
+            'long_term_employees': 10,
+            'total_employees': 1,
+            'data_errors': 11
+        };
+        const modalNum = metricToModal[item.details.metric];
+        if (modalNum) {
+            relatedKpiHtml = `
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('issueSummaryModal').querySelector('.btn-close').click(); setTimeout(() => showModal${modalNum}(), 300);">
+                        <i class="bi bi-graph-up"></i> ${relatedKpiTitle} →
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // Set modal content
+    // 모달 내용 설정
+    document.getElementById('issueSummaryModalTitle').innerHTML = `${modalIcon} ${modalTitle}`;
+    document.getElementById('issueSummaryModalBody').innerHTML = `
+        <div class="issue-detail-card" style="border-left: 4px solid ${detailColor}">
+            <div class="issue-detail-title">
+                <span style="font-size: 24px;">${modalIcon}</span>
+                <span>${description}</span>
+            </div>
+            ${metricsHtml}
+            ${actionHtml}
+            ${relatedKpiHtml}
+        </div>
+    `;
+
+    // Show modal
+    // 모달 표시
+    const modal = new bootstrap.Modal(document.getElementById('issueSummaryModal'));
+    modal.show();
+}
+
+// Get action suggestions based on issue type
+// 이슈 유형별 조치 제안
+function getActionSuggestions(issueType, lang) {
+    const suggestions = {
+        'resignation_high': {
+            ko: ['퇴사 면담 실시 및 원인 분석', '복리후생 개선 검토', '직무 만족도 설문 조사 실시'],
+            en: ['Conduct exit interviews to analyze causes', 'Review benefits and compensation', 'Survey job satisfaction'],
+            vi: ['Thực hiện phỏng vấn nghỉ việc', 'Xem xét cải thiện phúc lợi', 'Khảo sát mức độ hài lòng']
+        },
+        'resignation_improved': {
+            ko: ['현재 유지 정책 지속', '긍정적 요인 파악 및 확대 적용', '직원 만족도 추적 모니터링'],
+            en: ['Continue current retention policies', 'Identify positive factors and expand', 'Track employee satisfaction'],
+            vi: ['Tiếp tục chính sách giữ chân', 'Xác định yếu tố tích cực', 'Theo dõi sự hài lòng']
+        },
+        'absence_high': {
+            ko: ['결근 패턴 분석 및 원인 파악', '근무 환경 개선 검토', '출퇴근 관리 강화'],
+            en: ['Analyze absence patterns', 'Review work environment', 'Strengthen attendance management'],
+            vi: ['Phân tích mẫu vắng mặt', 'Xem xét môi trường làm việc', 'Tăng cường quản lý chuyên cần']
+        },
+        'absence_improved': {
+            ko: ['현재 출퇴근 관리 정책 유지', '우수 팀 사례 공유', '개선 요인 문서화'],
+            en: ['Maintain current attendance policies', 'Share best team practices', 'Document improvement factors'],
+            vi: ['Duy trì chính sách hiện tại', 'Chia sẻ thực tiễn tốt nhất', 'Ghi chép yếu tố cải thiện']
+        },
+        'unauthorized_high': {
+            ko: ['무단 결근자 개별 면담 실시', '근태 관리 정책 재검토', '경고 조치 및 교육 실시'],
+            en: ['Individual interviews with absentees', 'Review attendance policy', 'Issue warnings and provide training'],
+            vi: ['Phỏng vấn cá nhân với người vắng', 'Xem lại chính sách', 'Đưa ra cảnh báo và đào tạo']
+        },
+        'early_resignation': {
+            ko: ['신입사원 온보딩 프로그램 강화', '멘토링 제도 도입 검토', '조기 적응 지원 프로그램 개발'],
+            en: ['Strengthen onboarding program', 'Consider mentoring system', 'Develop early adaptation support'],
+            vi: ['Tăng cường chương trình hội nhập', 'Xem xét hệ thống cố vấn', 'Phát triển hỗ trợ thích ứng']
+        },
+        'under60_high': {
+            ko: ['신규 입사자 집중 관리', '이탈 방지 프로그램 가동', '1:1 면담으로 고충 파악'],
+            en: ['Focus on new employee management', 'Activate retention program', 'Conduct 1:1 interviews'],
+            vi: ['Tập trung quản lý NV mới', 'Kích hoạt chương trình giữ chân', 'Phỏng vấn 1:1']
+        },
+        'retention_improved': {
+            ko: ['현재 신입사원 관리 정책 유지', '성공적인 온보딩 요소 분석', '우수 사례 전파'],
+            en: ['Continue new hire management', 'Analyze successful onboarding', 'Share best practices'],
+            vi: ['Tiếp tục quản lý NV mới', 'Phân tích hội nhập thành công', 'Chia sẻ thực tiễn tốt']
+        },
+        'attendance_improved': {
+            ko: ['개근자 인센티브 프로그램 유지', '출석률 우수 팀 표창', '근무 환경 만족도 지속 모니터링'],
+            en: ['Continue perfect attendance incentives', 'Recognize high-attendance teams', 'Monitor work satisfaction'],
+            vi: ['Duy trì khuyến khích chuyên cần', 'Công nhận nhóm xuất sắc', 'Theo dõi sự hài lòng']
+        },
+        'headcount_growth': {
+            ko: ['신규 인력 온보딩 프로세스 점검', '조직 역량 강화 계획 수립', '성장에 따른 인프라 확충 검토'],
+            en: ['Review onboarding process', 'Plan organizational capability', 'Review infrastructure for growth'],
+            vi: ['Xem xét quy trình hội nhập', 'Lập kế hoạch năng lực', 'Xem xét cơ sở hạ tầng']
+        },
+        'loyalty_improved': {
+            ko: ['장기근속자 유지 전략 강화', '경력 개발 프로그램 확대', '장기근속 보상 제도 검토'],
+            en: ['Strengthen retention for long-term employees', 'Expand career development', 'Review tenure rewards'],
+            vi: ['Tăng cường giữ chân NV lâu năm', 'Mở rộng phát triển nghề nghiệp', 'Xem xét phần thưởng']
+        },
+        'data_errors': {
+            ko: ['데이터 입력 프로세스 점검', '담당자 교육 실시', '자동 검증 시스템 도입 검토'],
+            en: ['Review data entry process', 'Train responsible staff', 'Consider automated validation'],
+            vi: ['Xem xét quy trình nhập liệu', 'Đào tạo nhân viên', 'Xem xét xác thực tự động']
+        }
+    };
+
+    return suggestions[issueType]?.[lang] || suggestions[issueType]?.['en'] || [];
 }
 
 // ============================================
