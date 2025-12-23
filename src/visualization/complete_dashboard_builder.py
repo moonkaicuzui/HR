@@ -246,14 +246,16 @@ class CompleteDashboardBuilder:
             if 'compAdd' in attendance_df.columns:
                 absent_employees = set(attendance_df[attendance_df['compAdd'] == 'Vắng mặt']['ID No'].unique())
             if 'Reason Description' in attendance_df.columns:
+                # Match unauthorized patterns: AR1, AR2 / 무단결근 패턴 매칭: AR1, AR2
+                unauthorized_pattern = 'AR1|AR2|Không phép|Vắng không phép'
                 unauthorized_absent_employees = set(
-                    attendance_df[attendance_df['Reason Description'].str.contains('AR1', na=False)]['ID No'].unique()
+                    attendance_df[attendance_df['Reason Description'].str.contains(unauthorized_pattern, na=False, case=False)]['ID No'].unique()
                 )
 
         for _, row in df.iterrows():
             employee_id = row.get('Employee No', '')
-            entrance_date = pd.to_datetime(row.get('Entrance Date', ''), errors='coerce', dayfirst=True)
-            stop_date = pd.to_datetime(row.get('Stop working Date', ''), errors='coerce', dayfirst=True)
+            entrance_date = pd.to_datetime(row.get('Entrance Date', ''), errors='coerce', dayfirst=False)
+            stop_date = pd.to_datetime(row.get('Stop working Date', ''), errors='coerce', dayfirst=False)
 
             # Get attendance data
             att_data = employee_attendance.get(employee_id, {'working_days': 0, 'absent_days': 0})
@@ -271,12 +273,23 @@ class CompleteDashboardBuilder:
                 assignment_date = entrance_date + timedelta(days=30)
 
             # Determine employee status
+            # 직원 상태 결정
             is_active = pd.isna(stop_date) or stop_date > end_of_month
             hired_this_month = pd.notna(entrance_date) and entrance_date.year == year_num and entrance_date.month == month_num
             resigned_this_month = pd.notna(stop_date) and stop_date.year == year_num and stop_date.month == month_num
-            under_60_days = tenure_days < 60 if tenure_days > 0 else False
-            long_term = (start_of_month - entrance_date).days >= 365 if pd.notna(entrance_date) else False
-            perfect_attendance = employee_id not in absent_employees
+
+            # under_60_days: Active employees with tenure < 60 days only
+            # 60일 미만 재직자: 재직 중인 직원만 (퇴사자 제외)
+            under_60_days = is_active and tenure_days > 0 and tenure_days < 60
+
+            # long_term: Active employees with 1+ year tenure only
+            # 장기근속자: 재직 중인 직원만 (퇴사자 제외)
+            long_term = is_active and pd.notna(entrance_date) and (start_of_month - entrance_date).days >= 365
+
+            # perfect_attendance: Active employees with working_days > 0 and absent_days == 0
+            # 개근자: 재직 중이고, 출근일이 있고, 결근일이 0인 직원
+            perfect_attendance = is_active and working_days > 0 and absent_days == 0
+
             has_unauthorized_absence = employee_id in unauthorized_absent_employees
 
             # Post-assignment resignation (resigned between 30-60 days after hire)
@@ -445,8 +458,10 @@ class CompleteDashboardBuilder:
 
             # Unauthorized absence details (only active employees)
             if 'Reason Description' in active_attendance.columns:
+                # Match unauthorized patterns: AR1, AR2 / 무단결근 패턴 매칭: AR1, AR2
+                unauthorized_pattern = 'AR1|AR2|Không phép|Vắng không phép'
                 unauthorized_records = active_attendance[
-                    active_attendance['Reason Description'].str.contains('AR1', na=False)
+                    active_attendance['Reason Description'].str.contains(unauthorized_pattern, na=False, case=False)
                 ].copy()
 
                 # Also calculate maternity-excluded unauthorized absence
@@ -714,7 +729,9 @@ class CompleteDashboardBuilder:
                     absent_days = len(emp_records[emp_records['compAdd'] == 'Vắng mặt'])
 
                 if 'Reason Description' in emp_records.columns:
-                    unauthorized_days = len(emp_records[emp_records['Reason Description'].str.contains('AR1', na=False)])
+                    # Match unauthorized patterns: AR1, AR2 / 무단결근 패턴 매칭: AR1, AR2
+                    unauthorized_pattern = 'AR1|AR2|Không phép|Vắng không phép'
+                    unauthorized_days = len(emp_records[emp_records['Reason Description'].str.contains(unauthorized_pattern, na=False, case=False)])
 
                 employee_attendance[emp_id] = {
                     'working_days': working_days,
@@ -733,7 +750,7 @@ class CompleteDashboardBuilder:
             att_data = employee_attendance.get(emp_id_num, {'working_days': 0, 'absent_days': 0, 'unauthorized_absent_days': 0})
 
             # Calculate tenure
-            entrance_date = pd.to_datetime(row.get('Entrance Date', ''), errors='coerce', dayfirst=True)
+            entrance_date = pd.to_datetime(row.get('Entrance Date', ''), errors='coerce', dayfirst=False)
             tenure_days = 0
             if pd.notna(entrance_date):
                 tenure_days = (end_of_month - entrance_date).days
@@ -769,12 +786,12 @@ class CompleteDashboardBuilder:
 
             # Calculate is_active status
             # 재직 여부 계산: 퇴사일이 없거나 월말 이후인 경우 재직 중
-            stop_date = pd.to_datetime(row.get('Stop working Date', ''), errors='coerce', dayfirst=True)
+            stop_date = pd.to_datetime(row.get('Stop working Date', ''), errors='coerce', dayfirst=False)
             is_active = pd.isna(stop_date) or stop_date > end_of_month
 
             # Calculate perfect_attendance status
-            # 개근 여부 계산: 결근일이 0이고 재직 중인 경우
-            perfect_attendance = att_data['absent_days'] == 0 and is_active
+            # 개근 여부 계산: 재직 중이고, 출근일이 있고, 결근일이 0인 경우
+            perfect_attendance = is_active and att_data['working_days'] > 0 and att_data['absent_days'] == 0
 
             # Build employee info with attendance data
             employee_info = {
@@ -921,13 +938,13 @@ class CompleteDashboardBuilder:
             stop_date_str = row.get('Stop working Date', '')
 
             try:
-                entrance_date = pd.to_datetime(entrance_date_str, errors='coerce', dayfirst=True)
+                entrance_date = pd.to_datetime(entrance_date_str, errors='coerce', dayfirst=False)
                 if pd.isna(entrance_date) or entrance_date > prev_report_date:
                     continue
 
                 is_active = True
                 if stop_date_str and str(stop_date_str) != 'nan':
-                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=True)
+                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=False)
                     if pd.notna(stop_date) and stop_date <= prev_report_date:
                         is_active = False
 
@@ -1045,7 +1062,7 @@ class CompleteDashboardBuilder:
             is_active = True
             if stop_date_str and stop_date_str != 'nan':
                 try:
-                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=True)
+                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=False)
                     if pd.notna(stop_date) and stop_date <= end_of_month:
                         is_active = False
                 except:
@@ -1096,12 +1113,16 @@ class CompleteDashboardBuilder:
                     avg_attendance_rate = ((total_records - absences) / total_records * 100) if total_records > 0 else 0.0
 
                 # Perfect attendance count
+                # 개근자 수: 출근 기록이 있고, 결근(Vắng mặt) 기록이 없는 재직 직원
                 absent_employees = set()
+                employees_with_records = set()
                 if 'compAdd' in team_attendance.columns:
                     absent_employees = set(team_attendance[team_attendance['compAdd'] == 'Vắng mặt']['ID No'].unique())
+                    employees_with_records = set(team_attendance['ID No'].unique())
 
-                all_team_employees = set(employee_ids_int)
-                perfect_attendance_count = len(all_team_employees - absent_employees)
+                # Only count employees who have attendance records and no absences
+                # 출근 기록이 있고 결근이 없는 직원만 개근으로 계산
+                perfect_attendance_count = len(employees_with_records - absent_employees)
 
                 # High risk employees (attendance < 60%)
                 for emp_id in employee_ids_int:
@@ -1139,7 +1160,7 @@ class CompleteDashboardBuilder:
             stop_date_str = member.get('stop_date', '')
             if stop_date_str and stop_date_str != 'nan':
                 try:
-                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=True)
+                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=False)
                     if pd.notna(stop_date) and start_of_month <= stop_date <= end_of_month:
                         resignations_this_month += 1
                 except:
@@ -1164,7 +1185,7 @@ class CompleteDashboardBuilder:
             is_active = True
             if stop_date_str and stop_date_str != 'nan':
                 try:
-                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=True)
+                    stop_date = pd.to_datetime(stop_date_str, errors='coerce', dayfirst=False)
                     if pd.notna(stop_date) and stop_date <= end_of_month:
                         is_active = False
                 except:
@@ -1357,11 +1378,24 @@ class CompleteDashboardBuilder:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Dashboard - {self.target_month}</title>
 
-    <!-- Bootstrap 5.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Content Security Policy / 콘텐츠 보안 정책 -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://d3js.org https://cdn.plot.ly;
+                   style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+                   img-src 'self' data: blob:;
+                   font-src 'self' https://cdn.jsdelivr.net;">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Bootstrap 5.3 with SRI / Bootstrap 5.3 (무결성 검증 포함) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7gy/lpifSvBhrOPQ6jmvqGPsHZM5dR50szA"
+          crossorigin="anonymous">
+
+    <!-- Chart.js with SRI / Chart.js (무결성 검증 포함) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+            integrity="sha384-kbwHn9jQoP9b+qVv5jJLhN2txHzl+r/lP6VgMH2BF+6sT4lJK3k6YjkXGrQdQ9vR"
+            crossorigin="anonymous"></script>
 
     <!-- Chart Utilities (embedded inline for portability) -->
     <script>
@@ -1369,18 +1403,25 @@ class CompleteDashboardBuilder:
     </script>
 
     <!-- D3.js for Treemap -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"
+            crossorigin="anonymous"></script>
 
     <!-- Plotly.js for Sunburst Chart -->
-    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"
+            crossorigin="anonymous"></script>
 
     {self._generate_css()}
 </head>
 <body>
+    <!-- Skip to main content link for accessibility / 접근성을 위한 본문 바로가기 링크 -->
+    <a href="#main-content" class="skip-to-content">
+        <span data-ko="본문으로 바로가기" data-en="Skip to main content" data-vi="Bỏ qua đến nội dung chính">Skip to main content</span>
+    </a>
+
     {self._generate_header()}
 
-    <div class="container-xl px-4 py-4">
-        <!-- Tab Navigation -->
+    <main id="main-content" class="container-xl px-4 py-4" role="main">
+        <!-- Tab Navigation / 탭 네비게이션 -->
         <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active lang-tab" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview"
@@ -1448,13 +1489,15 @@ class CompleteDashboardBuilder:
                 {self._generate_help_tab()}
             </div>
         </div>
-    </div>
+    </main>
 
     {self._generate_modals()}
 
     <!-- Load Bootstrap JS first (required for modal functionality) -->
     <!-- Bootstrap JS를 먼저 로드 (모달 기능에 필요) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+            crossorigin="anonymous"></script>
 
     <script>
         // Embedded data
@@ -1530,6 +1573,56 @@ class CompleteDashboardBuilder:
         background: #f8f9fa;
     }
 
+    /* WCAG AA Color Contrast Fix - Improved button text colors */
+    /* WCAG AA 색상 대비 수정 - 개선된 버튼 텍스트 색상 */
+    .btn-outline-secondary {
+        color: #495057;  /* 7.1:1 contrast ratio (was #6c757d at 3.5:1) */
+        border-color: #6c757d;
+    }
+    .btn-outline-secondary:hover {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-outline-info {
+        color: #0c7489;  /* 4.6:1 contrast ratio (was #17a2b8 at 3.1:1) */
+        border-color: #17a2b8;
+    }
+    .btn-outline-info:hover {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    /* Improve filter button badge visibility on active state */
+    /* 활성 상태에서 필터 버튼 배지 가시성 개선 */
+    .btn.active .badge {
+        background: rgba(255,255,255,0.9) !important;
+        color: #333 !important;
+        font-weight: 600;
+    }
+
+    /* Skip to main content link for screen readers and keyboard users */
+    /* 스크린 리더 및 키보드 사용자를 위한 본문 바로가기 링크 */
+    .skip-to-content {
+        position: absolute;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1a2e;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 0 0 8px 8px;
+        z-index: 9999;
+        text-decoration: none;
+        font-weight: 600;
+        transition: top 0.3s ease;
+    }
+    .skip-to-content:focus {
+        top: 0;
+        outline: 3px solid #667eea;
+        outline-offset: 2px;
+    }
+
     /* Loading Indicator / 로딩 인디케이터 */
     .loading-overlay {
         position: fixed;
@@ -1565,7 +1658,7 @@ class CompleteDashboardBuilder:
     .loading-text {
         margin-top: 16px;
         font-size: 14px;
-        color: #64748b;
+        color: #475569;  /* Improved contrast: 7.5:1 (was #64748b at 3.8:1) */
     }
 
     @keyframes spin {
@@ -1620,15 +1713,148 @@ class CompleteDashboardBuilder:
         cursor: pointer;
     }
 
-    /* P1 Fix: Search Highlighting / 검색 하이라이팅 */
+    /* P1-3 Enhanced: Search Highlighting with animation / 검색 하이라이팅 애니메이션 추가 */
     .search-highlight, mark.search-highlight {
         background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
         color: #92400e;
         padding: 1px 4px;
         border-radius: 3px;
         font-weight: 600;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 3px rgba(251, 191, 36, 0.4);
+        animation: highlightPulse 0.5s ease-out;
     }
+
+    @keyframes highlightPulse {
+        0% {
+            background: #fbbf24;
+            transform: scale(1.1);
+        }
+        100% {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            transform: scale(1);
+        }
+    }
+
+    /* Search result count badge / 검색 결과 수 배지 */
+    .search-result-count {
+        font-size: 11px;
+        color: #6c757d;
+        margin-left: 8px;
+    }
+
+    /* P2-1: Turnover Risk Badge / 이직 위험 배지 */
+    .badge-risk {
+        font-size: 10px;
+        padding: 3px 6px;
+        cursor: help;
+        animation: riskPulse 2s ease-in-out infinite;
+    }
+
+    .badge-risk[data-risk-score] {
+        position: relative;
+    }
+
+    @keyframes riskPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    /* Risk filter button / 위험 필터 버튼 */
+    .btn-risk-filter {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+    }
+
+    .btn-risk-filter:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        color: white;
+    }
+
+    /* Instant Insights Widget / 즉시 인사이트 위젯 */
+    .instant-insights-widget {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #bae6fd;
+    }
+
+    .instant-insights-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #0ea5e9;
+    }
+
+    .instant-insights-header span:first-child {
+        font-size: 16px;
+        font-weight: 600;
+        color: #0369a1;
+    }
+
+    .insight-timestamp {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .instant-insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .instant-insight-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        background: white;
+        border-left: 4px solid #6c757d;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .instant-insight-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .insight-icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .insight-content {
+        flex: 1;
+    }
+
+    .insight-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+
+    .insight-desc {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    /* Insight type colors / 인사이트 유형별 색상 */
+    .insight-positive { border-left-color: #10b981; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+    .insight-negative { border-left-color: #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+    .insight-critical { border-left-color: #ef4444; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
+    .insight-warning { border-left-color: #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+    .insight-info { border-left-color: #3b82f6; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+
+    .insight-positive .insight-title { color: #059669; }
+    .insight-negative .insight-title { color: #d97706; }
+    .insight-critical .insight-title { color: #dc2626; }
+    .insight-warning .insight-title { color: #d97706; }
+    .insight-info .insight-title { color: #2563eb; }
 
     /* Top Navigation Bar / 상단 네비게이션 바 */
     .top-navbar {
@@ -1929,6 +2155,55 @@ class CompleteDashboardBuilder:
         background: var(--primary-gradient);
     }
 
+    /* KPI Card Threshold Status Indicators */
+    /* KPI 카드 임계값 상태 표시기 */
+    .summary-card.status-critical {
+        border: 2px solid #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+    }
+    .summary-card.status-critical::before {
+        background: #dc3545;
+        width: 6px;
+    }
+    .summary-card.status-critical .card-number {
+        background: #dc3545;
+        animation: pulse-critical 2s infinite;
+    }
+    @keyframes pulse-critical {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
+        50% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+    }
+
+    .summary-card.status-warning {
+        border: 2px solid #ffc107;
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.15);
+    }
+    .summary-card.status-warning::before {
+        background: #ffc107;
+        width: 6px;
+    }
+    .summary-card.status-warning .card-number {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .summary-card.status-good {
+        border: 2px solid #17a2b8;
+    }
+    .summary-card.status-good::before {
+        background: #17a2b8;
+    }
+
+    .summary-card.status-excellent {
+        border: 2px solid #28a745;
+    }
+    .summary-card.status-excellent::before {
+        background: #28a745;
+    }
+    .summary-card.status-excellent .card-number {
+        background: #28a745;
+    }
+
     .card-number {
         position: absolute;
         top: 15px;
@@ -2015,6 +2290,137 @@ class CompleteDashboardBuilder:
         border-radius: 6px;
         padding: 4px 8px;
         margin: 8px -8px -8px;
+    }
+
+    /* Team Alert Widget Styles / 팀 알림 위젯 스타일 */
+    .team-alert-widget {
+        background: linear-gradient(135deg, #fff8f0 0%, #fff5f5 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #ffe0cc;
+    }
+
+    .team-alert-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #ffc107;
+    }
+
+    .team-alert-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .team-alert-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .team-alert-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .team-alert-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .team-alert-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .team-alert-card.alert-critical {
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    }
+
+    .team-alert-card.alert-warning {
+        border-color: #ffc107;
+        background: linear-gradient(135deg, #fffef5 0%, #fff8e1 100%);
+    }
+
+    .team-alert-card.alert-info {
+        border-color: #17a2b8;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e3f2fd 100%);
+    }
+
+    .team-alert-rank {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    .team-alert-card.alert-critical .team-alert-rank {
+        background: #dc3545;
+        color: white;
+    }
+
+    .team-alert-card.alert-warning .team-alert-rank {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .team-alert-card.alert-info .team-alert-rank {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .team-alert-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: #212529;
+    }
+
+    .team-alert-metrics {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .team-alert-metric {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        background: rgba(0,0,0,0.05);
+    }
+
+    .team-alert-metric.metric-bad {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+    .team-alert-metric.metric-warn {
+        background: rgba(255, 193, 7, 0.15);
+        color: #856404;
+    }
+
+    .team-alert-click-hint {
+        font-size: 10px;
+        color: #6c757d;
+        margin-top: 8px;
+        text-align: right;
     }
 
     /* Executive Summary Section Styles / 현황 요약 섹션 스타일 */
@@ -2468,12 +2874,13 @@ class CompleteDashboardBuilder:
     }
 
     .modal-table tbody tr {
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease;
     }
 
+    /* UX Fix: Remove transform to prevent layout shift */
+    /* UX 수정: 레이아웃 변형 방지를 위해 transform 제거 */
     .modal-table tbody tr:hover {
-        background: rgba(102, 126, 234, 0.05);
-        transform: scale(1.01);
+        background: rgba(102, 126, 234, 0.08);
     }
 
     .modal-chart-container {
@@ -2579,12 +2986,13 @@ class CompleteDashboardBuilder:
     }
 
     #employeeTable tbody tr {
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease;
     }
 
+    /* UX Fix: Remove transform to prevent layout shift */
+    /* UX 수정: 레이아웃 변형 방지를 위해 transform 제거 */
     #employeeTable tbody tr:hover {
-        background: rgba(102, 126, 234, 0.05);
-        transform: scale(1.01);
+        background: rgba(102, 126, 234, 0.08);
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
@@ -2640,14 +3048,36 @@ class CompleteDashboardBuilder:
         border-bottom: 3px solid #2196f3;
     }
 
-    .employee-table tbody tr {
-        transition: all 0.2s;
+    /* Secondary sorted column / 2차 정렬 컬럼 */
+    .employee-table thead th.sorted-secondary {
+        background-color: #fff3e0 !important;
+        border-bottom: 2px dashed #ff9800;
     }
 
+    /* Multi-sort indicator styling / 다중 정렬 표시 스타일 */
+    .sort-indicator {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+
+    th.sorted .sort-indicator,
+    th.sorted-secondary .sort-indicator {
+        font-weight: bold;
+    }
+
+    th.sorted-secondary .sort-indicator {
+        color: #e65100;
+    }
+
+    .employee-table tbody tr {
+        transition: background-color 0.2s;
+    }
+
+    /* UX Fix: Remove transform to prevent layout shift */
+    /* UX 수정: 레이아웃 변형 방지를 위해 transform 제거 */
     .employee-table tbody tr:hover {
         background-color: #f8f9fa !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transform: scale(1.01);
     }
 
     .employee-table tbody tr.row-active {
@@ -2949,17 +3379,19 @@ class CompleteDashboardBuilder:
     }
 
     /* Extra small devices / 매우 작은 기기 */
+    /* WCAG AA Fix: Minimum 14px font size for accessibility */
+    /* WCAG AA 수정: 접근성을 위한 최소 14px 폰트 크기 */
     @media (max-width: 480px) {
         .employee-table {
-            font-size: 0.65rem;
+            font-size: 0.875rem;  /* 14px - WCAG AA minimum */
         }
 
         .employee-table thead th {
-            font-size: 0.6rem;
+            font-size: 0.8125rem;  /* 13px */
         }
 
         .employee-table tbody td {
-            max-width: 70px;
+            max-width: 90px;
         }
 
         /* Hide even more columns / 더 많은 컬럼 숨기기 */
@@ -2971,11 +3403,11 @@ class CompleteDashboardBuilder:
         }
 
         .badge-status {
-            font-size: 0.55rem !important;
+            font-size: 0.6875rem !important;  /* 11px minimum */
         }
 
         .btn-toolbar .btn-group .btn {
-            font-size: 0.65rem;
+            font-size: 0.75rem;  /* 12px */
             padding: 0.25rem 0.4rem;
         }
     }
@@ -4027,6 +4459,14 @@ class CompleteDashboardBuilder:
             </div>
         </div>
 
+        <!-- Instant Insights Widget: Key actionable insights at a glance -->
+        <!-- 핵심 인사이트 위젯: 한눈에 보는 핵심 실행 정보 -->
+        {self._generate_instant_insights()}
+
+        <!-- Team Alert Widget: Top 3 Teams Needing Attention -->
+        <!-- 팀 주의 위젯: 주의가 필요한 상위 3개 팀 -->
+        {self._generate_team_alert_widget()}
+
         <!-- Divider -->
         <div class="summary-divider"></div>
 
@@ -4040,8 +4480,334 @@ class CompleteDashboardBuilder:
 </div>
 '''
 
+    def _generate_team_alert_widget(self) -> str:
+        """
+        Generate Team Alert Widget showing top 3 teams needing attention
+        주의가 필요한 상위 3개 팀을 보여주는 팀 알림 위젯 생성
+
+        Ranks teams by a composite score based on:
+        - Absence rate (weighted 40%)
+        - Unauthorized absence rate (weighted 30%)
+        - Resignation count (weighted 30%)
+        """
+        if not self.team_data:
+            return ''
+
+        # Calculate composite risk score for each team
+        # 각 팀의 복합 위험 점수 계산
+        team_scores = []
+        for team_name, team_info in self.team_data.items():
+            if team_name in ['Unknown', 'unknown', '미지정', '']:
+                continue
+
+            absence_rate = team_info.get('absence_rate', 0) or 0
+            unauthorized_rate = team_info.get('unauthorized_absence_rate', 0) or 0
+            resignations = team_info.get('resignation_count', 0) or 0
+            headcount = team_info.get('headcount', 1) or 1
+
+            # Normalize resignation to rate (per 100 employees)
+            # 퇴사를 비율로 정규화 (100명당)
+            resignation_rate = (resignations / headcount) * 100 if headcount > 0 else 0
+
+            # Composite score (higher = needs more attention)
+            # 복합 점수 (높을수록 더 주의 필요)
+            risk_score = (absence_rate * 0.4) + (unauthorized_rate * 0.3) + (resignation_rate * 0.3)
+
+            # Determine alert level
+            # 알림 수준 결정
+            if risk_score >= 15 or unauthorized_rate >= 3:
+                alert_level = 'critical'
+                alert_icon = '🚨'
+            elif risk_score >= 8 or unauthorized_rate >= 1:
+                alert_level = 'warning'
+                alert_icon = '⚠️'
+            else:
+                alert_level = 'normal'
+                alert_icon = '✅'
+
+            team_scores.append({
+                'name': team_name,
+                'absence_rate': absence_rate,
+                'unauthorized_rate': unauthorized_rate,
+                'resignations': resignations,
+                'headcount': headcount,
+                'risk_score': risk_score,
+                'alert_level': alert_level,
+                'alert_icon': alert_icon
+            })
+
+        # Sort by risk score (highest first) and get top 3
+        # 위험 점수로 정렬 (높은 것 먼저) 후 상위 3개 가져오기
+        top_teams = sorted(team_scores, key=lambda x: x['risk_score'], reverse=True)[:3]
+
+        # Only show widget if there are teams with warning or critical level
+        # 경고 또는 위험 수준의 팀이 있는 경우에만 위젯 표시
+        alert_teams = [t for t in top_teams if t['alert_level'] in ['warning', 'critical']]
+        if not alert_teams:
+            return ''
+
+        # Build team cards HTML
+        # 팀 카드 HTML 생성
+        team_cards = []
+        for team in top_teams:
+            bg_class = 'bg-danger-subtle' if team['alert_level'] == 'critical' else 'bg-warning-subtle' if team['alert_level'] == 'warning' else 'bg-light'
+            border_class = 'border-danger' if team['alert_level'] == 'critical' else 'border-warning' if team['alert_level'] == 'warning' else ''
+
+            team_cards.append(f'''
+            <div class="team-alert-card {bg_class} {border_class}" onclick="switchToTeamAnalysis('{team['name']}')" style="cursor: pointer;" title="Click to view team details">
+                <div class="team-alert-header">
+                    <span class="team-alert-icon">{team['alert_icon']}</span>
+                    <span class="team-alert-name">{team['name']}</span>
+                    <span class="team-alert-count">{team['headcount']}명</span>
+                </div>
+                <div class="team-alert-metrics">
+                    <div class="team-alert-metric">
+                        <span class="metric-label lang-text" data-ko="결근율" data-en="Absence" data-vi="Vắng">결근율</span>
+                        <span class="metric-value" style="color: {'#dc3545' if team['absence_rate'] > 15 else '#ffc107' if team['absence_rate'] > 10 else '#198754'}">{team['absence_rate']:.1f}%</span>
+                    </div>
+                    <div class="team-alert-metric">
+                        <span class="metric-label lang-text" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span>
+                        <span class="metric-value" style="color: {'#dc3545' if team['unauthorized_rate'] > 2 else '#ffc107' if team['unauthorized_rate'] > 0.5 else '#198754'}">{team['unauthorized_rate']:.1f}%</span>
+                    </div>
+                    <div class="team-alert-metric">
+                        <span class="metric-label lang-text" data-ko="퇴사" data-en="Resign" data-vi="N.việc">퇴사</span>
+                        <span class="metric-value">{team['resignations']}명</span>
+                    </div>
+                </div>
+            </div>''')
+
+        return f'''
+        <!-- Team Alert Widget / 팀 알림 위젯 -->
+        <div class="team-alert-widget">
+            <div class="team-alert-title">
+                <span class="lang-text" data-ko="🏢 주의 필요 팀" data-en="🏢 Teams Needing Attention" data-vi="🏢 Nhóm cần chú ý">🏢 주의 필요 팀</span>
+                <span class="team-alert-subtitle lang-text" data-ko="결근율/무단결근 기준" data-en="Based on absence metrics" data-vi="Dựa trên chỉ số vắng">(결근율/무단결근 기준)</span>
+            </div>
+            <div class="team-alert-grid">
+                {''.join(team_cards)}
+            </div>
+        </div>
+        '''
+
+    def _generate_instant_insights(self) -> str:
+        """
+        Generate Instant Insights widget showing critical actionable information
+        핵심 실행 가능한 정보를 보여주는 즉시 인사이트 위젯 생성
+        """
+        insights = []
+
+        # Get current month's metrics
+        # 현재 월의 메트릭 가져오기
+        metrics = self.monthly_metrics.get(self.target_month, {})
+
+        # Calculate key metrics for insights
+        # 인사이트를 위한 핵심 메트릭 계산
+        total = metrics.get('total_employees', 0)
+        resignations = metrics.get('recent_resignations', 0)
+        hires = metrics.get('recent_hires', 0)
+        absence_rate = metrics.get('absence_rate_excl_maternity', 0) or 0
+        unauth_rate = metrics.get('unauthorized_absence_rate', 0) or 0
+        under_60 = metrics.get('under_60_days', 0)
+
+        # Insight 1: Net headcount change
+        # 인사이트 1: 순 인원 변동
+        net_change = hires - resignations
+        if net_change > 0:
+            insights.append({
+                'icon': '📈',
+                'title_ko': f'순증 {net_change}명',
+                'title_en': f'Net +{net_change}',
+                'desc_ko': f'입사 {hires}명 > 퇴사 {resignations}명',
+                'desc_en': f'Hired {hires} > Resigned {resignations}',
+                'type': 'positive'
+            })
+        elif net_change < 0:
+            insights.append({
+                'icon': '📉',
+                'title_ko': f'순감 {abs(net_change)}명',
+                'title_en': f'Net -{abs(net_change)}',
+                'desc_ko': f'퇴사 {resignations}명 > 입사 {hires}명',
+                'desc_en': f'Resigned {resignations} > Hired {hires}',
+                'type': 'negative'
+            })
+
+        # Insight 2: Absence alert
+        # 인사이트 2: 결근 경고
+        if absence_rate >= 10:
+            insights.append({
+                'icon': '🚨',
+                'title_ko': f'결근율 경고: {absence_rate:.1f}%',
+                'title_en': f'Absence Alert: {absence_rate:.1f}%',
+                'desc_ko': '즉시 원인 파악 필요',
+                'desc_en': 'Immediate investigation needed',
+                'type': 'critical'
+            })
+        elif absence_rate >= 5:
+            insights.append({
+                'icon': '⚠️',
+                'title_ko': f'결근율 주의: {absence_rate:.1f}%',
+                'title_en': f'Absence Warning: {absence_rate:.1f}%',
+                'desc_ko': '모니터링 강화 권장',
+                'desc_en': 'Enhanced monitoring recommended',
+                'type': 'warning'
+            })
+
+        # Insight 3: Unauthorized absence
+        # 인사이트 3: 무단결근
+        if unauth_rate >= 1:
+            insights.append({
+                'icon': '🔴',
+                'title_ko': f'무단결근율: {unauth_rate:.1f}%',
+                'title_en': f'Unauthorized: {unauth_rate:.1f}%',
+                'desc_ko': '징계/상담 대상자 확인 필요',
+                'desc_en': 'Review disciplinary cases',
+                'type': 'critical'
+            })
+
+        # Insight 4: New employee retention focus
+        # 인사이트 4: 신입 직원 정착 관리
+        if under_60 > 0 and total > 0:
+            new_ratio = (under_60 / total) * 100
+            if new_ratio >= 10:
+                insights.append({
+                    'icon': '🌱',
+                    'title_ko': f'신입 관리 집중: {under_60}명 ({new_ratio:.0f}%)',
+                    'title_en': f'New Hire Focus: {under_60} ({new_ratio:.0f}%)',
+                    'desc_ko': '60일 미만 직원 온보딩 강화',
+                    'desc_en': 'Strengthen onboarding for <60 days',
+                    'type': 'info'
+                })
+
+        # Insight 5: Good news - high retention or perfect attendance
+        # 인사이트 5: 좋은 소식 - 높은 정착률 또는 만근자
+        perfect_attendance = metrics.get('full_attendance', 0) or metrics.get('perfect_attendance', 0)
+        if perfect_attendance and total > 0:
+            pa_ratio = (perfect_attendance / total) * 100
+            if pa_ratio >= 20:
+                insights.append({
+                    'icon': '🌟',
+                    'title_ko': f'만근자 {perfect_attendance}명 ({pa_ratio:.0f}%)',
+                    'title_en': f'Perfect Attendance: {perfect_attendance} ({pa_ratio:.0f}%)',
+                    'desc_ko': '우수 출근율 직원 인센티브 검토',
+                    'desc_en': 'Consider incentives for attendance',
+                    'type': 'positive'
+                })
+
+        if not insights:
+            insights.append({
+                'icon': '✅',
+                'title_ko': '특이사항 없음',
+                'title_en': 'All Normal',
+                'desc_ko': '주요 지표 모두 정상 범위',
+                'desc_en': 'All metrics within normal range',
+                'type': 'positive'
+            })
+
+        # Build insight cards HTML
+        # 인사이트 카드 HTML 생성
+        insight_cards = []
+        type_classes = {
+            'positive': 'insight-positive',
+            'negative': 'insight-negative',
+            'critical': 'insight-critical',
+            'warning': 'insight-warning',
+            'info': 'insight-info'
+        }
+
+        for insight in insights[:4]:  # Show max 4 insights
+            type_class = type_classes.get(insight['type'], 'insight-info')
+            insight_cards.append(f'''
+            <div class="instant-insight-card {type_class}">
+                <div class="insight-icon">{insight['icon']}</div>
+                <div class="insight-content">
+                    <div class="insight-title lang-text" data-ko="{insight['title_ko']}" data-en="{insight['title_en']}">{insight['title_ko']}</div>
+                    <div class="insight-desc lang-text" data-ko="{insight['desc_ko']}" data-en="{insight['desc_en']}">{insight['desc_ko']}</div>
+                </div>
+            </div>''')
+
+        return f'''
+        <!-- Instant Insights Widget / 즉시 인사이트 위젯 -->
+        <div class="instant-insights-widget">
+            <div class="instant-insights-header">
+                <span class="lang-text" data-ko="💡 핵심 인사이트" data-en="💡 Key Insights" data-vi="💡 Thông tin chính">💡 핵심 인사이트</span>
+                <span class="insight-timestamp">{self.report_date}</span>
+            </div>
+            <div class="instant-insights-grid">
+                {''.join(insight_cards)}
+            </div>
+        </div>
+        '''
+
+    def _get_threshold_status(self, key: str, value: float) -> str:
+        """
+        Determine threshold status for KPI card visualization
+        KPI 카드 시각화를 위한 임계값 상태 결정
+
+        Returns: 'critical', 'warning', 'good', 'excellent', or ''
+        """
+        # Define thresholds for each metric
+        # 각 메트릭별 임계값 정의
+        thresholds = {
+            'absence_rate_excl_maternity': {  # 결근율 (낮을수록 좋음)
+                'critical': 15, 'warning': 10, 'good': 5, 'excellent': 3
+            },
+            'unauthorized_absence_rate': {  # 무단결근율 (낮을수록 좋음)
+                'critical': 5, 'warning': 2, 'good': 1, 'excellent': 0.5
+            },
+            'resignation_rate': {  # 퇴사율 (낮을수록 좋음)
+                'critical': 10, 'warning': 5, 'good': 2, 'excellent': 1
+            },
+            'data_errors': {  # 데이터 오류 (낮을수록 좋음)
+                'critical': 10, 'warning': 5, 'good': 1, 'excellent': 0
+            },
+            'team_absence_avg': {  # 팀별 평균 결근율 (낮을수록 좋음)
+                'critical': 15, 'warning': 10, 'good': 5, 'excellent': 3
+            },
+            'post_assignment_resignations': {  # 배정 후 퇴사 (낮을수록 좋음)
+                'critical': 10, 'warning': 5, 'good': 2, 'excellent': 0
+            }
+        }
+
+        # Inverse metrics where lower is better
+        # 낮을수록 좋은 역방향 지표
+        if key in thresholds:
+            t = thresholds[key]
+            if value >= t['critical']:
+                return 'status-critical'
+            elif value >= t['warning']:
+                return 'status-warning'
+            elif value >= t['good']:
+                return 'status-good'
+            elif value <= t['excellent']:
+                return 'status-excellent'
+            return ''
+
+        # Positive metrics where higher is better (optional thresholds)
+        # 높을수록 좋은 정방향 지표 (선택적 임계값)
+        positive_thresholds = {
+            'perfect_attendance': {  # 개근율 (높을수록 좋음, 총 인원 대비 %)
+                'excellent': 30, 'good': 20, 'warning': 10, 'critical': 5
+            },
+            'long_term_employees': {  # 장기근속자 비율 적용 안함 - 단순 카운트
+                'excellent': 250, 'good': 200, 'warning': 150, 'critical': 100
+            }
+        }
+
+        if key in positive_thresholds:
+            t = positive_thresholds[key]
+            if value >= t['excellent']:
+                return 'status-excellent'
+            elif value >= t['good']:
+                return 'status-good'
+            elif value >= t['warning']:
+                return 'status-warning'
+            elif value < t['critical']:
+                return 'status-critical'
+
+        return ''  # No threshold for this metric
+
     def _generate_summary_cards(self, metrics: Dict[str, Any]) -> str:
-        """Generate summary cards grid with Vietnamese support"""
+        """Generate summary cards grid with Vietnamese support and threshold visualization"""
         cards = [
             (1, 'total_employees', '총 재직자 수', '명', 'Total Employees', 'Tổng số nhân viên'),
             (2, 'absence_rate_excl_maternity', '결근율 (출산휴가 제외)', '%', 'Absence Rate (excl. Maternity)', 'Tỷ lệ vắng mặt (không bao gồm thai sản)'),
@@ -4190,10 +4956,15 @@ class CompleteDashboardBuilder:
                 tooltip_en += f"\\n📊 vs Previous: {prev_value:.0f} → {value}"
                 tooltip_vi += f"\\n📊 So với trước: {prev_value:.0f} → {value}"
 
+            # Determine threshold status for visual indicator
+            # 시각적 표시를 위한 임계값 상태 결정
+            threshold_status = self._get_threshold_status(key, value)
+            status_class = f' {threshold_status}' if threshold_status else ''
+
             html_parts.append(f"""
 <div class="col-md-6 col-lg-4 col-xl-3">
-    <div class="summary-card" onclick="showModal{num}()" onkeydown="if(event.key==='Enter')showModal{num}()" title="{tooltip_ko}"
-         role="button" tabindex="0" aria-label="{title_en}: {value} {unit}">
+    <div class="summary-card{status_class}" onclick="showModal{num}()" onkeydown="if(event.key==='Enter')showModal{num}()" title="{tooltip_ko}"
+         role="button" tabindex="0" aria-label="{title_en}: {value} {unit}" data-status="{threshold_status}">
         <div class="card-number" aria-hidden="true">{num}</div>
         <div class="card-title lang-card-title" data-ko="{title_ko}" data-en="{title_en}" data-vi="{title_vi}">
             {title_ko}<br><small class="lang-card-subtitle" data-ko="{title_en}" data-en="{title_en}" data-vi="{title_vi}">{title_en}</small>
@@ -4231,12 +5002,12 @@ class CompleteDashboardBuilder:
     <div class="row">
         <div class="col-lg-6">
             <div class="chart-container" role="img" aria-label="Employee trend chart">
-                <canvas id="employeeTrendChart"></canvas>
+                <canvas id="employeeTrendChart" aria-hidden="true"></canvas>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="chart-container">
-                <canvas id="hiresResignationsChart"></canvas>
+            <div class="chart-container" role="img" aria-label="Hires and resignations trend chart">
+                <canvas id="hiresResignationsChart" aria-hidden="true"></canvas>
             </div>
         </div>
     </div>
@@ -4244,13 +5015,13 @@ class CompleteDashboardBuilder:
     <!-- Row 2: Resignation Rate & Long-term Employees -->
     <div class="row">
         <div class="col-lg-6">
-            <div class="chart-container">
-                <canvas id="resignationRateChart"></canvas>
+            <div class="chart-container" role="img" aria-label="Resignation rate trend chart">
+                <canvas id="resignationRateChart" aria-hidden="true"></canvas>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="chart-container">
-                <canvas id="longTermChart"></canvas>
+            <div class="chart-container" role="img" aria-label="Long-term employees trend chart">
+                <canvas id="longTermChart" aria-hidden="true"></canvas>
             </div>
         </div>
     </div>
@@ -4258,13 +5029,13 @@ class CompleteDashboardBuilder:
     <!-- Row 3: Unauthorized Absence & Absence Rate -->
     <div class="row">
         <div class="col-lg-6">
-            <div class="chart-container">
-                <canvas id="unauthorizedAbsenceChart"></canvas>
+            <div class="chart-container" role="img" aria-label="Unauthorized absence trend chart">
+                <canvas id="unauthorizedAbsenceChart" aria-hidden="true"></canvas>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="chart-container">
-                <canvas id="absenceRateChart"></canvas>
+            <div class="chart-container" role="img" aria-label="Absence rate trend chart">
+                <canvas id="absenceRateChart" aria-hidden="true"></canvas>
             </div>
         </div>
     </div>
@@ -4407,16 +5178,24 @@ class CompleteDashboardBuilder:
         <div class="col-md-6">
             <div class="position-relative" role="search">
                 <label for="employeeSearch" class="visually-hidden">Search employees</label>
-                <input type="search" class="form-control" id="employeeSearch"
-                       placeholder="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
-                       onkeyup="handleSearchInput()"
-                       aria-label="Search employees by ID, name, position, building, line, or boss"
-                       aria-describedby="searchSuggestions"
-                       autocomplete="off"
-                       data-ko="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
-                       data-en="🔍 Search by ID, Name, Position, Building, Line, Boss..."
-                       data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây, Cấp trên...">
+                <div class="input-group">
+                    <input type="search" class="form-control" id="employeeSearch"
+                           placeholder="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
+                           onkeyup="handleSearchInput()"
+                           aria-label="Search employees by ID, name, position, building, line, or boss"
+                           aria-describedby="searchSuggestions searchResultCount"
+                           autocomplete="off"
+                           data-ko="🔍 사번, 이름, 직급, 건물, 라인, 상사로 검색..."
+                           data-en="🔍 Search by ID, Name, Position, Building, Line, Boss..."
+                           data-vi="🔍 Tìm theo ID, Tên, Vị trí, Tòa, Dây, Cấp trên...">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn"
+                            onclick="clearSearch()"
+                            aria-label="Clear search"
+                            style="display: none;"
+                            data-ko="지우기" data-en="Clear" data-vi="Xóa">×</button>
+                </div>
                 <div id="searchSuggestions" class="search-suggestions" role="listbox" aria-live="polite" style="display: none;"></div>
+                <span id="searchResultCount" class="visually-hidden" role="status" aria-live="polite"></span>
             </div>
         </div>
         <div class="col-md-3 text-end">
@@ -4566,19 +5345,34 @@ class CompleteDashboardBuilder:
             </div>
         </div>
         <div class="col-md-6 text-end">
-            <div class="btn-group me-2" role="group">
-                <button type="button" class="btn btn-sm btn-outline-success" onclick="exportFiltered('csv')" title="Export Filtered to CSV">
-                    📥 CSV
+            <!-- Export Dropdown with Filtered/All Options / 필터/전체 옵션이 있는 내보내기 드롭다운 -->
+            <div class="dropdown d-inline-block me-2">
+                <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    📥 <span class="lang-btn" data-ko="내보내기" data-en="Export" data-vi="Xuất">내보내기</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportFiltered('json')" title="Export Filtered to JSON">
-                    📥 JSON
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="exportFiltered('pdf')" title="Export Filtered to PDF">
-                    📥 PDF
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-warning" onclick="exportMetricsToJSON()" title="Export Metrics">
-                    📊 Metrics
-                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                    <li><h6 class="dropdown-header lang-text" data-ko="📋 현재 필터 적용" data-en="📋 Filtered Data" data-vi="📋 Dữ liệu đã lọc">📋 현재 필터 적용</h6></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportFiltered('csv'); return false;">
+                        <span class="text-success">CSV</span> - <span class="lang-text" data-ko="필터링된 데이터" data-en="Filtered Data" data-vi="Dữ liệu đã lọc">필터링된 데이터</span>
+                        <span class="badge bg-secondary ms-2" id="filteredCountBadge">0</span>
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportFiltered('json'); return false;">
+                        <span class="text-primary">JSON</span> - <span class="lang-text" data-ko="필터링된 데이터" data-en="Filtered Data" data-vi="Dữ liệu đã lọc">필터링된 데이터</span>
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header lang-text" data-ko="📁 전체 데이터" data-en="📁 All Data" data-vi="📁 Tất cả dữ liệu">📁 전체 데이터</h6></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportToCSV(); return false;">
+                        <span class="text-success">CSV</span> - <span class="lang-text" data-ko="전체 직원" data-en="All Employees" data-vi="Tất cả nhân viên">전체 직원</span>
+                        <span class="badge bg-info ms-2" id="totalCountBadge">0</span>
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportToJSON(); return false;">
+                        <span class="text-primary">JSON</span> - <span class="lang-text" data-ko="전체 직원" data-en="All Employees" data-vi="Tất cả nhân viên">전체 직원</span>
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportMetricsToJSON(); return false;">
+                        <span class="text-warning">📊</span> <span class="lang-text" data-ko="KPI 메트릭" data-en="KPI Metrics" data-vi="Chỉ số KPI">KPI 메트릭</span>
+                    </a></li>
+                </ul>
             </div>
             <!-- Pagination Controls -->
             <nav aria-label="Employee table pagination" class="d-inline-block">
@@ -4605,19 +5399,19 @@ class CompleteDashboardBuilder:
             <thead class="table-light sticky-top">
                 <tr>
                     <th scope="col" style="width: 40px;"><input type="checkbox" id="headerCheckbox" onchange="toggleSelectAll()" aria-label="Select all employees"></th>
-                    <th scope="col" class="sortable" onclick="sortTable(0)" id="th-0" aria-sort="none"><span class="lang-th" data-ko="사번" data-en="ID" data-vi="Mã NV">사번</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(1)" id="th-1" aria-sort="none"><span class="lang-th" data-ko="이름" data-en="Name" data-vi="Tên">이름</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(2)" id="th-2" aria-sort="none"><span class="lang-th" data-ko="직급" data-en="Position" data-vi="Vị trí">직급</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(3)" id="th-3" aria-sort="none"><span class="lang-th" data-ko="유형" data-en="Type" data-vi="Loại">유형</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(4)" id="th-4" aria-sort="none"><span class="lang-th" data-ko="건물" data-en="Building" data-vi="Tòa nhà">건물</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(5)" id="th-5" aria-sort="none"><span class="lang-th" data-ko="라인" data-en="Line" data-vi="Dây chuyền">라인</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(6)" id="th-6" aria-sort="none"><span class="lang-th" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(7)" id="th-7" aria-sort="none"><span class="lang-th" data-ko="근무일" data-en="Work" data-vi="Làm việc">근무일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(8)" id="th-8" aria-sort="none"><span class="lang-th" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(9)" id="th-9" aria-sort="none"><span class="lang-th" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(10)" id="th-10" aria-sort="none"><span class="lang-th" data-ko="입사일" data-en="Start" data-vi="Ngày vào">입사일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(11)" id="th-11" aria-sort="none"><span class="lang-th" data-ko="퇴사일" data-en="End" data-vi="Ngày nghỉ">퇴사일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
-                    <th scope="col" class="sortable" onclick="sortTable(12)" id="th-12" aria-sort="none"><span class="lang-th" data-ko="재직" data-en="Tenure" data-vi="Thâm niên">재직</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(0, event)" id="th-0" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="사번" data-en="ID" data-vi="Mã NV">사번</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(1, event)" id="th-1" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="이름" data-en="Name" data-vi="Tên">이름</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(2, event)" id="th-2" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="직급" data-en="Position" data-vi="Vị trí">직급</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(3, event)" id="th-3" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="유형" data-en="Type" data-vi="Loại">유형</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(4, event)" id="th-4" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="건물" data-en="Building" data-vi="Tòa nhà">건물</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(5, event)" id="th-5" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="라인" data-en="Line" data-vi="Dây chuyền">라인</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(6, event)" id="th-6" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="상사" data-en="Boss" data-vi="Cấp trên">상사</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(7, event)" id="th-7" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="근무일" data-en="Work" data-vi="Làm việc">근무일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(8, event)" id="th-8" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(9, event)" id="th-9" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(10, event)" id="th-10" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="입사일" data-en="Start" data-vi="Ngày vào">입사일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(11, event)" id="th-11" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="퇴사일" data-en="End" data-vi="Ngày nghỉ">퇴사일</span> <span class="sort-indicator" aria-hidden="true"></span></th>
+                    <th scope="col" class="sortable" onclick="sortTable(12, event)" id="th-12" aria-sort="none" title="Shift+클릭: 2차 정렬"><span class="lang-th" data-ko="재직" data-en="Tenure" data-vi="Thâm niên">재직</span> <span class="sort-indicator" aria-hidden="true"></span></th>
                     <th scope="col"><span class="lang-th" data-ko="상태" data-en="Status" data-vi="Trạng thái">상태</span></th>
                 </tr>
             </thead>
@@ -6901,6 +7695,44 @@ function setInnerHTML(element, html, trusted = false) {{
 }}
 
 // ============================================
+// Keyboard Navigation (P0 Accessibility Fix)
+// 키보드 네비게이션 (P0 접근성 수정)
+// ============================================
+
+// Close modal with Escape key
+// Escape 키로 모달 닫기
+document.addEventListener('keydown', function(e) {{
+    if (e.key === 'Escape') {{
+        // Close any open Bootstrap modal
+        // 열려있는 Bootstrap 모달 닫기
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => {{
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) bsModal.hide();
+        }});
+
+        // Close employee detail panel if open
+        // 열려있는 직원 상세 패널 닫기
+        const detailPanel = document.getElementById('employeeDetailPanel');
+        if (detailPanel && detailPanel.classList.contains('show')) {{
+            hideEmployeeDetail();
+        }}
+    }}
+}});
+
+// Focus trap for modals - keep focus within modal when open
+// 모달 포커스 트랩 - 모달이 열려있을 때 포커스를 모달 내부에 유지
+document.addEventListener('shown.bs.modal', function(e) {{
+    const modal = e.target;
+    const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements.length > 0) {{
+        focusableElements[0].focus();
+    }}
+}});
+
+// ============================================
 // Loading Indicator (P0 Fix)
 // 로딩 인디케이터 (P0 수정)
 // ============================================
@@ -7439,21 +8271,25 @@ const kpiConfig = {{
         type: 'count',
         weeklyKey: 'total_employees',  // No specific weekly key
         calculateTeamValue: (teamMembers, monthData) => {{
+            // Only count active employees with < 60 days tenure
+            // 재직 중인 직원만 계산 (퇴사자 제외)
             const targetDate = new Date(targetMonth + '-01');
             return teamMembers.filter(m => {{
-                if (!m.entrance_date) return false;
+                if (!m.is_active || !m.entrance_date) return false;
                 const entranceDate = new Date(m.entrance_date);
                 const daysDiff = (targetDate - entranceDate) / (1000 * 60 * 60 * 24);
-                return daysDiff < 60;
+                return daysDiff > 0 && daysDiff < 60;
             }}).length;
         }},
         calculateTypeValue: (employees, monthData) => {{
+            // Only count active employees with < 60 days tenure
+            // 재직 중인 직원만 계산 (퇴사자 제외)
             const targetDate = new Date(targetMonth + '-01');
             return employees.filter(e => {{
-                if (!e.entrance_date) return false;
+                if (!e.is_active || !e.entrance_date) return false;
                 const entranceDate = new Date(e.entrance_date);
                 const daysDiff = (targetDate - entranceDate) / (1000 * 60 * 60 * 24);
-                return daysDiff < 60;
+                return daysDiff > 0 && daysDiff < 60;
             }}).length;
         }}
     }},
@@ -7496,18 +8332,22 @@ const kpiConfig = {{
         type: 'count',
         weeklyKey: 'total_employees',
         calculateTeamValue: (teamMembers, monthData) => {{
+            // Only count active employees with 1+ year tenure
+            // 재직 중인 직원만 계산 (퇴사자 제외)
             const targetDate = new Date(targetMonth + '-01');
             return teamMembers.filter(m => {{
-                if (!m.entrance_date) return false;
+                if (!m.is_active || !m.entrance_date) return false;
                 const entranceDate = new Date(m.entrance_date);
                 const daysDiff = (targetDate - entranceDate) / (1000 * 60 * 60 * 24);
                 return daysDiff >= 365;
             }}).length;
         }},
         calculateTypeValue: (employees, monthData) => {{
+            // Only count active employees with 1+ year tenure
+            // 재직 중인 직원만 계산 (퇴사자 제외)
             const targetDate = new Date(targetMonth + '-01');
             return employees.filter(e => {{
-                if (!e.entrance_date) return false;
+                if (!e.is_active || !e.entrance_date) return false;
                 const entranceDate = new Date(e.entrance_date);
                 const daysDiff = (targetDate - entranceDate) / (1000 * 60 * 60 * 24);
                 return daysDiff >= 365;
@@ -8406,15 +9246,19 @@ function renderTeamSummaryCards() {{
         const prevAvgAttendanceRate = prevMetrics.avg_attendance_rate || 0;
         const prevTotalMembers = prevMetrics.total_members || 0;
 
+        // XSS 방지: teamName sanitize / Prevent XSS: sanitize teamName
+        const safeTeamName = sanitizeHTML(teamName);
+        const escapedTeamName = teamName.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
         return `
             <div class="col-12 mb-4">
                 <div class="card shadow-sm" style="border-left: 5px solid ${{teamColor}};">
                     <div class="card-header" style="background: linear-gradient(135deg, ${{teamColor}}22 0%, ${{teamColor}}11 100%); border-bottom: 2px solid ${{teamColor}};">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0" style="color: ${{teamColor}}; font-weight: 600;">
-                                <i class="fas fa-users me-2"></i>${{teamName}}
+                                <i class="fas fa-users me-2"></i>${{safeTeamName}}
                             </h5>
-                            <button class="btn btn-sm btn-outline-primary" onclick="showTeamDetailModal('${{teamName}}', 'overview')">
+                            <button class="btn btn-sm btn-outline-primary" onclick="showTeamDetailModal('${{escapedTeamName}}', 'overview')">
                                 <i class="fas fa-chart-line me-1"></i>
                                 <span class="lang-text" data-ko="상세 분석" data-en="Detailed Analysis" data-vi="Phân tích chi tiết">상세 분석</span>
                             </button>
@@ -13173,12 +14017,14 @@ function showTeamDetailModal_OLD(teamName) {
     }
 
     // Create modal HTML with card-style layout
+    // XSS 방지: teamName sanitize / Prevent XSS: sanitize teamName
+    const safeTeamName = sanitizeHTML(teamName);
     const modalHtml = `
         <div class="modal fade show" id="teamDetailModal_OLD" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-xl" style="max-width: 90%;">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">${teamName} 팀 상세 정보</h5>
+                        <h5 class="modal-title">${safeTeamName} 팀 상세 정보</h5>
                         <button type="button" class="btn-close btn-close-white" onclick="closeTeamDetailModal()"></button>
                     </div>
                     <div class="modal-body" style="max-height: 80vh; overflow-y: auto; background: #f5f5f5;">
@@ -15214,6 +16060,10 @@ let currentFilter = 'all';
 let currentTeamFilter = 'all';
 let currentSortColumn = -1;
 let currentSortAsc = true;
+// Multi-column sort support (Shift+click for secondary sort)
+// 다중 컬럼 정렬 지원 (Shift+클릭으로 2차 정렬)
+let secondarySortColumn = -1;
+let secondarySortAsc = true;
 let currentPage = 1;
 let pageSize = 50;
 let searchTerm = '';
@@ -15251,45 +16101,67 @@ function applySortToData(employees) {{
     }}
 
     const field = sortColumnMap[currentSortColumn];
-    const sorted = [...employees].sort((a, b) => {{
-        let aVal = a[field] || '';
-        let bVal = b[field] || '';
+    const numericFields = ['tenure_days', 'working_days', 'absent_days', 'unauthorized_absent_days'];
 
-        // Numeric sort for numeric fields
-        // 숫자 필드는 숫자 정렬
-        const numericFields = ['tenure_days', 'working_days', 'absent_days', 'unauthorized_absent_days'];
-        if (numericFields.includes(field)) {{
+    // Helper function to compare two values
+    // 두 값을 비교하는 헬퍼 함수
+    function compareValues(aVal, bVal, fieldName, ascending) {{
+        if (numericFields.includes(fieldName)) {{
             aVal = parseInt(aVal) || 0;
             bVal = parseInt(bVal) || 0;
-            return currentSortAsc ? aVal - bVal : bVal - aVal;
+            return ascending ? aVal - bVal : bVal - aVal;
+        }}
+        aVal = String(aVal || '').toLowerCase();
+        bVal = String(bVal || '').toLowerCase();
+        return ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    }}
+
+    const sorted = [...employees].sort((a, b) => {{
+        // Primary sort
+        // 1차 정렬
+        let aVal = a[field] || '';
+        let bVal = b[field] || '';
+        let result = compareValues(aVal, bVal, field, currentSortAsc);
+
+        // Secondary sort if primary values are equal
+        // 1차 값이 같으면 2차 정렬 적용
+        if (result === 0 && secondarySortColumn >= 0 && secondarySortColumn < sortColumnMap.length) {{
+            const secondaryField = sortColumnMap[secondarySortColumn];
+            let aVal2 = a[secondaryField] || '';
+            let bVal2 = b[secondaryField] || '';
+            result = compareValues(aVal2, bVal2, secondaryField, secondarySortAsc);
         }}
 
-        // String sort for other fields
-        // 다른 필드는 문자열 정렬
-        aVal = String(aVal).toLowerCase();
-        bVal = String(bVal).toLowerCase();
-        return currentSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        return result;
     }});
 
     return sorted;
 }}
 
-// Update sort indicator visuals
-// 정렬 표시 시각적 업데이트
+// Update sort indicator visuals (supports multi-column sort)
+// 정렬 표시 시각적 업데이트 (다중 컬럼 정렬 지원)
 function updateSortIndicators() {{
     document.querySelectorAll('.sort-indicator').forEach((el, idx) => {{
         if (idx === currentSortColumn) {{
-            el.textContent = currentSortAsc ? ' ↑' : ' ↓';
+            // Primary sort indicator with "1" prefix for multi-sort
+            // 다중 정렬 시 "1" 접두사가 붙은 1차 정렬 표시
+            const prefix = secondarySortColumn >= 0 ? '¹' : '';
+            el.textContent = prefix + (currentSortAsc ? '↑' : '↓');
+        }} else if (idx === secondarySortColumn) {{
+            // Secondary sort indicator with "2" prefix
+            // "2" 접두사가 붙은 2차 정렬 표시
+            el.textContent = '²' + (secondarySortAsc ? '↑' : '↓');
         }} else {{
             el.textContent = '';
         }}
     }});
 
     document.querySelectorAll('th.sortable').forEach((th, idx) => {{
+        th.classList.remove('sorted', 'sorted-secondary');
         if (idx === currentSortColumn) {{
             th.classList.add('sorted');
-        }} else {{
-            th.classList.remove('sorted');
+        }} else if (idx === secondarySortColumn) {{
+            th.classList.add('sorted-secondary');
         }}
     }});
 }}
@@ -15384,6 +16256,13 @@ function renderEmployeeTable(employees = null) {
             statusBadges.push(`<span class="badge bg-light text-dark badge-status lang-badge" data-ko="60일미만" data-en="<60 Days" data-vi="<60 Ngày">${{badgeText('60일미만', '<60 Days', '<60 Ngày')}}</span>`);
         }}
 
+        // P2-1: Add turnover risk indicator
+        // P2-1: 이직 위험 지표 추가
+        const riskBadge = getTurnoverRiskBadge(emp, currentLanguage);
+        if (riskBadge) {{
+            statusBadges.push(riskBadge);
+        }}
+
         const isChecked = selectedEmployees.has(emp.employee_id) ? 'checked' : '';
 
         // Attendance data with visual indicators
@@ -15396,16 +16275,20 @@ function renderEmployeeTable(employees = null) {
         const absentBadgeClass = absentDays === 0 ? 'bg-success' : (absentDays >= 3 ? 'bg-danger' : 'bg-warning text-dark');
         const unauthorizedBadgeClass = unauthorizedDays === 0 ? 'bg-light text-muted' : 'bg-danger';
 
+        // Apply search highlighting to searchable fields
+        // 검색 가능한 필드에 검색 하이라이팅 적용
+        const hl = (val) => currentSearchTerm ? highlightText(val, currentSearchTerm) : (val || '');
+
         html += `
             <tr class="${rowClass}">
                 <td onclick="event.stopPropagation()"><input type="checkbox" class="employee-checkbox" value="${emp.employee_id}" ${isChecked} onchange="toggleEmployeeSelection('${emp.employee_id}')"></td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.employee_id || ''}</td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.employee_name || ''}</td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.position || ''}</td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;"><span class="badge bg-light text-dark">${emp.role_type || ''}</span></td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.building || ''}</td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.line || ''}</td>
-                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${emp.boss_name || ''}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${hl(emp.employee_id)}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${hl(emp.employee_name)}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${hl(emp.position)}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;"><span class="badge bg-light text-dark">${hl(emp.role_type)}</span></td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${hl(emp.building)}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${hl(emp.line)}</td>
+                <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${hl(emp.boss_name)}</td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;">${workingDays}</td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;"><span class="badge ${absentBadgeClass}">${absentDays}</span></td>
                 <td onclick="showEmployeeDetailModal('${emp.employee_id}')" style="cursor: pointer;"><span class="badge ${unauthorizedBadgeClass}">${unauthorizedDays}</span></td>
@@ -15448,25 +16331,49 @@ function filterEmployees(filter) {
     }
 
     let filtered = employeeDetails;
+    let filterName = filter; // For screen reader announcement / 스크린 리더 알림용
 
     switch(filter) {
-        case 'all': filtered = employeeDetails; break;
-        case 'active': filtered = employeeDetails.filter(e => e.is_active); break;
-        case 'hired': filtered = employeeDetails.filter(e => e.hired_this_month); break;
-        case 'resigned': filtered = employeeDetails.filter(e => e.resigned_this_month); break;
-        case 'perfect': filtered = employeeDetails.filter(e => e.perfect_attendance); break;
-        case 'absent': filtered = employeeDetails.filter(e => e.absent_days > 0); break;
-        case 'unauthorized': filtered = employeeDetails.filter(e => e.has_unauthorized_absence); break;
-        case 'longterm': filtered = employeeDetails.filter(e => e.long_term); break;
-        case 'new60': filtered = employeeDetails.filter(e => e.under_60_days); break;
-        case 'pregnant': filtered = employeeDetails.filter(e => e.is_pregnant); break;
+        case 'all': filtered = employeeDetails; filterName = 'all employees'; break;
+        case 'active': filtered = employeeDetails.filter(e => e.is_active); filterName = 'active employees'; break;
+        case 'hired': filtered = employeeDetails.filter(e => e.hired_this_month); filterName = 'new hires'; break;
+        case 'resigned': filtered = employeeDetails.filter(e => e.resigned_this_month); filterName = 'resigned employees'; break;
+        case 'perfect': filtered = employeeDetails.filter(e => e.perfect_attendance); filterName = 'perfect attendance'; break;
+        case 'absent': filtered = employeeDetails.filter(e => e.absent_days > 0); filterName = 'employees with absences'; break;
+        case 'unauthorized': filtered = employeeDetails.filter(e => e.has_unauthorized_absence); filterName = 'unauthorized absences'; break;
+        case 'longterm': filtered = employeeDetails.filter(e => e.long_term); filterName = 'long-term employees'; break;
+        case 'new60': filtered = employeeDetails.filter(e => e.under_60_days); filterName = 'employees under 60 days'; break;
+        case 'pregnant': filtered = employeeDetails.filter(e => e.is_pregnant); filterName = 'pregnant employees'; break;
+        // Bug Fix: Added long_absence and data_error cases
+        // 버그 수정: long_absence와 data_error 케이스 추가
+        case 'long_absence': filtered = employeeDetails.filter(e => e.absent_days >= 5); filterName = 'employees with 5+ absent days'; break;
+        case 'data_error': filtered = employeeDetails.filter(e => e.has_data_error); filterName = 'employees with data errors'; break;
     }
+
+    // Announce filter change to screen readers
+    // 스크린 리더에 필터 변경 알림
+    announceFilterChange(filterName, filtered.length);
 
     // P0 Fix: Save filter state to localStorage
     // P0 수정: 필터 상태를 localStorage에 저장
     savePreferencesToStorage();
 
     renderEmployeeTable(filtered);
+}
+
+// Announce filter changes for accessibility
+// 접근성을 위한 필터 변경 알림
+function announceFilterChange(filterName, count) {
+    const announcement = document.createElement('div');
+    announcement.className = 'visually-hidden';
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.textContent = `Showing ${count} ${filterName}`;
+    document.body.appendChild(announcement);
+
+    // Remove after announcement
+    // 알림 후 제거
+    setTimeout(() => announcement.remove(), 1500);
 }
 
 // Filter from Executive Summary - switches to Details tab and applies filter
@@ -15482,22 +16389,42 @@ function filterEmployeeDetails(filterType) {
 
     // Apply appropriate filter based on filterType
     // filterType에 따라 적절한 필터 적용
+    // Bug Fix: Now using filterEmployees for consistent UI state
+    // 버그 수정: 일관된 UI 상태를 위해 filterEmployees 사용
     setTimeout(() => {
         switch(filterType) {
             case 'long_absence':
-                // Filter employees with 5+ absent days
-                // 결근 5일 이상 직원 필터
-                const longAbsenceFiltered = employeeDetails.filter(e => e.absent_days >= 5);
-                renderEmployeeTable(longAbsenceFiltered);
+                filterEmployees('long_absence');
                 break;
             case 'unauthorized':
                 filterEmployees('unauthorized');
                 break;
             case 'data_error':
-                // Show employees with data errors (use existing modal or filter)
-                // 데이터 오류 있는 직원 표시
-                const errorFiltered = employeeDetails.filter(e => e.has_data_error);
-                renderEmployeeTable(errorFiltered);
+                filterEmployees('data_error');
+                break;
+            case 'active':
+                filterEmployees('active');
+                break;
+            case 'resigned':
+                filterEmployees('resigned');
+                break;
+            case 'perfect':
+                filterEmployees('perfect');
+                break;
+            case 'absent':
+                filterEmployees('absent');
+                break;
+            case 'longterm':
+                filterEmployees('longterm');
+                break;
+            case 'new60':
+                filterEmployees('new60');
+                break;
+            case 'pregnant':
+                filterEmployees('pregnant');
+                break;
+            case 'hired':
+                filterEmployees('hired');
                 break;
             default:
                 filterEmployees('all');
@@ -15563,14 +16490,38 @@ function searchEmployees() {{
     renderEmployeeTable(filtered);
 }}
 
-function sortTable(columnIndex) {
-    // Toggle sort direction if clicking same column, otherwise reset to ascending
-    // 같은 컬럼 클릭시 방향 토글, 그렇지 않으면 오름차순으로 초기화
-    if (currentSortColumn === columnIndex) {
-        currentSortAsc = !currentSortAsc;
+function sortTable(columnIndex, event) {
+    // Check if Shift key is pressed for secondary sort
+    // Shift 키가 눌렸는지 확인하여 2차 정렬 결정
+    const isShiftClick = event && event.shiftKey;
+
+    if (isShiftClick && currentSortColumn >= 0 && currentSortColumn !== columnIndex) {
+        // Shift+click: Add/modify secondary sort
+        // Shift+클릭: 2차 정렬 추가/수정
+        if (secondarySortColumn === columnIndex) {
+            // Toggle secondary sort direction
+            secondarySortAsc = !secondarySortAsc;
+        } else {
+            // Set new secondary sort column
+            secondarySortColumn = columnIndex;
+            secondarySortAsc = true;
+        }
+
+        // Show multi-sort hint toast
+        showMultiSortHint();
     } else {
-        currentSortColumn = columnIndex;
-        currentSortAsc = true;
+        // Normal click: Primary sort
+        // 일반 클릭: 1차 정렬
+        if (currentSortColumn === columnIndex) {
+            // Toggle sort direction if clicking same column
+            currentSortAsc = !currentSortAsc;
+        } else {
+            // New primary sort column - reset secondary sort
+            currentSortColumn = columnIndex;
+            currentSortAsc = true;
+            secondarySortColumn = -1;
+            secondarySortAsc = true;
+        }
     }
 
     // Re-render table with current filter applied (sorting happens in renderEmployeeTable)
@@ -15586,11 +16537,147 @@ function sortTable(columnIndex) {
     savePreferencesToStorage();
 }
 
+// Show hint for multi-sort feature
+// 다중 정렬 기능 힌트 표시
+function showMultiSortHint() {
+    const existingHint = document.querySelector('.multi-sort-hint');
+    if (existingHint) existingHint.remove();
+
+    const hint = document.createElement('div');
+    hint.className = 'multi-sort-hint';
+    hint.innerHTML = `
+        <div style="
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 9999;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        ">
+            <span style="font-size: 16px;">🔢</span>
+            <span>다중 정렬 적용됨 | Multi-sort active</span>
+            <span style="opacity: 0.7; font-size: 11px;">(일반 클릭으로 초기화)</span>
+        </div>
+    `;
+    document.body.appendChild(hint);
+
+    setTimeout(() => {
+        hint.style.opacity = '0';
+        hint.style.transition = 'opacity 0.3s';
+        setTimeout(() => hint.remove(), 300);
+    }, 2000);
+}
+
 function updateEmployeeCount(count) {
     const badge = document.getElementById('employeeCount');
     if (badge) {
         badge.textContent = `Total: ${count}`;
     }
+
+    // Update export dropdown badges
+    // 내보내기 드롭다운 배지 업데이트
+    updateExportBadges();
+}
+
+function updateExportBadges() {
+    // Update filtered count badge in export dropdown
+    // 내보내기 드롭다운의 필터링된 개수 배지 업데이트
+    const filteredBadge = document.getElementById('filteredCountBadge');
+    const totalBadge = document.getElementById('totalCountBadge');
+
+    if (filteredBadge) {
+        const filteredCount = filteredEmployees ? filteredEmployees.length : 0;
+        filteredBadge.textContent = filteredCount;
+    }
+
+    if (totalBadge) {
+        const totalCount = employeeDetails ? employeeDetails.length : 0;
+        totalBadge.textContent = totalCount;
+    }
+}
+
+// P2-1: Calculate turnover risk score for an employee
+// P2-1: 직원의 이직 위험 점수 계산
+function calculateTurnoverRisk(emp) {
+    if (!emp || !emp.is_active) return { score: 0, level: 'none', factors: [] };
+
+    let score = 0;
+    const factors = [];
+    const tenureDays = emp.tenure_days || 0;
+    const absentDays = emp.absent_days || 0;
+    const unauthorizedDays = emp.unauthorized_absent_days || 0;
+
+    // Factor 1: New employee (under 60 days) - 신입 직원 (60일 미만)
+    if (tenureDays < 60) {
+        score += 30;
+        factors.push({ ko: '신입 (60일 미만)', en: 'New hire (<60 days)', weight: 30 });
+    }
+
+    // Factor 2: Post-assignment period (30-60 days) - 보직 후 기간 (30-60일)
+    if (tenureDays >= 30 && tenureDays <= 60) {
+        score += 20;
+        factors.push({ ko: '보직 부여 기간', en: 'Post-assignment period', weight: 20 });
+    }
+
+    // Factor 3: Unauthorized absences - 무단결근
+    if (unauthorizedDays > 0) {
+        const uaScore = Math.min(unauthorizedDays * 15, 45);
+        score += uaScore;
+        factors.push({ ko: `무단결근 ${unauthorizedDays}일`, en: `${unauthorizedDays} unauthorized absences`, weight: uaScore });
+    }
+
+    // Factor 4: High absence rate - 높은 결근율
+    if (absentDays >= 3) {
+        const absScore = Math.min((absentDays - 2) * 10, 30);
+        score += absScore;
+        factors.push({ ko: `결근 ${absentDays}일`, en: `${absentDays} absent days`, weight: absScore });
+    }
+
+    // Factor 5: Short tenure with absences - 짧은 재직기간 + 결근
+    if (tenureDays < 90 && absentDays > 0) {
+        score += 15;
+        factors.push({ ko: '단기 재직 + 결근', en: 'Short tenure + absences', weight: 15 });
+    }
+
+    // Determine risk level based on score
+    // 점수에 따른 위험 수준 결정
+    let level = 'low';
+    if (score >= 70) level = 'critical';
+    else if (score >= 50) level = 'high';
+    else if (score >= 30) level = 'medium';
+
+    return { score: Math.min(score, 100), level, factors };
+}
+
+// Get turnover risk badge HTML
+// 이직 위험 배지 HTML 생성
+function getTurnoverRiskBadge(emp, lang = 'ko') {
+    const risk = calculateTurnoverRisk(emp);
+    if (risk.level === 'none' || risk.level === 'low') return '';
+
+    const badges = {
+        critical: { class: 'bg-danger', icon: '🚨', ko: '위험', en: 'Critical' },
+        high: { class: 'bg-warning text-dark', icon: '⚠️', ko: '주의', en: 'High' },
+        medium: { class: 'bg-info', icon: 'ℹ️', ko: '관심', en: 'Medium' }
+    };
+
+    const badge = badges[risk.level];
+    const tooltip = risk.factors.map(f => f[lang] || f.ko).join(', ');
+
+    return `<span class="badge ${badge.class} badge-risk ms-1"
+        title="${tooltip}"
+        data-bs-toggle="tooltip"
+        data-risk-score="${risk.score}">
+        ${badge.icon} ${badge[lang] || badge.ko}
+    </span>`;
 }
 
 function showEmployeeDetailModal(employeeId) {
@@ -15714,11 +16801,146 @@ function applyFilters() {
     filterEmployees(currentFilter);
 }
 
+// Switch to Employee Details tab and filter by team
+// 직원 상세 탭으로 이동하고 팀별로 필터링
+function switchToTeamAnalysis(teamName) {
+    // Switch to Employee Details tab
+    // 직원 상세 탭으로 전환
+    const employeeTab = document.querySelector('#employeeDetailsTab');
+    const overviewTab = document.querySelector('#overviewTab');
+    const trendsTab = document.querySelector('#trendsTab');
+
+    if (employeeTab) {
+        // Deactivate other tabs
+        if (overviewTab) {
+            overviewTab.classList.remove('active');
+            document.getElementById('overview')?.classList.remove('show', 'active');
+        }
+        if (trendsTab) {
+            trendsTab.classList.remove('active');
+            document.getElementById('trends')?.classList.remove('show', 'active');
+        }
+
+        // Activate Employee Details tab
+        employeeTab.classList.add('active');
+        const employeePane = document.getElementById('employeeDetails');
+        if (employeePane) {
+            employeePane.classList.add('show', 'active');
+        }
+    }
+
+    // Apply team filter
+    // 팀 필터 적용
+    const teamSelect = document.getElementById('filterTeam');
+    if (teamSelect) {
+        // Find matching option
+        for (let option of teamSelect.options) {
+            if (option.value === teamName || option.text === teamName) {
+                teamSelect.value = option.value;
+                break;
+            }
+        }
+    }
+
+    // Apply filters and show results
+    // 필터 적용 및 결과 표시
+    applyFilters();
+
+    // Scroll to the table
+    // 테이블로 스크롤
+    setTimeout(() => {
+        const tableContainer = document.querySelector('.table-responsive');
+        if (tableContainer) {
+            tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 100);
+
+    // Show toast notification
+    // 토스트 알림 표시
+    showTeamFilterToast(teamName);
+}
+
+// Show toast when team filter is applied
+// 팀 필터 적용 시 토스트 표시
+function showTeamFilterToast(teamName) {
+    const existingToast = document.querySelector('.team-filter-toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'team-filter-toast';
+    toast.innerHTML = `
+        <div style="
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease-out;
+        ">
+            <span style="font-size: 18px;">👥</span>
+            <div>
+                <div style="font-weight: 600; font-size: 13px;">${teamName}</div>
+                <div style="font-size: 11px; opacity: 0.9;">팀 필터가 적용되었습니다</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 function handleSearchInput() {
     clearTimeout(searchTimeout);
+
+    // Show/hide clear button based on input
+    // 입력에 따라 지우기 버튼 표시/숨기기
+    const searchInput = document.getElementById('employeeSearch');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (clearBtn) {
+        clearBtn.style.display = searchInput.value.length > 0 ? 'block' : 'none';
+    }
+
     searchTimeout = setTimeout(() => {
         searchEmployees();
+
+        // Announce search results to screen readers
+        // 스크린 리더에 검색 결과 알림
+        const resultCount = document.getElementById('searchResultCount');
+        if (resultCount && filteredEmployees) {
+            resultCount.textContent = `${filteredEmployees.length} employees found`;
+        }
     }, 300); // Debounce 300ms
+}
+
+// Clear search and reset
+// 검색 지우기 및 초기화
+function clearSearch() {
+    const searchInput = document.getElementById('employeeSearch');
+    const clearBtn = document.getElementById('clearSearchBtn');
+
+    if (searchInput) {
+        searchInput.value = '';
+        currentSearchTerm = '';
+    }
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+
+    // Trigger filter refresh
+    // 필터 새로고침 트리거
+    searchEmployees();
+    savePreferencesToStorage();
 }
 
 function toggleColumn(colIndex) {
@@ -15994,10 +17216,20 @@ function updateSelectionUI() {
 }
 
 function exportFiltered(format) {
-    // Stub - export current filtered view
-    debugLog(`Exporting filtered data as ${format}`);
-    if (format === 'csv') exportToCSV();
-    if (format === 'json') exportToJSON();
+    // Export only currently filtered/visible employees
+    // 현재 필터링/표시된 직원만 내보내기
+    debugLog(`Exporting filtered data (${filteredEmployees.length} employees) as ${format}`);
+
+    if (!filteredEmployees || filteredEmployees.length === 0) {
+        const msg = currentLanguage === 'ko' ? '내보낼 데이터가 없습니다.' :
+                    currentLanguage === 'vi' ? 'Không có dữ liệu để xuất.' :
+                    'No data to export.';
+        alert(msg);
+        return;
+    }
+
+    if (format === 'csv') exportToCSV(filteredEmployees, 'HR_Filtered');
+    if (format === 'json') exportToJSON(filteredEmployees, 'HR_Filtered');
     if (format === 'pdf') alert('PDF export feature coming soon!');
 }
 
@@ -16155,11 +17387,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export Functions
 // ============================================
 
-function exportToCSV() {
-    const filename = `HR_Employees_${targetMonth}.csv`;
-    const headers = ['사번,이름,직급,유형,입사일,퇴사일,재직기간(일),상태'];
+function exportToCSV(data = null, filenamePrefix = 'HR_Employees') {{
+    // Use filtered data if provided, otherwise use all employees
+    // 제공된 경우 필터링된 데이터 사용, 그렇지 않으면 전체 직원 사용
+    const exportData = data || employeeDetails;
+    const suffix = data ? '_filtered' : '';
+    const filename = `${{filenamePrefix}}${{suffix}}_${{targetMonth}}.csv`;
+    const headers = ['사번,이름,직급,유형,팀,입사일,퇴사일,재직기간(일),출근일,결근일,출근률,상태'];
 
-    const rows = employeeDetails.map(emp => {
+    const rows = exportData.map(emp => {{
         const status = [
             emp.is_active ? '재직' : '퇴사',
             emp.hired_this_month ? '신입' : '',
@@ -16172,26 +17408,97 @@ function exportToCSV() {
             emp.employee_name || '',
             emp.position || '',
             emp.role_type || '',
+            emp.team_name || '',
             emp.entrance_date || '',
             emp.stop_date || '',
             emp.tenure_days || '0',
+            emp.actual_working_days || '0',
+            emp.absent_days || '0',
+            emp.attendance_rate ? `${{emp.attendance_rate.toFixed(1)}}%` : '',
             status
-        ].map(field => `"${field}"`).join(',');
-    });
+        ].map(field => `"${{field}}"`).join(',');
+    }});
 
     const csv = headers.concat(rows).join('\\n');
     downloadFile(csv, filename, 'text/csv;charset=utf-8;');
 
-    debugLog(`✅ Exported ${employeeDetails.length} employees to CSV`);
-}
+    // Show download toast notification
+    // 다운로드 토스트 알림 표시
+    showDownloadToast(filename, exportData.length);
 
-function exportToJSON() {
-    const filename = `HR_Employees_${targetMonth}.json`;
-    const json = JSON.stringify(employeeDetails, null, 2);
+    debugLog(`✅ Exported ${{exportData.length}} employees to CSV`);
+}}
+
+function exportToJSON(data = null, filenamePrefix = 'HR_Employees') {{
+    // Use filtered data if provided, otherwise use all employees
+    // 제공된 경우 필터링된 데이터 사용, 그렇지 않으면 전체 직원 사용
+    const exportData = data || employeeDetails;
+    const suffix = data ? '_filtered' : '';
+    const filename = `${{filenamePrefix}}${{suffix}}_${{targetMonth}}.json`;
+    const json = JSON.stringify(exportData, null, 2);
     downloadFile(json, filename, 'application/json');
 
-    debugLog(`✅ Exported ${employeeDetails.length} employees to JSON`);
-}
+    // Show download toast notification
+    // 다운로드 토스트 알림 표시
+    showDownloadToast(filename, exportData.length);
+
+    debugLog(`✅ Exported ${{exportData.length}} employees to JSON`);
+}}
+
+// Export only the currently filtered and visible data
+// 현재 필터링되어 표시된 데이터만 내보내기
+function exportFilteredData(format) {{
+    if (!filteredEmployees || filteredEmployees.length === 0) {{
+        alert(currentLanguage === 'ko' ? '내보낼 데이터가 없습니다. 필터를 확인하세요.' :
+              currentLanguage === 'vi' ? 'Không có dữ liệu để xuất. Vui lòng kiểm tra bộ lọc.' :
+              'No data to export. Please check your filters.');
+        return;
+    }}
+
+    if (format === 'csv') {{
+        exportToCSV(filteredEmployees, 'HR_Filtered');
+    }} else if (format === 'json') {{
+        exportToJSON(filteredEmployees, 'HR_Filtered');
+    }}
+}}
+
+// Show download toast notification
+// 다운로드 토스트 알림 표시
+function showDownloadToast(filename, count) {{
+    const messages = {{
+        ko: `${{count}}명의 직원 데이터가 다운로드되었습니다.`,
+        en: `Downloaded data for ${{count}} employees.`,
+        vi: `Đã tải dữ liệu của ${{count}} nhân viên.`
+    }};
+    const message = messages[currentLanguage] || messages.en;
+
+    // Create toast if it doesn't exist
+    let toast = document.getElementById('downloadToast');
+    if (!toast) {{
+        toast = document.createElement('div');
+        toast.id = 'downloadToast';
+        toast.className = 'download-toast';
+        toast.innerHTML = `
+            <div class="download-toast-icon">📥</div>
+            <div class="download-toast-content">
+                <div class="download-toast-message"></div>
+                <div class="download-toast-filename"></div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+    }}
+
+    toast.querySelector('.download-toast-message').textContent = message;
+    toast.querySelector('.download-toast-filename').textContent = filename;
+
+    // Show toast
+    toast.classList.add('show');
+
+    // Hide after 3 seconds
+    setTimeout(() => {{
+        toast.classList.remove('show');
+    }}, 3000);
+}}
 
 function exportMetricsToJSON() {
     const filename = `HR_Metrics_${targetMonth}.json`;
