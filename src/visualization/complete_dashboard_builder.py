@@ -94,6 +94,7 @@ class CompleteDashboardBuilder:
         self.monthly_team_counts: Dict[str, Dict[str, int]] = {}  # NEW: Team counts for each month
         self.hierarchy_data: List[Dict[str, Any]] = []  # NEW: Organization hierarchy data
         self.quality_score: Optional[DataQualityScore] = None  # Data quality score / 데이터 품질 점수
+        self.attendance_data: List[Dict[str, Any]] = []  # NEW: Individual attendance records / 개인 출결 기록
 
     def build(self) -> str:
         """Build complete dashboard HTML"""
@@ -136,6 +137,11 @@ class CompleteDashboardBuilder:
         # Step 4.6: Build organization hierarchy
         self.hierarchy_data = self._build_hierarchy_data()
         print(f"🌳 Organization hierarchy built: {len(self.hierarchy_data)} root nodes")
+
+        # Step 4.7: Collect individual attendance data
+        # 개인 출결 데이터 수집
+        self._collect_attendance_data()
+        print(f"📅 Attendance data collected: {len(self.attendance_data)} records")
 
         # Step 5: Generate HTML
         html = self._generate_html()
@@ -1357,6 +1363,112 @@ class CompleteDashboardBuilder:
         converted = self._convert_to_json_serializable(obj)
         return json.dumps(converted, default=default_handler, **kwargs)
 
+    def _collect_attendance_data(self) -> None:
+        """
+        Collect individual attendance data for all employees
+        모든 직원의 개인 출결 데이터 수집
+        """
+        # Get month name for file lookup
+        # 파일 조회용 월 이름 추출
+        month_map = {
+            '01': 'january', '02': 'february', '03': 'march', '04': 'april',
+            '05': 'may', '06': 'june', '07': 'july', '08': 'august',
+            '09': 'september', '10': 'october', '11': 'november', '12': 'december'
+        }
+        month_num = self.target_month.split('-')[1]
+        month_name = month_map.get(month_num, 'december')
+
+        # Load attendance file
+        # 출결 파일 로드
+        attendance_file = f"input_files/attendance/converted/attendance data {month_name}_converted.csv"
+        try:
+            df = pd.read_csv(attendance_file)
+        except FileNotFoundError:
+            print(f"⚠️  Attendance file not found: {attendance_file}")
+            return
+
+        # Process each row into attendance record
+        # 각 행을 출결 기록으로 처리
+        records = []
+        for _, row in df.iterrows():
+            try:
+                # Parse date to get day of week
+                # 요일 추출을 위한 날짜 파싱
+                work_date = str(row.get('Work Date', ''))
+                day_of_week = ''
+                if work_date:
+                    try:
+                        date_obj = pd.to_datetime(work_date.replace('.', '-'))
+                        day_names_ko = ['월', '화', '수', '목', '금', '토', '일']
+                        day_names_en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                        day_of_week = day_names_ko[date_obj.dayofweek]
+                        day_of_week_en = day_names_en[date_obj.dayofweek]
+                    except Exception:
+                        day_of_week = ''
+                        day_of_week_en = ''
+
+                # Determine attendance status
+                # 출결 상태 결정
+                status = str(row.get('compAdd', '')).strip()
+                reason = str(row.get('Reason Description', '')).strip()
+                if pd.isna(row.get('Reason Description')):
+                    reason = ''
+
+                # Map status to standardized values
+                # 상태를 표준화된 값으로 매핑
+                if 'Đi làm' in status:
+                    status_ko = '출근'
+                    status_en = 'Present'
+                    status_type = 'present'
+                elif 'Vắng mặt' in status:
+                    status_ko = '결근'
+                    status_en = 'Absent'
+                    status_type = 'absent'
+                else:
+                    status_ko = status
+                    status_en = status
+                    status_type = 'other'
+
+                # Map common Vietnamese reasons to Korean/English
+                # 일반적인 베트남어 사유를 한국어/영어로 매핑
+                reason_map = {
+                    'Phép năm': ('연차', 'Annual Leave'),
+                    'Không quẹt thẻ': ('미체크', 'No Card Swipe'),
+                    'Nghỉ không phép': ('무단결근', 'Unauthorized Absence'),
+                    'Nghỉ ốm': ('병가', 'Sick Leave'),
+                    'Thai sản': ('출산휴가', 'Maternity Leave'),
+                    'Nghỉ việc riêng': ('개인사유', 'Personal Leave'),
+                    'Đi công tác': ('출장', 'Business Trip'),
+                    'Nghỉ lễ': ('공휴일', 'Holiday'),
+                    'Nghỉ bù': ('대체휴무', 'Compensatory Leave'),
+                    'Đào tạo': ('교육', 'Training'),
+                }
+                reason_ko = reason
+                reason_en = reason
+                if reason in reason_map:
+                    reason_ko, reason_en = reason_map[reason]
+
+                record = {
+                    'employee_no': str(row.get('ID No', '')),
+                    'employee_name': str(row.get('Last name', '')),
+                    'work_date': work_date,
+                    'day_of_week': day_of_week,
+                    'day_of_week_en': day_of_week_en if 'day_of_week_en' in dir() else '',
+                    'status': status_type,
+                    'status_ko': status_ko,
+                    'status_en': status_en,
+                    'reason': reason,
+                    'reason_ko': reason_ko,
+                    'reason_en': reason_en,
+                    'department': str(row.get('Department', '')),
+                    'work_time': str(row.get('WTime', ''))
+                }
+                records.append(record)
+            except Exception as e:
+                continue
+
+        self.attendance_data = records
+
     def _generate_html(self) -> str:
         """Generate complete HTML with all components"""
         target_metrics = self.monthly_metrics.get(self.target_month, {})
@@ -1452,6 +1564,13 @@ class CompleteDashboardBuilder:
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link lang-tab" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance"
+                        type="button" role="tab" aria-controls="attendance" aria-selected="false"
+                        data-ko="📅 개인 출결 조회" data-en="📅 Individual Attendance" data-vi="📅 Điểm danh cá nhân">
+                    📅 개인 출결 조회
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link lang-tab" id="help-tab" data-bs-toggle="tab" data-bs-target="#help"
                         type="button" role="tab" aria-controls="help" aria-selected="false"
                         data-ko="❓ 도움말" data-en="❓ Help" data-vi="❓ Trợ giúp">
@@ -1482,6 +1601,11 @@ class CompleteDashboardBuilder:
             <!-- Team Analysis Tab -->
             <div class="tab-pane fade" id="teamanalysis" role="tabpanel" aria-labelledby="teamanalysis-tab">
                 {self._generate_teamanalysis_tab()}
+            </div>
+
+            <!-- Individual Attendance Tab / 개인 출결 조회 탭 -->
+            <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+                {self._generate_individual_attendance_tab()}
             </div>
 
             <!-- Help Tab -->
@@ -1528,6 +1652,9 @@ class CompleteDashboardBuilder:
 ;
         const hierarchyData =
 {self._safe_json_dumps(self.hierarchy_data, ensure_ascii=False, indent=2)}
+;
+        const attendanceData =
+{self._safe_json_dumps(self.attendance_data, ensure_ascii=False, indent=2)}
 ;
 
         {self._generate_javascript()}
@@ -5719,6 +5846,236 @@ class CompleteDashboardBuilder:
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
+"""
+
+    def _generate_individual_attendance_tab(self) -> str:
+        """
+        Generate individual attendance lookup tab
+        개인 출결 조회 탭 생성
+        """
+        return """
+<div class="individual-attendance-section">
+    <!-- Search Section / 검색 섹션 -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <span class="lang-text" data-ko="🔍 직원 출결 조회" data-en="🔍 Employee Attendance Lookup" data-vi="🔍 Tra cứu điểm danh">
+                    🔍 직원 출결 조회
+                </span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-md-6">
+                    <label for="attendanceEmployeeSearch" class="form-label">
+                        <span class="lang-text" data-ko="사원번호 입력" data-en="Enter Employee Number" data-vi="Nhập mã nhân viên">
+                            사원번호 입력
+                        </span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-badge"></i>🪪</span>
+                        <input type="text" class="form-control form-control-lg" id="attendanceEmployeeSearch"
+                               placeholder="예: 620060128"
+                               aria-label="Employee Number"
+                               onkeypress="if(event.key === 'Enter') searchEmployeeAttendance()">
+                        <button class="btn btn-primary btn-lg" type="button" onclick="searchEmployeeAttendance()">
+                            <span class="lang-text" data-ko="조회" data-en="Search" data-vi="Tìm kiếm">조회</span>
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        <span class="lang-text"
+                              data-ko="사원번호를 입력하고 조회 버튼을 클릭하거나 Enter를 누르세요"
+                              data-en="Enter employee number and click Search or press Enter"
+                              data-vi="Nhập mã nhân viên và nhấn Tìm kiếm hoặc Enter">
+                            사원번호를 입력하고 조회 버튼을 클릭하거나 Enter를 누르세요
+                        </span>
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <div id="attendanceQuickStats" class="d-none">
+                        <!-- Quick stats will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section / 결과 섹션 -->
+    <div id="attendanceResults" class="d-none">
+        <!-- Employee Info Card / 직원 정보 카드 -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0" id="attendanceEmployeeName">
+                    <span class="lang-text" data-ko="직원 정보" data-en="Employee Information" data-vi="Thông tin nhân viên">
+                        직원 정보
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 bg-light rounded">
+                            <div class="stat-value fs-2 fw-bold text-success" id="attendancePresentDays">0</div>
+                            <div class="stat-label text-muted">
+                                <span class="lang-text" data-ko="출근일" data-en="Present Days" data-vi="Ngày làm việc">출근일</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 bg-light rounded">
+                            <div class="stat-value fs-2 fw-bold text-danger" id="attendanceAbsentDays">0</div>
+                            <div class="stat-label text-muted">
+                                <span class="lang-text" data-ko="결근일" data-en="Absent Days" data-vi="Ngày nghỉ">결근일</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 bg-light rounded">
+                            <div class="stat-value fs-2 fw-bold text-primary" id="attendanceRate">0%</div>
+                            <div class="stat-label text-muted">
+                                <span class="lang-text" data-ko="출근율" data-en="Attendance Rate" data-vi="Tỷ lệ đi làm">출근율</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 bg-light rounded">
+                            <div class="stat-value fs-2 fw-bold text-warning" id="attendanceAbsenceRate">0%</div>
+                            <div class="stat-label text-muted">
+                                <span class="lang-text" data-ko="결근율" data-en="Absence Rate" data-vi="Tỷ lệ nghỉ">결근율</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Summary Card / 출결 요약 카드 -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <span class="lang-text" data-ko="📊 출결 분석 요약" data-en="📊 Attendance Analysis Summary" data-vi="📊 Tóm tắt phân tích điểm danh">
+                        📊 출결 분석 요약
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Day of Week Pattern / 요일별 패턴 -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">
+                            <span class="lang-text" data-ko="📅 요일별 결근 패턴" data-en="📅 Absence by Day of Week" data-vi="📅 Nghỉ theo ngày trong tuần">
+                                📅 요일별 결근 패턴
+                            </span>
+                        </h6>
+                        <div id="attendanceDayPattern" class="mb-3">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <!-- Reason Breakdown / 사유별 분석 -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">
+                            <span class="lang-text" data-ko="📋 결근 사유 분석" data-en="📋 Absence Reasons" data-vi="📋 Lý do nghỉ">
+                                📋 결근 사유 분석
+                            </span>
+                        </h6>
+                        <div id="attendanceReasonBreakdown" class="mb-3">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Key Insights / 핵심 인사이트 -->
+                <div class="mt-3 p-3 bg-light rounded" id="attendanceInsights">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Attendance Table / 일별 출결 테이블 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <span class="lang-text" data-ko="📅 일별 출결 현황" data-en="📅 Daily Attendance Records" data-vi="📅 Bảng điểm danh hàng ngày">
+                        📅 일별 출결 현황
+                    </span>
+                </h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-light me-2" onclick="exportAttendanceCSV()">
+                        <span class="lang-text" data-ko="CSV 다운로드" data-en="Download CSV" data-vi="Tải CSV">CSV 다운로드</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" id="attendanceDetailTable">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th class="text-center" style="width: 120px;">
+                                    <span class="lang-text" data-ko="날짜" data-en="Date" data-vi="Ngày">날짜</span>
+                                </th>
+                                <th class="text-center" style="width: 80px;">
+                                    <span class="lang-text" data-ko="요일" data-en="Day" data-vi="Thứ">요일</span>
+                                </th>
+                                <th class="text-center" style="width: 100px;">
+                                    <span class="lang-text" data-ko="출결 상태" data-en="Status" data-vi="Trạng thái">출결 상태</span>
+                                </th>
+                                <th>
+                                    <span class="lang-text" data-ko="결근 사유" data-en="Absence Reason" data-vi="Lý do nghỉ">결근 사유</span>
+                                </th>
+                                <th class="text-center" style="width: 100px;">
+                                    <span class="lang-text" data-ko="근무시간" data-en="Work Time" data-vi="Thời gian">근무시간</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceDetailBody">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Results Message / 결과 없음 메시지 -->
+    <div id="attendanceNoResults" class="d-none">
+        <div class="alert alert-warning text-center py-5">
+            <h4>
+                <span class="lang-text" data-ko="❌ 해당 사원번호의 출결 기록을 찾을 수 없습니다"
+                      data-en="❌ No attendance records found for this employee number"
+                      data-vi="❌ Không tìm thấy dữ liệu điểm danh cho mã nhân viên này">
+                    ❌ 해당 사원번호의 출결 기록을 찾을 수 없습니다
+                </span>
+            </h4>
+            <p class="text-muted">
+                <span class="lang-text" data-ko="사원번호를 확인하고 다시 시도해주세요"
+                      data-en="Please verify the employee number and try again"
+                      data-vi="Vui lòng kiểm tra lại mã nhân viên">
+                    사원번호를 확인하고 다시 시도해주세요
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Initial State Message / 초기 상태 메시지 -->
+    <div id="attendanceInitialState">
+        <div class="text-center py-5 text-muted">
+            <div class="display-1 mb-3">📅</div>
+            <h4>
+                <span class="lang-text" data-ko="사원번호를 입력하여 개인 출결 현황을 조회하세요"
+                      data-en="Enter an employee number to view individual attendance records"
+                      data-vi="Nhập mã nhân viên để xem dữ liệu điểm danh cá nhân">
+                    사원번호를 입력하여 개인 출결 현황을 조회하세요
+                </span>
+            </h4>
+            <p>
+                <span class="lang-text" data-ko="출결 현황, 결근 패턴, 사유별 분석을 확인할 수 있습니다"
+                      data-en="View attendance records, absence patterns, and reason analysis"
+                      data-vi="Xem điểm danh, mô hình nghỉ và phân tích lý do">
+                    출결 현황, 결근 패턴, 사유별 분석을 확인할 수 있습니다
+                </span>
+            </p>
         </div>
     </div>
 </div>
@@ -19204,6 +19561,364 @@ if (teamanalysisTab) {{
     teamanalysisTab.addEventListener('shown.bs.tab', function() {{
         initTeamAnalysis();
     }});
+}}
+
+// ============================================
+// Individual Attendance Tab Functions
+// 개인 출결 조회 탭 기능
+// ============================================
+
+let currentEmployeeAttendance = [];
+
+function searchEmployeeAttendance() {{
+    const searchInput = document.getElementById('attendanceEmployeeSearch');
+    const employeeNo = searchInput.value.trim();
+
+    if (!employeeNo) {{
+        showToast('알림', '사원번호를 입력해주세요', 'warning');
+        return;
+    }}
+
+    // Filter attendance data for this employee
+    // 해당 직원의 출결 데이터 필터링
+    const employeeRecords = attendanceData.filter(record =>
+        record.employee_no === employeeNo ||
+        record.employee_no.includes(employeeNo)
+    );
+
+    // Update UI based on results
+    // 결과에 따라 UI 업데이트
+    document.getElementById('attendanceInitialState').classList.add('d-none');
+    document.getElementById('attendanceNoResults').classList.add('d-none');
+    document.getElementById('attendanceResults').classList.add('d-none');
+
+    if (employeeRecords.length === 0) {{
+        document.getElementById('attendanceNoResults').classList.remove('d-none');
+        return;
+    }}
+
+    currentEmployeeAttendance = employeeRecords;
+    document.getElementById('attendanceResults').classList.remove('d-none');
+
+    // Display results
+    // 결과 표시
+    displayAttendanceResults(employeeRecords);
+}}
+
+function displayAttendanceResults(records) {{
+    // Get employee name from first record
+    // 첫 번째 레코드에서 직원 이름 가져오기
+    const employeeName = records[0].employee_name || records[0].employee_no;
+    const employeeNo = records[0].employee_no;
+
+    // Update header with employee info
+    // 직원 정보로 헤더 업데이트
+    const lang = localStorage.getItem('selectedLanguage') || 'ko';
+    const headerText = lang === 'ko' ? `👤 ${{employeeName}} (${{employeeNo}})` :
+                       lang === 'en' ? `👤 ${{employeeName}} (${{employeeNo}})` :
+                       `👤 ${{employeeName}} (${{employeeNo}})`;
+    document.getElementById('attendanceEmployeeName').innerHTML = headerText;
+
+    // Calculate summary statistics
+    // 요약 통계 계산
+    const totalDays = records.length;
+    const presentDays = records.filter(r => r.status === 'present').length;
+    const absentDays = records.filter(r => r.status === 'absent').length;
+    const attendanceRate = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
+    const absenceRate = totalDays > 0 ? ((absentDays / totalDays) * 100).toFixed(1) : 0;
+
+    // Update stat boxes
+    // 통계 박스 업데이트
+    document.getElementById('attendancePresentDays').textContent = presentDays;
+    document.getElementById('attendanceAbsentDays').textContent = absentDays;
+    document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+    document.getElementById('attendanceAbsenceRate').textContent = absenceRate + '%';
+
+    // Analyze day of week pattern
+    // 요일별 패턴 분석
+    displayDayPattern(records);
+
+    // Analyze absence reasons
+    // 결근 사유 분석
+    displayReasonBreakdown(records);
+
+    // Generate insights
+    // 인사이트 생성
+    displayAttendanceInsights(records, presentDays, absentDays, attendanceRate);
+
+    // Display daily records table
+    // 일별 기록 테이블 표시
+    displayDailyRecords(records);
+}}
+
+function displayDayPattern(records) {{
+    const lang = localStorage.getItem('selectedLanguage') || 'ko';
+    const dayNames = {{
+        ko: ['월', '화', '수', '목', '금', '토', '일'],
+        en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        vi: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+    }};
+
+    // Count absences by day of week
+    // 요일별 결근 횟수 계산
+    const dayCount = {{'월': 0, '화': 0, '수': 0, '목': 0, '금': 0, '토': 0, '일': 0}};
+    const dayTotal = {{'월': 0, '화': 0, '수': 0, '목': 0, '금': 0, '토': 0, '일': 0}};
+
+    records.forEach(record => {{
+        const day = record.day_of_week;
+        if (day && dayTotal.hasOwnProperty(day)) {{
+            dayTotal[day]++;
+            if (record.status === 'absent') {{
+                dayCount[day]++;
+            }}
+        }}
+    }});
+
+    // Build day pattern HTML
+    // 요일 패턴 HTML 생성
+    let html = '<div class="d-flex flex-wrap gap-2">';
+    const dayOrder = ['월', '화', '수', '목', '금', '토'];
+    const dayIndex = {{'월': 0, '화': 1, '수': 2, '목': 3, '금': 4, '토': 5}};
+
+    dayOrder.forEach((day, idx) => {{
+        const count = dayCount[day] || 0;
+        const total = dayTotal[day] || 0;
+        const rate = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+        const displayDay = dayNames[lang] ? dayNames[lang][idx] : day;
+
+        let badgeClass = 'bg-success';
+        if (rate >= 30) badgeClass = 'bg-danger';
+        else if (rate >= 15) badgeClass = 'bg-warning text-dark';
+        else if (rate >= 5) badgeClass = 'bg-info';
+
+        html += `
+            <div class="text-center p-2 border rounded" style="min-width: 60px;">
+                <div class="fw-bold">${{displayDay}}</div>
+                <div class="badge ${{badgeClass}}">${{count}}/${{total}}</div>
+                <div class="small text-muted">${{rate}}%</div>
+            </div>
+        `;
+    }});
+    html += '</div>';
+
+    document.getElementById('attendanceDayPattern').innerHTML = html;
+}}
+
+function displayReasonBreakdown(records) {{
+    const lang = localStorage.getItem('selectedLanguage') || 'ko';
+
+    // Count by reason
+    // 사유별 횟수 계산
+    const reasonCount = {{}};
+    const absentRecords = records.filter(r => r.status === 'absent');
+
+    absentRecords.forEach(record => {{
+        const reason = lang === 'ko' ? (record.reason_ko || record.reason || '미지정') :
+                       lang === 'en' ? (record.reason_en || record.reason || 'Unspecified') :
+                       (record.reason || 'Không xác định');
+        reasonCount[reason] = (reasonCount[reason] || 0) + 1;
+    }});
+
+    if (Object.keys(reasonCount).length === 0) {{
+        const noAbsenceText = lang === 'ko' ? '결근 기록이 없습니다 ✨' :
+                              lang === 'en' ? 'No absence records ✨' :
+                              'Không có ngày nghỉ ✨';
+        document.getElementById('attendanceReasonBreakdown').innerHTML =
+            `<div class="alert alert-success mb-0">${{noAbsenceText}}</div>`;
+        return;
+    }}
+
+    // Sort by count descending
+    // 횟수 내림차순 정렬
+    const sortedReasons = Object.entries(reasonCount)
+        .sort((a, b) => b[1] - a[1]);
+
+    // Build reason breakdown HTML
+    // 사유 분석 HTML 생성
+    let html = '<div class="list-group">';
+    sortedReasons.forEach(([reason, count]) => {{
+        const percentage = ((count / absentRecords.length) * 100).toFixed(0);
+        html += `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${{reason}}</span>
+                <div>
+                    <span class="badge bg-danger rounded-pill me-2">${{count}}</span>
+                    <span class="small text-muted">${{percentage}}%</span>
+                </div>
+            </div>
+        `;
+    }});
+    html += '</div>';
+
+    document.getElementById('attendanceReasonBreakdown').innerHTML = html;
+}}
+
+function displayAttendanceInsights(records, presentDays, absentDays, attendanceRate) {{
+    const lang = localStorage.getItem('selectedLanguage') || 'ko';
+    let insights = [];
+
+    // Insight 1: Overall attendance assessment
+    // 인사이트 1: 전체 출결 평가
+    if (parseFloat(attendanceRate) >= 95) {{
+        insights.push({{
+            icon: '🌟',
+            text: lang === 'ko' ? `출근율 ${{attendanceRate}}%로 우수합니다!` :
+                  lang === 'en' ? `Excellent attendance rate of ${{attendanceRate}}%!` :
+                  `Tỷ lệ đi làm tuyệt vời ${{attendanceRate}}%!`,
+            type: 'success'
+        }});
+    }} else if (parseFloat(attendanceRate) < 85) {{
+        insights.push({{
+            icon: '⚠️',
+            text: lang === 'ko' ? `출근율 ${{attendanceRate}}%로 관리가 필요합니다` :
+                  lang === 'en' ? `Attendance rate of ${{attendanceRate}}% needs attention` :
+                  `Tỷ lệ đi làm ${{attendanceRate}}% cần chú ý`,
+            type: 'warning'
+        }});
+    }}
+
+    // Insight 2: Check for day pattern
+    // 인사이트 2: 요일 패턴 확인
+    const dayCount = {{}};
+    records.filter(r => r.status === 'absent').forEach(r => {{
+        dayCount[r.day_of_week] = (dayCount[r.day_of_week] || 0) + 1;
+    }});
+
+    const maxDay = Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0];
+    if (maxDay && maxDay[1] >= 2) {{
+        insights.push({{
+            icon: '📅',
+            text: lang === 'ko' ? `${{maxDay[0]}}요일에 결근이 집중됩니다 (${{maxDay[1]}}회)` :
+                  lang === 'en' ? `Absences concentrated on ${{maxDay[0]}} (${{maxDay[1]}} times)` :
+                  `Nghỉ tập trung vào ${{maxDay[0]}} (${{maxDay[1]}} lần)`,
+            type: 'info'
+        }});
+    }}
+
+    // Insight 3: Check for common reason
+    // 인사이트 3: 주요 사유 확인
+    const reasonCount = {{}};
+    records.filter(r => r.status === 'absent').forEach(r => {{
+        const reason = r.reason_ko || r.reason || '미지정';
+        reasonCount[reason] = (reasonCount[reason] || 0) + 1;
+    }});
+
+    const maxReason = Object.entries(reasonCount).sort((a, b) => b[1] - a[1])[0];
+    if (maxReason && maxReason[1] >= 2) {{
+        insights.push({{
+            icon: '📋',
+            text: lang === 'ko' ? `주요 결근 사유: ${{maxReason[0]}} (${{maxReason[1]}}회)` :
+                  lang === 'en' ? `Main absence reason: ${{maxReason[0]}} (${{maxReason[1]}} times)` :
+                  `Lý do nghỉ chính: ${{maxReason[0]}} (${{maxReason[1]}} lần)`,
+            type: 'info'
+        }});
+    }}
+
+    // Build insights HTML
+    // 인사이트 HTML 생성
+    if (insights.length === 0) {{
+        insights.push({{
+            icon: '✅',
+            text: lang === 'ko' ? '특이사항 없음' :
+                  lang === 'en' ? 'No notable patterns' :
+                  'Không có điều đáng chú ý',
+            type: 'success'
+        }});
+    }}
+
+    let html = '<div class="d-flex flex-wrap gap-3">';
+    insights.forEach(insight => {{
+        const bgClass = insight.type === 'success' ? 'bg-success-subtle' :
+                       insight.type === 'warning' ? 'bg-warning-subtle' :
+                       'bg-info-subtle';
+        html += `
+            <div class="p-2 rounded ${{bgClass}}" style="flex: 1; min-width: 200px;">
+                <span class="me-2">${{insight.icon}}</span>
+                <span>${{insight.text}}</span>
+            </div>
+        `;
+    }});
+    html += '</div>';
+
+    document.getElementById('attendanceInsights').innerHTML = html;
+}}
+
+function displayDailyRecords(records) {{
+    const lang = localStorage.getItem('selectedLanguage') || 'ko';
+    const tbody = document.getElementById('attendanceDetailBody');
+
+    // Sort records by date
+    // 날짜순 정렬
+    const sortedRecords = [...records].sort((a, b) => {{
+        return a.work_date.localeCompare(b.work_date);
+    }});
+
+    let html = '';
+    sortedRecords.forEach(record => {{
+        const statusClass = record.status === 'present' ? 'text-success' :
+                           record.status === 'absent' ? 'text-danger' : 'text-secondary';
+        const statusIcon = record.status === 'present' ? '✅' :
+                          record.status === 'absent' ? '❌' : '➖';
+        const statusText = lang === 'ko' ? record.status_ko :
+                          lang === 'en' ? record.status_en : record.status_ko;
+
+        const reason = lang === 'ko' ? record.reason_ko :
+                      lang === 'en' ? record.reason_en : record.reason;
+        const reasonDisplay = record.status === 'absent' && reason ? reason : '-';
+
+        const dayText = lang === 'ko' ? record.day_of_week :
+                       lang === 'en' ? record.day_of_week_en : record.day_of_week;
+
+        html += `
+            <tr class="${{record.status === 'absent' ? 'table-danger' : ''}}">
+                <td class="text-center">${{record.work_date}}</td>
+                <td class="text-center">${{dayText || '-'}}</td>
+                <td class="text-center ${{statusClass}} fw-bold">
+                    ${{statusIcon}} ${{statusText}}
+                </td>
+                <td>${{reasonDisplay}}</td>
+                <td class="text-center">${{record.work_time || '-'}}</td>
+            </tr>
+        `;
+    }});
+
+    tbody.innerHTML = html;
+}}
+
+function exportAttendanceCSV() {{
+    if (currentEmployeeAttendance.length === 0) {{
+        showToast('알림', '내보낼 데이터가 없습니다', 'warning');
+        return;
+    }}
+
+    const employeeNo = currentEmployeeAttendance[0].employee_no;
+    const employeeName = currentEmployeeAttendance[0].employee_name;
+
+    // Create CSV content
+    // CSV 내용 생성
+    let csvContent = '\\uFEFF';  // BOM for Excel UTF-8 support
+    csvContent += '날짜,요일,출결상태,사유,근무시간\\n';
+
+    currentEmployeeAttendance.forEach(record => {{
+        const row = [
+            record.work_date,
+            record.day_of_week || '',
+            record.status_ko || record.status,
+            record.reason_ko || record.reason || '',
+            record.work_time || ''
+        ].map(field => `"${{(field || '').toString().replace(/"/g, '""')}}"`);
+        csvContent += row.join(',') + '\\n';
+    }});
+
+    // Download file
+    // 파일 다운로드
+    const blob = new Blob([csvContent], {{ type: 'text/csv;charset=utf-8;' }});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `attendance_${{employeeNo}}_${{employeeName}}_${{targetMonth}}.csv`;
+    link.click();
+
+    showToast('완료', 'CSV 파일이 다운로드되었습니다', 'success');
 }}
 
 debugLog('✅ Dashboard initialized');
