@@ -324,7 +324,36 @@
     "long_term_employee_days": 365,
     "under_60_days_threshold": 60,
     "long_absence_days": 5,
-    "new_hire_tracking_days": 30
+    "new_hire_tracking_days": 30,
+    "post_assignment_period": {
+      "min_days": 30,
+      "max_days": 60,
+      "description_ko": "라인 배정 후 퇴사 기간",
+      "description_en": "Post line assignment resignation period"
+    }
+  },
+
+  "absence_reason_patterns": {
+    "maternity": {
+      "keywords": ["Thai sản", "Sinh", "sinh", "Dưỡng sinh", "Khám thai"],
+      "description_ko": "출산휴가/임신 관련",
+      "description_en": "Maternity/pregnancy related"
+    },
+    "unauthorized": {
+      "keywords": ["AR1", "AR2", "Không phép", "Vắng không phép", "Unauthorized"],
+      "description_ko": "무단결근",
+      "description_en": "Unauthorized absence"
+    },
+    "annual_leave": {
+      "keywords": ["Phép năm", "Annual leave", "Nghỉ phép", "AL"],
+      "description_ko": "연차휴가",
+      "description_en": "Annual leave"
+    },
+    "sick_leave": {
+      "keywords": ["Ốm đau", "Sick leave", "Bệnh", "Sick", "SL"],
+      "description_ko": "병가",
+      "description_en": "Sick leave"
+    }
   },
 
   "validation_rules": {

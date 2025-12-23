@@ -48,6 +48,16 @@ class HRMetricCalculator:
         # Load config thresholds / 설정 임계치 로드
         self._config = self._load_config()
         self._thresholds = self._config.get('thresholds', {})
+        # Load absence reason patterns from config / 결근 사유 패턴 설정 로드
+        self._absence_patterns = self._config.get('absence_reason_patterns', {})
+        self._maternity_keywords = self._absence_patterns.get('maternity', {}).get('keywords',
+            ['Thai sản', 'Sinh', 'sinh', 'Dưỡng sinh', 'Khám thai'])
+        self._unauthorized_keywords = self._absence_patterns.get('unauthorized', {}).get('keywords',
+            ['AR1', 'AR2', 'Không phép', 'Vắng không phép', 'Unauthorized'])
+        self._annual_leave_keywords = self._absence_patterns.get('annual_leave', {}).get('keywords',
+            ['Phép năm', 'Annual leave', 'Nghỉ phép', 'AL'])
+        self._sick_leave_keywords = self._absence_patterns.get('sick_leave', {}).get('keywords',
+            ['Ốm đau', 'Sick leave', 'Bệnh', 'Sick', 'SL'])
         # Performance config / 성능 설정
         self._cache_enabled = self._config.get('performance', {}).get('cache_data', True)
         cache_ttl = self._config.get('performance', {}).get('cache_ttl_minutes', 30)

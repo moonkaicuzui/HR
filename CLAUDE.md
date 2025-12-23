@@ -235,6 +235,153 @@ When modifying core logic, run both test suites before committing.
 - `README.md` - User-facing documentation with bilingual instructions
 - `action.sh` - Main automation script with interactive CLI
 
+## Multi-Agent Verification Framework (10-Agent Principle)
+## 다중 에이전트 검증 프레임워크 (10 에이전트 원칙)
+
+All significant changes to this project MUST be validated through a 10-agent verification framework.
+이 프로젝트의 모든 중요한 변경사항은 10개 에이전트 검증 프레임워크를 통해 검증되어야 합니다.
+
+### Tier 1: Core Technical Verification (50% weight)
+### 티어 1: 핵심 기술 검증 (가중치 50%)
+
+| Agent | Role | Focus Area |
+|-------|------|------------|
+| **1. Metric Logic Architect** | 메트릭 로직 설계자 | Validate metric formulas, threshold logic, calculation accuracy |
+| **2. Data Integrity Auditor** | 데이터 무결성 감사자 | Compare source CSV vs dashboard embedded values, flag logic verification |
+| **3. Logic Consistency Validator** | 로직 일관성 검증자 | Cross-check calculations between modules, ensure config-code alignment |
+
+**Validation Criteria / 검증 기준:**
+- All 11 metrics must match source data 100%
+- Flag setting logic must align with MetricCalculator
+- No hardcoded business logic in Python code
+
+### Tier 2: User Effectiveness Simulation (35% weight)
+### 티어 2: 사용자 효과성 시뮬레이션 (가중치 35%)
+
+| Agent | Role | Persona Focus |
+|-------|------|---------------|
+| **4. Division Director Simulator** | 사업부장 시뮬레이터 | Strategic KPI overview, team comparison, trend analysis |
+| **5. Team Leader Simulator** | 팀장 시뮬레이터 | Team-specific metrics, individual employee tracking, action items |
+| **6. HR Strategist** | HR 전략가 | Policy implications, compliance, retention analysis |
+| **7. Executive Simulator** | 경영진 시뮬레이터 | High-level summary, critical alerts, decision support |
+
+**Validation Criteria / 검증 기준:**
+- Each persona can complete their top 3 use cases
+- Information hierarchy matches user priority
+- Actionable insights are clearly highlighted
+
+### Tier 3: Quality Assurance (15% weight)
+### 티어 3: 품질 보증 (가중치 15%)
+
+| Agent | Role | Review Focus |
+|-------|------|--------------|
+| **8. Technical Reviewer** | 기술 검토자 | Code quality, performance, maintainability |
+| **9. Security Reviewer** | 보안 검토자 | XSS prevention, data exposure, input validation |
+| **10. UX Reviewer** | UX 검토자 | Accessibility (WCAG 2.1 AA), responsiveness, usability |
+
+**Validation Criteria / 검증 기준:**
+- No security vulnerabilities (OWASP Top 10)
+- WCAG 2.1 AA compliance
+- Sub-3s load time on standard connections
+
+### Tier 4: Specialized Testing (Optional)
+### 티어 4: 전문 테스팅 (선택적)
+
+| Agent | Role | Test Focus |
+|-------|------|------------|
+| **11. Functional Testing Agent** | 기능 테스트 에이전트 | Filter logic, search, pagination, export, data integrity |
+| **12. Employee Details UX Specialist** | 직원 상세 UX 전문가 | Table UX, column layout, filter UX, mobile responsiveness |
+
+**Validation Criteria / 검증 기준:**
+- All 10 filters work correctly with accurate counts
+- Search covers all fields with Korean/Vietnamese character support
+- Pagination and sorting work correctly
+- Export functions produce valid CSV/JSON output
+- Mobile responsiveness at 320px, 768px, 1024px breakpoints
+
+### When to Invoke Multi-Agent Verification
+### 다중 에이전트 검증 호출 시점
+
+**Required (필수):**
+- New metric addition or modification
+- Dashboard generation logic changes
+- Data processing pipeline updates
+- Major UI/UX changes
+
+**Recommended (권장):**
+- Bug fixes affecting calculations
+- Performance optimizations
+- Configuration file changes
+
+### ⚡ Automatic Agent Verification Principle (AUTO-VERIFY)
+### ⚡ 자동 에이전트 검증 원칙 (자동 검증)
+
+**IMPORTANT**: All user requests to this project should be automatically validated by relevant agents.
+**중요**: 이 프로젝트에 대한 모든 사용자 요청은 관련 에이전트에 의해 자동으로 검증되어야 합니다.
+
+**Auto-Verification Rules / 자동 검증 규칙:**
+
+| Request Type | Auto-Activated Agents | Verification Level |
+|--------------|----------------------|-------------------|
+| Code changes to `complete_dashboard_builder.py` | Agent #1, #2, #3 | Full Tier 1 |
+| Metric formula changes | Agent #1, #2 | Data Integrity |
+| UI/UX modifications | Agent #8, #10, #12 | Tech + UX + Details |
+| Any dashboard regeneration | Agent #2 | Data Integrity Audit |
+| Bug fixes | Agent #3, #8 | Logic + Tech |
+| Performance changes | Agent #8 | Technical Review |
+| Security-related changes | Agent #9 | Security Review |
+| Employee Details tab changes | Agent #10, #11, #12 | Full Tier 4 |
+| Filter/Search functionality | Agent #11 | Functional Testing |
+| Table/Export features | Agent #11, #12 | Functional + UX |
+
+**Auto-Verification Workflow / 자동 검증 워크플로우:**
+```
+1. User Request → Analyze request type
+2. Auto-select relevant agents based on request type
+3. Execute verification in background
+4. Report discrepancies immediately
+5. Block deployment if Tier 1 fails
+```
+
+**Quick Agent Reference / 에이전트 빠른 참조:**
+- **#1 Metric Logic**: Formula validation
+- **#2 Data Integrity**: Source vs Dashboard comparison
+- **#3 Logic Consistency**: Cross-module verification
+- **#4-7 User Personas**: Effectiveness testing
+- **#8 Technical**: Code quality
+- **#9 Security**: Vulnerability check
+- **#10 UX**: Accessibility
+- **#11 Functional Testing**: Filter, search, pagination, export testing
+- **#12 Employee Details UX**: Table UX, column layout, mobile responsiveness
+
+### Verification Command
+### 검증 명령어
+
+```bash
+# Request multi-agent verification
+# 다중 에이전트 검증 요청
+"10개 에이전트로 검증해줘" or "Run 10-agent verification"
+```
+
+### Passing Criteria
+### 통과 기준
+
+| Tier | Minimum Score | Pass Condition |
+|------|---------------|----------------|
+| Tier 1 | 90/100 | All metrics 100% accurate |
+| Tier 2 | 75/100 | All personas can complete core tasks |
+| Tier 3 | 80/100 | No P0/P1 issues |
+| **Overall** | **80/100** | **Weighted average meets threshold** |
+
+### Audit Trail
+### 감사 추적
+
+All verification results should be documented in:
+모든 검증 결과는 다음에 기록됩니다:
+- `AUDIT_SUMMARY.txt` - Executive summary
+- `DATA_INTEGRITY_AUDIT_REPORT.md` - Detailed findings
+- `COMPARISON_TABLE.txt` - Metric-by-metric comparison
+
 ## Common Pitfalls
 
 1. **Don't hardcode business logic** - Use JSON configuration
@@ -242,6 +389,7 @@ When modifying core logic, run both test suites before committing.
 3. **Don't generate fake data** - Return empty results instead
 4. **Don't forget bilingual comments** - All comments need Korean + English
 5. **Don't skip validation** - Run tests after changes
+6. **Don't skip multi-agent verification** - Run 10-agent check for significant changes
 
 ## Dependencies
 

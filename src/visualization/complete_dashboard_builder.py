@@ -2225,7 +2225,7 @@ class CompleteDashboardBuilder:
         gap: 8px;
     }
 
-    .nav-link {
+    .top-navbar .nav-link {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -2239,20 +2239,20 @@ class CompleteDashboardBuilder:
         font-size: 0.9rem;
     }
 
-    .nav-link:hover {
+    .top-navbar .nav-link:hover {
         background: rgba(255,255,255,0.15);
         color: white;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    .nav-link.active {
+    .top-navbar .nav-link.active {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-color: transparent;
     }
 
-    .nav-link-icon {
+    .top-navbar .nav-link-icon {
         font-size: 1.1rem;
     }
 
@@ -2260,13 +2260,13 @@ class CompleteDashboardBuilder:
         .nav-title {
             display: none;
         }
-        .nav-link-text {
+        .top-navbar .nav-link-text {
             display: none;
         }
-        .nav-link {
+        .top-navbar .nav-link {
             padding: 10px 14px;
         }
-        .nav-link-icon {
+        .top-navbar .nav-link-icon {
             font-size: 1.3rem;
         }
     }
@@ -4141,11 +4141,11 @@ class CompleteDashboardBuilder:
             font-size: 14px;
         }
 
-        .nav-link-text {
+        .top-navbar .nav-link-text {
             display: none;
         }
 
-        .nav-link-icon {
+        .top-navbar .nav-link-icon {
             font-size: 18px;
         }
 
