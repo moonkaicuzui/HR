@@ -1401,11 +1401,14 @@ class CompleteDashboardBuilder:
                         date_obj = pd.to_datetime(work_date.replace('.', '-'))
                         day_names_ko = ['월', '화', '수', '목', '금', '토', '일']
                         day_names_en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                        day_names_vi = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
                         day_of_week = day_names_ko[date_obj.dayofweek]
                         day_of_week_en = day_names_en[date_obj.dayofweek]
+                        day_of_week_vi = day_names_vi[date_obj.dayofweek]
                     except Exception:
                         day_of_week = ''
                         day_of_week_en = ''
+                        day_of_week_vi = ''
 
                 # Determine attendance status
                 # 출결 상태 결정
@@ -1419,34 +1422,49 @@ class CompleteDashboardBuilder:
                 if 'Đi làm' in status:
                     status_ko = '출근'
                     status_en = 'Present'
+                    status_vi = 'Đi làm'
                     status_type = 'present'
                 elif 'Vắng mặt' in status:
                     status_ko = '결근'
                     status_en = 'Absent'
+                    status_vi = 'Vắng mặt'
                     status_type = 'absent'
                 else:
                     status_ko = status
                     status_en = status
+                    status_vi = status
                     status_type = 'other'
 
-                # Map common Vietnamese reasons to Korean/English
-                # 일반적인 베트남어 사유를 한국어/영어로 매핑
+                # Map common Vietnamese reasons to Korean/English/Vietnamese
+                # 일반적인 베트남어 사유를 한국어/영어/베트남어로 매핑
                 reason_map = {
-                    'Phép năm': ('연차', 'Annual Leave'),
-                    'Không quẹt thẻ': ('미체크', 'No Card Swipe'),
-                    'Nghỉ không phép': ('무단결근', 'Unauthorized Absence'),
-                    'Nghỉ ốm': ('병가', 'Sick Leave'),
-                    'Thai sản': ('출산휴가', 'Maternity Leave'),
-                    'Nghỉ việc riêng': ('개인사유', 'Personal Leave'),
-                    'Đi công tác': ('출장', 'Business Trip'),
-                    'Nghỉ lễ': ('공휴일', 'Holiday'),
-                    'Nghỉ bù': ('대체휴무', 'Compensatory Leave'),
-                    'Đào tạo': ('교육', 'Training'),
+                    # Authorized absences / 승인 결근
+                    'Vắng có phép': ('유급휴가', 'Authorized Leave', 'Vắng có phép'),
+                    'Phép năm': ('연차', 'Annual Leave', 'Phép năm'),
+                    'Nghỉ ốm': ('병가', 'Sick Leave', 'Nghỉ ốm'),
+                    'Thai sản': ('출산휴가', 'Maternity Leave', 'Thai sản'),
+                    'Nghỉ việc riêng': ('개인사유', 'Personal Leave', 'Nghỉ việc riêng'),
+                    'Nghỉ bù': ('대체휴무', 'Compensatory Leave', 'Nghỉ bù'),
+                    'Đi công tác': ('출장', 'Business Trip', 'Đi công tác'),
+                    'Nghỉ lễ': ('공휴일', 'Holiday', 'Nghỉ lễ'),
+                    'Đào tạo': ('교육', 'Training', 'Đào tạo'),
+                    'Nghỉ phép': ('휴가', 'Leave', 'Nghỉ phép'),
+                    'Nghỉ cưới': ('경조휴가', 'Wedding Leave', 'Nghỉ cưới'),
+                    'Nghỉ tang': ('경조휴가', 'Bereavement Leave', 'Nghỉ tang'),
+                    # Unauthorized absences / 무단 결근
+                    'Nghỉ không phép': ('무단결근', 'Unauthorized Absence', 'Nghỉ không phép'),
+                    'Không quẹt thẻ': ('미체크', 'No Card Swipe', 'Không quẹt thẻ'),
+                    'Vắng không phép': ('무단결근', 'Unauthorized Absence', 'Vắng không phép'),
+                    # Other / 기타
+                    'Đi làm muộn': ('지각', 'Late', 'Đi làm muộn'),
+                    'Về sớm': ('조퇴', 'Left Early', 'Về sớm'),
+                    'Nghỉ nửa ngày': ('반차', 'Half Day', 'Nghỉ nửa ngày'),
                 }
                 reason_ko = reason
                 reason_en = reason
+                reason_vi = reason
                 if reason in reason_map:
-                    reason_ko, reason_en = reason_map[reason]
+                    reason_ko, reason_en, reason_vi = reason_map[reason]
 
                 record = {
                     'employee_no': str(row.get('ID No', '')),
@@ -1454,12 +1472,15 @@ class CompleteDashboardBuilder:
                     'work_date': work_date,
                     'day_of_week': day_of_week,
                     'day_of_week_en': day_of_week_en if 'day_of_week_en' in dir() else '',
+                    'day_of_week_vi': day_of_week_vi if 'day_of_week_vi' in dir() else '',
                     'status': status_type,
                     'status_ko': status_ko,
                     'status_en': status_en,
+                    'status_vi': status_vi,
                     'reason': reason,
                     'reason_ko': reason_ko,
                     'reason_en': reason_en,
+                    'reason_vi': reason_vi,
                     'department': str(row.get('Department', '')),
                     'work_time': str(row.get('WTime', ''))
                 }
@@ -20098,7 +20119,7 @@ function displayReasonBreakdown(records) {{
     absentRecords.forEach(record => {{
         const reason = lang === 'ko' ? (record.reason_ko || record.reason || '미지정') :
                        lang === 'en' ? (record.reason_en || record.reason || 'Unspecified') :
-                       (record.reason || 'Không xác định');
+                       (record.reason_vi || record.reason || 'Không xác định');
         reasonCount[reason] = (reasonCount[reason] || 0) + 1;
     }});
 
@@ -20243,14 +20264,14 @@ function displayDailyRecords(records) {{
         const statusIcon = record.status === 'present' ? '✅' :
                           record.status === 'absent' ? '❌' : '➖';
         const statusText = lang === 'ko' ? record.status_ko :
-                          lang === 'en' ? record.status_en : record.status_ko;
+                          lang === 'en' ? record.status_en : record.status_vi;
 
         const reason = lang === 'ko' ? record.reason_ko :
-                      lang === 'en' ? record.reason_en : record.reason;
+                      lang === 'en' ? record.reason_en : record.reason_vi;
         const reasonDisplay = record.status === 'absent' && reason ? reason : '-';
 
         const dayText = lang === 'ko' ? record.day_of_week :
-                       lang === 'en' ? record.day_of_week_en : record.day_of_week;
+                       lang === 'en' ? record.day_of_week_en : record.day_of_week_vi;
 
         html += `
             <tr class="${{record.status === 'absent' ? 'table-danger' : ''}}">
