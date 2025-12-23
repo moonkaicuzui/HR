@@ -1728,6 +1728,218 @@ class CompleteDashboardBuilder:
         font-weight: 600;
     }
 
+    /* ============================================ */
+    /* Enhanced Stat Cards / 개선된 통계 카드 */
+    /* ============================================ */
+    .stat-card {
+        border-radius: 12px;
+        padding: 1rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    .stat-card .stat-icon {
+        font-size: 1.75rem;
+        opacity: 0.9;
+    }
+    .stat-card .stat-content {
+        flex: 1;
+    }
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .stat-card .stat-label {
+        font-size: 0.75rem;
+        opacity: 0.85;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+        .stat-card {
+            padding: 0.75rem;
+        }
+        .stat-card .stat-icon {
+            font-size: 1.25rem;
+        }
+        .stat-card .stat-value {
+            font-size: 1.25rem;
+        }
+        .stat-card .stat-label {
+            font-size: 0.65rem;
+        }
+    }
+
+    /* ============================================ */
+    /* New Filter Chip System / 새로운 필터 칩 시스템 */
+    /* ============================================ */
+
+    /* Filter Group Cards / 필터 그룹 카드 */
+    .filter-group-card {
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: all 0.2s ease;
+    }
+    .filter-group-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .filter-group-card .card-header {
+        border-bottom: none;
+        font-size: 0.85rem;
+    }
+    .filter-group-card .card-body {
+        background: #fafbfc;
+    }
+
+    /* Filter Chips / 필터 칩 */
+    .filter-chip {
+        background: #fff;
+        border: 1px solid #e0e4e8;
+        border-radius: 20px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        color: #495057;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .filter-chip:hover {
+        background: #f1f3f5;
+        border-color: #ced4da;
+        transform: translateY(-1px);
+    }
+    .filter-chip.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+    .filter-chip.active .badge {
+        background: rgba(255,255,255,0.25) !important;
+        color: #fff !important;
+    }
+    .filter-chip .filter-icon {
+        font-size: 0.9rem;
+    }
+    .filter-chip .badge {
+        background: #e9ecef;
+        color: #495057;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.2em 0.5em;
+    }
+
+    /* Danger filter chip / 위험 필터 칩 */
+    .filter-chip-danger:not(.active):hover {
+        background: #fff5f5;
+        border-color: #fecaca;
+    }
+    .filter-chip-danger.active {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Active Filters Bar / 활성 필터 바 */
+    .active-filters-bar {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .active-filter-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: #667eea;
+        color: #fff;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+    }
+    .active-filter-tag .remove-filter {
+        cursor: pointer;
+        opacity: 0.7;
+        margin-left: 0.25rem;
+    }
+    .active-filter-tag .remove-filter:hover {
+        opacity: 1;
+    }
+
+    /* ============================================ */
+    /* Improved Table Styles / 개선된 테이블 스타일 */
+    /* ============================================ */
+
+    /* Absence count color coding / 결근 수 색상 코딩 */
+    .absence-count-0 { color: #9ca3af; }
+    .absence-count-low {
+        background: #fef3c7;
+        color: #92400e;
+        font-weight: 500;
+        border-radius: 4px;
+        padding: 0.15rem 0.4rem;
+    }
+    .absence-count-high {
+        background: #fee2e2;
+        color: #991b1b;
+        font-weight: 600;
+        border-radius: 4px;
+        padding: 0.15rem 0.4rem;
+    }
+
+    /* Improved status badges / 개선된 상태 배지 */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .status-resigned {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    .status-new {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .status-longterm {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+    .status-pregnant {
+        background: #fce7f3;
+        color: #9d174d;
+    }
+    .status-risk {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    /* Row highlight for resigned employees / 퇴사자 행 하이라이트 */
+    .employee-row-resigned {
+        background: #f9fafb !important;
+        opacity: 0.85;
+    }
+    .employee-row-resigned:hover {
+        background: #f3f4f6 !important;
+    }
+
     /* Skip to main content link for screen readers and keyboard users */
     /* 스크린 리더 및 키보드 사용자를 위한 본문 바로가기 링크 */
     .skip-to-content {
@@ -5252,40 +5464,49 @@ class CompleteDashboardBuilder:
 <div class="details-section">
     <h4 class="mb-4 lang-section-title" data-ko="👥 직원 상세 정보" data-en="👥 Employee Details" data-vi="👥 Chi tiết nhân viên">👥 직원 상세 정보</h4>
 
-    <!-- Quick Statistics Panel -->
-    <div class="card mb-4" id="quickStatsPanel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-        <div class="card-body py-3">
-            <div class="row text-center">
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-label small opacity-75">
-                            <span class="lang-stat" data-ko="표시 중" data-en="Showing" data-vi="Đang hiển thị">표시 중</span>
-                        </div>
-                        <div class="stat-value fs-4 fw-bold" id="statsShowing">0</div>
+    <!-- Quick Statistics Panel - Enhanced with icons and clear layout -->
+    <!-- 빠른 통계 패널 - 아이콘과 명확한 레이아웃 개선 -->
+    <div class="row g-3 mb-4" id="quickStatsPanel">
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="statsShowing">0</div>
+                    <div class="stat-label">
+                        <span class="lang-stat" data-ko="표시 인원" data-en="Showing" data-vi="Đang hiển thị">표시 인원</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-label small opacity-75">
-                            <span class="lang-stat" data-ko="재직/퇴사" data-en="Active/Resigned" data-vi="Làm/Nghỉ">재직/퇴사</span>
-                        </div>
-                        <div class="stat-value fs-4 fw-bold" id="statsActiveResigned">0/0</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="statsActiveResigned">0/0</div>
+                    <div class="stat-label">
+                        <span class="lang-stat" data-ko="재직/퇴사" data-en="Active/Resigned" data-vi="Làm/Nghỉ">재직/퇴사</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-label small opacity-75">
-                            <span class="lang-stat" data-ko="이번 달 결근자" data-en="Absent (Month)" data-vi="Vắng (Tháng)">이번 달 결근자</span>
-                        </div>
-                        <div class="stat-value fs-4 fw-bold" id="statsAbsentCount">0명</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
+                <div class="stat-icon">📅</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="statsAbsentCount">0</div>
+                    <div class="stat-label">
+                        <span class="lang-stat" data-ko="이번 달 결근" data-en="Absent (Month)" data-vi="Vắng (Tháng)">이번 달 결근</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-label small opacity-75">
-                            <span class="lang-stat" data-ko="무단결근자" data-en="Unauthorized" data-vi="Không phép">무단결근자</span>
-                        </div>
-                        <div class="stat-value fs-4 fw-bold text-danger" id="statsUnauthorizedCount">0명</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card stat-card-danger" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="statsUnauthorizedCount">0</div>
+                    <div class="stat-label">
+                        <span class="lang-stat" data-ko="무단결근자" data-en="Unauthorized" data-vi="Không phép">무단결근자</span>
                     </div>
                 </div>
             </div>
@@ -5393,59 +5614,141 @@ class CompleteDashboardBuilder:
         </div>
     </div>
 
-    <!-- Filter Buttons -->
-    <div class="btn-toolbar mb-4" role="toolbar" aria-label="Employee filter options">
-        <!-- Status Filters -->
-        <div class="btn-group me-2" role="group" aria-label="Filter by employment status">
-            <button type="button" class="btn btn-outline-primary active" id="filterAll" onclick="filterEmployees('all')" aria-pressed="true">
-                <span class="lang-filter" data-ko="전체" data-en="All" data-vi="Tất cả">전체</span>
-                <span class="badge bg-primary ms-1" id="countAll" aria-label="count">0</span>
-            </button>
-            <button type="button" class="btn btn-outline-success" id="filterActive" onclick="filterEmployees('active')" aria-pressed="false">
-                <span class="lang-filter" data-ko="재직자" data-en="Active" data-vi="Đang làm">재직자</span>
-                <span class="badge bg-success ms-1" id="countActive" aria-label="count">0</span>
-            </button>
-            <button type="button" class="btn btn-outline-info" id="filterHired" onclick="filterEmployees('hired')" aria-pressed="false">
-                <span class="lang-filter" data-ko="신규입사" data-en="New Hires" data-vi="Mới vào">신규입사</span>
-                <span class="badge bg-info ms-1" id="countHired" aria-label="count">0</span>
-            </button>
-            <button type="button" class="btn btn-outline-warning" id="filterResigned" onclick="filterEmployees('resigned')" aria-pressed="false">
-                <span class="lang-filter" data-ko="퇴사자" data-en="Resigned" data-vi="Đã nghỉ">퇴사자</span>
-                <span class="badge bg-warning ms-1" id="countResigned" aria-label="count">0</span>
-            </button>
+    <!-- Redesigned Filter System / 재설계된 필터 시스템 -->
+    <div class="filter-system mb-4">
+        <!-- Active Filters Display / 활성 필터 표시 -->
+        <div class="active-filters-bar mb-3 d-none" id="activeFiltersBar">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="text-muted small me-2">
+                    <span class="lang-text" data-ko="적용된 필터:" data-en="Active filters:" data-vi="Bộ lọc đang áp dụng:">적용된 필터:</span>
+                </span>
+                <div id="activeFilterChips" class="d-flex flex-wrap gap-1"></div>
+                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="resetAllFilters()" title="Reset all filters">
+                    <span class="lang-text" data-ko="🔄 초기화" data-en="🔄 Reset" data-vi="🔄 Đặt lại">🔄 초기화</span>
+                </button>
+            </div>
         </div>
-        <!-- Attendance Filters -->
-        <div class="btn-group me-2" role="group" aria-label="Filter by attendance status">
-            <button type="button" class="btn btn-outline-success" id="filterPerfect" onclick="filterEmployees('perfect')" aria-pressed="false">
-                <span class="lang-filter" data-ko="개근" data-en="Perfect" data-vi="Chuyên cần">개근</span>
-                <span class="badge bg-success ms-1" id="countPerfect" aria-label="count">0</span>
-            </button>
-            <button type="button" class="btn btn-outline-warning" id="filterAbsent" onclick="filterEmployees('absent')" aria-pressed="false">
-                <span class="lang-filter" data-ko="결근자" data-en="Absent" data-vi="Vắng mặt">결근자</span>
-                <span class="badge bg-warning ms-1" id="countAbsent" aria-label="count">0</span>
-            </button>
-            <button type="button" class="btn btn-outline-danger" id="filterUnauthorized" onclick="filterEmployees('unauthorized')" aria-pressed="false">
-                <span class="lang-filter" data-ko="무단결근" data-en="Unauthorized" data-vi="Không phép">무단결근</span>
-                <span class="badge bg-danger ms-1" id="countUnauthorized" aria-label="count">0</span>
-            </button>
-        </div>
-        <!-- Tenure Filters -->
-        <div class="btn-group me-2" role="group" aria-label="Filter by tenure">
-            <button type="button" class="btn btn-outline-info" id="filterLongTerm" onclick="filterEmployees('longterm')" aria-pressed="false">
-                <span class="lang-filter" data-ko="장기근속" data-en="Long-term" data-vi="Lâu năm">장기근속</span>
-                <span class="badge bg-info ms-1" id="countLongTerm" aria-label="count">0</span>
-            </button>
-            <button type="button" class="btn btn-outline-secondary" id="filterNew" onclick="filterEmployees('new60')" aria-pressed="false">
-                <span class="lang-filter" data-ko="60일 미만" data-en="Under 60d" data-vi="Dưới 60 ngày">60일 미만</span>
-                <span class="badge bg-secondary ms-1" id="countNew60" aria-label="count">0</span>
-            </button>
-        </div>
-        <!-- Special Filters -->
-        <div class="btn-group" role="group" aria-label="Special filters">
-            <button type="button" class="btn btn-outline-warning" id="filterPregnant" onclick="filterEmployees('pregnant')" aria-pressed="false">
-                <span class="lang-filter" data-ko="임신" data-en="Pregnant" data-vi="Mang thai">임신</span>
-                <span class="badge bg-warning ms-1" id="countPregnant" aria-label="count">0</span>
-            </button>
+
+        <!-- Filter Cards / 필터 카드 -->
+        <div class="row g-3">
+            <!-- Employment Status Group / 고용 상태 그룹 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="filter-group-card card h-100">
+                    <div class="card-header py-2 bg-primary bg-opacity-10">
+                        <h6 class="mb-0 text-primary">
+                            <span class="me-1">👥</span>
+                            <span class="lang-text" data-ko="고용 상태" data-en="Employment" data-vi="Tình trạng">고용 상태</span>
+                        </h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-sm filter-chip active" id="filterAll" onclick="filterEmployees('all')" data-filter="all">
+                                <span class="filter-icon">📋</span>
+                                <span class="lang-filter" data-ko="전체" data-en="All" data-vi="Tất cả">전체</span>
+                                <span class="badge rounded-pill" id="countAll">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip" id="filterActive" onclick="filterEmployees('active')" data-filter="active">
+                                <span class="filter-icon">✅</span>
+                                <span class="lang-filter" data-ko="재직" data-en="Active" data-vi="Đang làm">재직</span>
+                                <span class="badge rounded-pill" id="countActive">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip" id="filterHired" onclick="filterEmployees('hired')" data-filter="hired">
+                                <span class="filter-icon">🆕</span>
+                                <span class="lang-filter" data-ko="신규" data-en="New" data-vi="Mới">신규</span>
+                                <span class="badge rounded-pill" id="countHired">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip" id="filterResigned" onclick="filterEmployees('resigned')" data-filter="resigned">
+                                <span class="filter-icon">📤</span>
+                                <span class="lang-filter" data-ko="퇴사" data-en="Left" data-vi="Đã nghỉ">퇴사</span>
+                                <span class="badge rounded-pill" id="countResigned">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Group / 근태 그룹 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="filter-group-card card h-100">
+                    <div class="card-header py-2 bg-success bg-opacity-10">
+                        <h6 class="mb-0 text-success">
+                            <span class="me-1">📊</span>
+                            <span class="lang-text" data-ko="근태 현황" data-en="Attendance" data-vi="Chấm công">근태 현황</span>
+                        </h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-sm filter-chip" id="filterPerfect" onclick="filterEmployees('perfect')" data-filter="perfect">
+                                <span class="filter-icon">🌟</span>
+                                <span class="lang-filter" data-ko="개근" data-en="Perfect" data-vi="Đầy đủ">개근</span>
+                                <span class="badge rounded-pill" id="countPerfect">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip" id="filterAbsent" onclick="filterEmployees('absent')" data-filter="absent">
+                                <span class="filter-icon">⚠️</span>
+                                <span class="lang-filter" data-ko="결근" data-en="Absent" data-vi="Vắng">결근</span>
+                                <span class="badge rounded-pill" id="countAbsent">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip filter-chip-danger" id="filterUnauthorized" onclick="filterEmployees('unauthorized')" data-filter="unauthorized">
+                                <span class="filter-icon">🚨</span>
+                                <span class="lang-filter" data-ko="무단" data-en="Unauth" data-vi="K.phép">무단</span>
+                                <span class="badge rounded-pill" id="countUnauthorized">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tenure Group / 근속 그룹 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="filter-group-card card h-100">
+                    <div class="card-header py-2 bg-info bg-opacity-10">
+                        <h6 class="mb-0 text-info">
+                            <span class="me-1">📅</span>
+                            <span class="lang-text" data-ko="근속 기간" data-en="Tenure" data-vi="Thâm niên">근속 기간</span>
+                        </h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-sm filter-chip" id="filterLongTerm" onclick="filterEmployees('longterm')" data-filter="longterm">
+                                <span class="filter-icon">🏆</span>
+                                <span class="lang-filter" data-ko="장기" data-en="1yr+" data-vi="Lâu năm">장기</span>
+                                <span class="badge rounded-pill" id="countLongTerm">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip" id="filterNew" onclick="filterEmployees('new60')" data-filter="new60">
+                                <span class="filter-icon">🌱</span>
+                                <span class="lang-filter" data-ko="60일↓" data-en="<60d" data-vi="<60 ngày">60일↓</span>
+                                <span class="badge rounded-pill" id="countNew60">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special Group / 특수 그룹 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="filter-group-card card h-100">
+                    <div class="card-header py-2 bg-warning bg-opacity-10">
+                        <h6 class="mb-0 text-warning">
+                            <span class="me-1">⭐</span>
+                            <span class="lang-text" data-ko="특수 관리" data-en="Special" data-vi="Đặc biệt">특수 관리</span>
+                        </h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-sm filter-chip" id="filterPregnant" onclick="filterEmployees('pregnant')" data-filter="pregnant">
+                                <span class="filter-icon">🤰</span>
+                                <span class="lang-filter" data-ko="임신" data-en="Pregnant" data-vi="Thai sản">임신</span>
+                                <span class="badge rounded-pill" id="countPregnant">0</span>
+                            </button>
+                            <button type="button" class="btn btn-sm filter-chip" id="filterTurnoverRisk" onclick="filterEmployees('turnover_risk')" data-filter="turnover_risk">
+                                <span class="filter-icon">⚡</span>
+                                <span class="lang-filter" data-ko="이탈위험" data-en="At Risk" data-vi="Nguy cơ">이탈위험</span>
+                                <span class="badge rounded-pill" id="countTurnoverRisk">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -16675,22 +16978,39 @@ function toggleEmployeeSelection(employeeId) {
 function filterEmployees(filter) {
     currentFilter = filter;
 
-    // Update button states with ARIA attributes
-    // ARIA 속성으로 버튼 상태 업데이트
+    // Update filter chip states (new design)
+    // 필터 칩 상태 업데이트 (새 디자인)
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+    });
+
+    // Also update legacy button states for compatibility
+    // 호환성을 위한 레거시 버튼 상태도 업데이트
     document.querySelectorAll('.btn-group button').forEach(btn => {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
     });
-    const activeBtn = document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
-    if (activeBtn) {
+
+    // Find and activate the correct filter chip
+    // 올바른 필터 칩 찾아서 활성화
+    const filterChip = document.querySelector(`.filter-chip[data-filter="${{filter}}"]`);
+    if (filterChip) {{
+        filterChip.classList.add('active');
+        filterChip.setAttribute('aria-pressed', 'true');
+    }}
+
+    // Legacy button activation
+    const activeBtn = document.getElementById(`filter${{filter.charAt(0).toUpperCase() + filter.slice(1)}}`);
+    if (activeBtn) {{
         activeBtn.classList.add('active');
         activeBtn.setAttribute('aria-pressed', 'true');
-    }
+    }}
 
     let filtered = employeeDetails;
     let filterName = filter; // For screen reader announcement / 스크린 리더 알림용
 
-    switch(filter) {
+    switch(filter) {{
         case 'all': filtered = employeeDetails; filterName = 'all employees'; break;
         case 'active': filtered = employeeDetails.filter(e => e.is_active); filterName = 'active employees'; break;
         case 'hired': filtered = employeeDetails.filter(e => e.hired_this_month); filterName = 'new hires'; break;
@@ -16705,7 +17025,18 @@ function filterEmployees(filter) {
         // 버그 수정: long_absence와 data_error 케이스 추가
         case 'long_absence': filtered = employeeDetails.filter(e => e.absent_days >= 5); filterName = 'employees with 5+ absent days'; break;
         case 'data_error': filtered = employeeDetails.filter(e => e.has_data_error); filterName = 'employees with data errors'; break;
-    }
+        // New: Turnover risk filter / 새로운: 이탈 위험 필터
+        case 'turnover_risk':
+            filtered = employeeDetails.filter(e => {{
+                const risk = calculateTurnoverRisk(e);
+                return risk.level === 'high' || risk.level === 'medium';
+            }});
+            filterName = 'turnover risk employees';
+            break;
+    }}
+
+    // Update active filters bar / 활성 필터 바 업데이트
+    updateActiveFiltersBar(filter);
 
     // Announce filter change to screen readers
     // 스크린 리더에 필터 변경 알림
@@ -16716,7 +17047,54 @@ function filterEmployees(filter) {
     savePreferencesToStorage();
 
     renderEmployeeTable(filtered);
-}
+}}
+
+// Update active filters bar display
+// 활성 필터 바 표시 업데이트
+function updateActiveFiltersBar(filter) {{
+    const activeFiltersBar = document.getElementById('activeFiltersBar');
+    const activeFilterChips = document.getElementById('activeFilterChips');
+
+    if (!activeFiltersBar || !activeFilterChips) return;
+
+    if (filter === 'all') {{
+        activeFiltersBar.classList.add('d-none');
+        return;
+    }}
+
+    activeFiltersBar.classList.remove('d-none');
+
+    // Get filter display name
+    // 필터 표시 이름 가져오기
+    const lang = localStorage.getItem('selectedLanguage') || 'ko';
+    const filterNames = {{
+        active: {{ ko: '재직자', en: 'Active', vi: 'Đang làm' }},
+        hired: {{ ko: '신규입사', en: 'New Hires', vi: 'Mới' }},
+        resigned: {{ ko: '퇴사자', en: 'Resigned', vi: 'Đã nghỉ' }},
+        perfect: {{ ko: '개근', en: 'Perfect', vi: 'Đầy đủ' }},
+        absent: {{ ko: '결근자', en: 'Absent', vi: 'Vắng' }},
+        unauthorized: {{ ko: '무단결근', en: 'Unauthorized', vi: 'K.phép' }},
+        longterm: {{ ko: '장기근속', en: 'Long-term', vi: 'Lâu năm' }},
+        new60: {{ ko: '60일 미만', en: 'Under 60d', vi: '<60 ngày' }},
+        pregnant: {{ ko: '임신', en: 'Pregnant', vi: 'Thai sản' }},
+        turnover_risk: {{ ko: '이탈위험', en: 'At Risk', vi: 'Nguy cơ' }}
+    }};
+
+    const displayName = filterNames[filter] ? filterNames[filter][lang] : filter;
+
+    activeFilterChips.innerHTML = `
+        <span class="active-filter-tag">
+            ${{displayName}}
+            <span class="remove-filter" onclick="resetAllFilters()" title="Remove filter">×</span>
+        </span>
+    `;
+}}
+
+// Reset all filters to default
+// 모든 필터를 기본값으로 초기화
+function resetAllFilters() {{
+    filterEmployees('all');
+}}
 
 // Announce filter changes for accessibility
 // 접근성을 위한 필터 변경 알림
@@ -16789,19 +17167,32 @@ function filterEmployeeDetails(filterType) {
     }, 300);
 }
 
-function updateFilterCounts() {
+function updateFilterCounts() {{
     // Update count badges for each filter
-    document.getElementById('countAll').textContent = employeeDetails.length;
-    document.getElementById('countActive').textContent = employeeDetails.filter(e => e.is_active).length;
-    document.getElementById('countHired').textContent = employeeDetails.filter(e => e.hired_this_month).length;
-    document.getElementById('countResigned').textContent = employeeDetails.filter(e => e.resigned_this_month).length;
-    document.getElementById('countPerfect').textContent = employeeDetails.filter(e => e.perfect_attendance).length;
-    document.getElementById('countAbsent').textContent = employeeDetails.filter(e => e.absent_days > 0).length;
-    document.getElementById('countUnauthorized').textContent = employeeDetails.filter(e => e.has_unauthorized_absence).length;
-    document.getElementById('countLongTerm').textContent = employeeDetails.filter(e => e.long_term).length;
-    document.getElementById('countNew60').textContent = employeeDetails.filter(e => e.under_60_days).length;
-    document.getElementById('countPregnant').textContent = employeeDetails.filter(e => e.is_pregnant).length;
-}
+    // 각 필터의 카운트 배지 업데이트
+    const safeUpdate = (id, count) => {{
+        const el = document.getElementById(id);
+        if (el) el.textContent = count;
+    }};
+
+    safeUpdate('countAll', employeeDetails.length);
+    safeUpdate('countActive', employeeDetails.filter(e => e.is_active).length);
+    safeUpdate('countHired', employeeDetails.filter(e => e.hired_this_month).length);
+    safeUpdate('countResigned', employeeDetails.filter(e => e.resigned_this_month).length);
+    safeUpdate('countPerfect', employeeDetails.filter(e => e.perfect_attendance).length);
+    safeUpdate('countAbsent', employeeDetails.filter(e => e.absent_days > 0).length);
+    safeUpdate('countUnauthorized', employeeDetails.filter(e => e.has_unauthorized_absence).length);
+    safeUpdate('countLongTerm', employeeDetails.filter(e => e.long_term).length);
+    safeUpdate('countNew60', employeeDetails.filter(e => e.under_60_days).length);
+    safeUpdate('countPregnant', employeeDetails.filter(e => e.is_pregnant).length);
+
+    // New: Turnover risk count / 새로운: 이탈 위험 카운트
+    const turnoverRiskCount = employeeDetails.filter(e => {{
+        const risk = calculateTurnoverRisk(e);
+        return risk.level === 'high' || risk.level === 'medium';
+    }}).length;
+    safeUpdate('countTurnoverRisk', turnoverRiskCount);
+}}
 
 // Current search term for highlighting
 // 하이라이팅을 위한 현재 검색어
