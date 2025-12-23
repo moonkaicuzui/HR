@@ -44,9 +44,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create credentials file
+      - name: Create required directories and credentials
         run: |
           mkdir -p credentials
+          mkdir -p logs
+          mkdir -p input_files
+          mkdir -p input_files/attendance/converted
+          mkdir -p "input_files/AQL history"
           echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > credentials/service-account-key.json
 
       - name: Determine target month/year
@@ -65,8 +69,11 @@ jobs:
 
       - name: Sync data from Google Drive
         run: |
-          python sync_monthly_data.py --month ${{ steps.date.outputs.month }} --year ${{ steps.date.outputs.year }}
-        continue-on-error: true
+          echo "📁 Syncing data for ${{ steps.date.outputs.year }}-${{ steps.date.outputs.month }}..."
+          python sync_monthly_data.py --month ${{ steps.date.outputs.month }} --year ${{ steps.date.outputs.year }} || echo "⚠️ Sync failed, continuing..."
+          echo "📂 Files in input_files/:"
+          ls -la input_files/ || true
+          ls -la input_files/attendance/converted/ || true
 
       - name: Generate HR Dashboard
         run: |
