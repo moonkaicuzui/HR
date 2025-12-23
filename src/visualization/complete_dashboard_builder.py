@@ -1498,11 +1498,8 @@ class CompleteDashboardBuilder:
                    img-src 'self' data: blob:;
                    font-src 'self' https://cdn.jsdelivr.net;">
 
-    <!-- Bootstrap 5.3 with SRI / Bootstrap 5.3 (무결성 검증 포함) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7gy/lpifSvBhrOPQ6jmvqGPsHZM5dR50szA"
-          crossorigin="anonymous">
+    <!-- Bootstrap 5.3 CSS / Bootstrap 5.3 스타일시트 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Chart.js CDN / Chart.js CDN 로드 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -1615,11 +1612,8 @@ class CompleteDashboardBuilder:
 
     {self._generate_modals()}
 
-    <!-- Load Bootstrap JS first (required for modal functionality) -->
-    <!-- Bootstrap JS를 먼저 로드 (모달 기능에 필요) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
-            crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle / Bootstrap 5.3 자바스크립트 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Embedded data
