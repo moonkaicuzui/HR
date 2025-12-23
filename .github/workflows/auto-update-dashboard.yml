@@ -2,11 +2,9 @@ name: Auto Update HR Dashboard
 # HR 대시보드 자동 업데이트
 
 on:
-  # 스케줄: 매일 오전 9시 (KST) = UTC 00:00
+  # 스케줄: 매시간 실행
   schedule:
-    - cron: '0 0 * * *'  # 매일 오전 9시 KST
-    - cron: '0 6 * * *'  # 매일 오후 3시 KST
-    - cron: '0 9 * * *'  # 매일 오후 6시 KST
+    - cron: '0 * * * *'  # 매시간 정각 실행
 
   # 수동 실행 가능
   workflow_dispatch:
