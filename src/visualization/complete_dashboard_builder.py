@@ -1504,10 +1504,8 @@ class CompleteDashboardBuilder:
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7gy/lpifSvBhrOPQ6jmvqGPsHZM5dR50szA"
           crossorigin="anonymous">
 
-    <!-- Chart.js with SRI / Chart.js (무결성 검증 포함) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-            integrity="sha384-kbwHn9jQoP9b+qVv5jJLhN2txHzl+r/lP6VgMH2BF+6sT4lJK3k6YjkXGrQdQ9vR"
-            crossorigin="anonymous"></script>
+    <!-- Chart.js CDN / Chart.js CDN 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- Chart Utilities (embedded inline for portability) -->
     <script>
