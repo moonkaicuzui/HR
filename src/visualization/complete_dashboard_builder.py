@@ -109,6 +109,22 @@ class CompleteDashboardBuilder:
         self.monthly_metrics = self.calculator.calculate_all_metrics(self.available_months)
         print(f"📊 Metrics calculated for {len(self.monthly_metrics)} months")
 
+        # Step 2.1: Filter out months with no valid data (total_employees == 0)
+        # 유효한 데이터가 없는 월 필터링 (total_employees == 0인 월 제외)
+        valid_months = [
+            month for month in self.available_months
+            if self.monthly_metrics.get(month, {}).get('total_employees', 0) > 0
+        ]
+        if len(valid_months) < len(self.available_months):
+            removed_months = set(self.available_months) - set(valid_months)
+            print(f"⚠️ Removed months with no data: {sorted(removed_months)}")
+            self.available_months = valid_months
+            self.month_labels = self.collector.get_month_labels(self.available_months, self.language)
+            # Also remove from monthly_metrics to avoid confusion
+            # 혼동을 피하기 위해 monthly_metrics에서도 제거
+            self.monthly_metrics = {k: v for k, v in self.monthly_metrics.items() if k in valid_months}
+        print(f"📅 Valid months for trends: {self.available_months}")
+
         # Step 2.5: Validate metrics and calculate data quality score
         # 메트릭 검증 및 데이터 품질 점수 계산
         self._validate_metrics()
