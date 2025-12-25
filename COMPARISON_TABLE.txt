@@ -1,84 +1,202 @@
-====================================================================================================
-📊 데이터 정합성 검증 상세 비교표 (Data Integrity Detailed Comparison)
-   Date: 2025-12-22 | Target: December 2025 Dashboard
-====================================================================================================
+================================================================================
+DATA INTEGRITY COMPARISON TABLE
+December 2025 Dashboard vs Source CSV
+================================================================================
 
-메트릭                                 원본 데이터          대시보드            차이              일치         오류율       
-----------------------------------------------------------------------------------------------------
-총 인원수 (Total Employees)             411             411             0               ✅          0%        
-결근율 (Absence Rate)                  12.3%           10.9%           +1.4%p          ❌          11.4%     
-무단결근율 (Unauthorized Absence)        0.69%           2.68%           -1.99%p         ❌          288%      
-퇴사율 (Resignation Rate)              1.0%            1.9%            -0.9%p          ❌          90%       
-신규 입사자 (Recent Hires)               11              12              -1              ❌          9.1%      
-퇴사자 (Recent Resignations)           4               8               -4              ❌          100%      
-만근자 (Perfect Attendance)            99              239             -140            ❌          141%      
-장기근속자 (Long-term, 1yr+)             288             349             -61             ❌          21.2%     
-60일 미만 (Under 60 Days)              18              19              -1              ❌          5.6%      
-배치 후 퇴사 (Post-Assignment Res.)      2               0               2               ❌          100%      
-데이터 오류 (Data Errors)                0               24              -24             ❌          N/A       
+Generated: 2025-12-25
+Auditor: Data Integrity Auditor (Agent #2)
 
-====================================================================================================
-📈 통계 요약 (Statistics Summary)
-====================================================================================================
+================================================================================
+SUMMARY METRICS
+================================================================================
 
-  총 검증 항목:     11개
-  일치 항목:        1개 (9.1%)
-  불일치 항목:      10개 (90.9%)
+Metric                                    Screenshot    Source CSV    Delta      Status
+-----------------------------------------------------------------------------------
+Total Employees (표시 인원)                      560           560        0       ✅ MATCH
+Active Employees (재직)                         416           416        0       ✅ MATCH
+Resigned Employees (퇴사)                         5           144     -139       🚨 CRITICAL
+Employees with Absences                        342           420      -78       ⚠️  Significant
+Unauthorized Absence Card (무단결근자)             0            23      -23       🚨 CRITICAL
+Unauthorized Filter Count (무단)               26            23       +3       ⚠️  Minor
 
-  가장 큰 절대 차이: 만근자 (Perfect Attendance) -140명
-  가장 큰 상대 오류: 무단결근율 (Unauthorized Absence) 288%
+================================================================================
+DETAILED BREAKDOWN
+================================================================================
 
-====================================================================================================
-🔍 불일치 원인 (Root Causes)
-====================================================================================================
+1. EMPLOYEE STATUS ANALYSIS
+-----------------------------------------------------------------------------------
+Source: basic manpower data december.csv
 
-  1️⃣ 플래그 설정 로직 오류 (Flag Setting Logic Error)
-     - resigned_this_month, perfect_attendance, long_term 등
-     - 대시보드 생성 시 사전 계산된 플래그 값이 실제 계산과 불일치
+Total rows in CSV:                                                        560
+Employees with Stop working Date = null or > 2025-12-31:                  416  (Active)
+Employees with Stop working Date <= 2025-12-31:                           144  (Resigned)
 
-  2️⃣ 메트릭 정의 불일치 (Metric Definition Mismatch)
-     - 만근자 정의: 원본(결근 기록 없음) vs 대시보드(미상)
-     - 무단결근율: 원본(기록 단위) vs 대시보드(직원 단위)
+Dashboard Display:
+  - Total displayed:                                                      560  ✅
+  - Active (재직):                                                         416  ✅
+  - Resigned (퇴사):                                                         5  🚨 (Expected: 144)
 
-  3️⃣ 데이터 처리 시점 차이 (Processing Timeline Difference)
-     - 원본: 2025-12-31 기준 계산
-     - 대시보드: 생성 시점 기준 (차이 가능)
+**Issue:** Dashboard only showing employees who resigned IN December 2025 (5),
+not cumulative resigned employees as of end of December (144)
 
-====================================================================================================
-🔧 권장 조치 사항 (Recommended Actions)
-====================================================================================================
+-----------------------------------------------------------------------------------
 
-  Priority 1 - CRITICAL (즉시 수정):
-    [ ] Fix resigned_this_month flag logic in complete_dashboard_builder.py
-    [ ] Fix perfect_attendance flag logic
-    [ ] Standardize unauthorized_absence_rate calculation formula
+2. ATTENDANCE ANALYSIS
+-----------------------------------------------------------------------------------
+Source: attendance/converted/attendance data december_converted.csv
 
-  Priority 2 - HIGH (조속히 검토):
-    [ ] Investigate 24 data error flags
-    [ ] Fix long_term_employees tenure calculation
-    [ ] Align absence_rate calculation method
+Total absence records:                                                  8,262
+Unique employees with absences (all):                                     420
+Active employees with absences:                                           416
+Absence records for active employees:                                   8,217
 
-  Priority 3 - MEDIUM (개선 권장):
-    [ ] Verify hired_this_month flag
-    [ ] Review under_60_days flag
-    [ ] Check post_assignment_resignation logic
+Dashboard Display:
+  - Employees with absences shown:                                        342  ⚠️ (Expected: 416)
 
-====================================================================================================
-📝 검증 방법 (Verification Method)
-====================================================================================================
+**Issue:** Dashboard showing fewer employees with absences than source data
 
-  원본 데이터 계산:
-    - 파일: validate_dashboard_metrics.py
-    - 방법: CSV 직접 로드 → 메트릭 공식 적용 → 런타임 계산
-    - 기준: 2025-12-31 (월말)
+-----------------------------------------------------------------------------------
 
-  대시보드 데이터 추출:
-    - 파일: final_audit_report.py
-    - 방법: HTML 파싱 → employeeDetails JSON 추출 → 플래그 집계
-    - 위치: docs/HR_Dashboard_Complete_2025_12.html line 8041
+3. UNAUTHORIZED ABSENCE ANALYSIS
+-----------------------------------------------------------------------------------
+Source: attendance data december_converted.csv
+Pattern: 'AR1|AR2|Không phép|Vắng không phép'
 
-====================================================================================================
+Breakdown by Reason:
+  - AR2 - ốm ngắn ngày, tai nạn ngoài giờ lv:                              41 records
+  - AR1 - Vắng không phép:                                                 15 records
+  - AR1 - Gửi thư:                                                         15 records
+  - AR1 - Họp kỷ luật:                                                      1 record
+  -------------------------------------------------------------------------
+  Total unauthorized absence records (all employees):                      72 records
 
-전체 보고서: DATA_INTEGRITY_AUDIT_REPORT.md
-간략 요약: AUDIT_SUMMARY.txt
+Unique employees with unauthorized absences (all):                         26 employees
+Unique ACTIVE employees with unauthorized absences:                        23 employees
+Unauthorized records for active employees only:                            45 records
 
+Dashboard Display:
+  - Unauthorized Absence Card (무단결근자):                                  0  🚨 (Expected: 23)
+  - Unauthorized Filter Badge (무단):                                       26  ⚠️ (Expected: 23)
+
+**Issues:**
+  1. Card shows 0 instead of 23 (critical bug)
+  2. Filter includes 3 resigned employees (26 total)
+
+-----------------------------------------------------------------------------------
+
+================================================================================
+ROOT CAUSE IDENTIFICATION
+================================================================================
+
+CRITICAL BUG #1: Unauthorized Absence Card Shows 0
+-----------------------------------------------------------------------------------
+Location: src/visualization/complete_dashboard_builder.py
+Lines: 4437-4460
+
+Code Section:
+```python
+unauthorized_count = 0
+for emp in employeeDetails:
+    if emp.get('has_unauthorized_absence', False):
+        unauthorized_count += 1
+```
+
+**Hypothesis:**
+The 'has_unauthorized_absence' flag is not being set correctly in the 
+employeeDetails array, despite the unauthorized_absent_employees set being 
+populated correctly at line 257-259.
+
+**Evidence:**
+- Pattern matching at line 256-259 is CORRECT
+- Source data shows 23 active employees with unauthorized absences
+- Dashboard card displays 0
+- Filter badge shows 26 (includes resigned employees)
+
+**Probable Fix:**
+Verify line 299: `has_unauthorized_absence = employee_id in unauthorized_absent_employees`
+Check if employee_id format matches between basic data and attendance data
+
+-----------------------------------------------------------------------------------
+
+CRITICAL BUG #2: Resigned Employee Count Mismatch
+-----------------------------------------------------------------------------------
+Location: src/visualization/complete_dashboard_builder.py
+Lines: 280-285
+
+Code Section:
+```python
+is_active = pd.isna(stop_date) or stop_date > end_of_month
+resigned_this_month = pd.notna(stop_date) and stop_date.year == year_num and stop_date.month == month_num
+```
+
+**Issue:**
+Dashboard is counting only employees who resigned IN the target month (5),
+not cumulative resigned employees as of end of month (144).
+
+**Business Decision Required:**
+Should dashboard show:
+  A) Cumulative resigned count (144) - includes all past resignations?
+  B) Monthly resigned count (5) - only resignations in December 2025?
+
+If A: Update counting logic to count all employees with stop_date <= end_of_month
+If B: Update label to clarify "이번 달 퇴사" (resigned this month)
+
+-----------------------------------------------------------------------------------
+
+================================================================================
+DATA SOURCE VERIFICATION
+================================================================================
+
+All source files synced from Google Drive folder: 2025_12
+Sync timestamp: 2025-12-25 14:11:57
+
+Files:
+  ✅ basic manpower data december.csv                 106.2 KB    560 rows
+  ✅ attendance data december_converted.csv           685.4 KB  8,262 rows
+  ✅ 5prs data december.csv                           486.4 KB
+  ✅ AQL REPORT-DECEMBER.2025.csv                     204.0 KB
+
+Data Quality:
+  ✅ No duplicate Employee No in basic manpower data
+  ✅ All attendance records have valid ID No
+  ✅ Unauthorized absence patterns correctly identified
+  ⚠️  No TYPE column (uses Stop working Date instead)
+
+================================================================================
+RECOMMENDED ACTIONS
+================================================================================
+
+Priority 1 (CRITICAL):
+  [ ] Fix unauthorized absence card display bug
+  [ ] Debug has_unauthorized_absence flag assignment (line 299)
+  [ ] Verify employee_id format consistency between datasets
+
+Priority 2 (CRITICAL):
+  [ ] Clarify business requirement for resigned employee count
+  [ ] Update either counting logic or display label accordingly
+  [ ] Document the chosen interpretation in CLAUDE.md
+
+Priority 3 (Important):
+  [ ] Reconcile employees with absences count (342 vs 416)
+  [ ] Align filter count with card count (exclude resigned employees)
+  [ ] Add data validation to prevent similar issues in future
+
+Testing After Fixes:
+  [ ] Re-sync data from Google Drive
+  [ ] Regenerate dashboard
+  [ ] Verify all metrics match source CSV 100%
+  [ ] Run 10-agent verification
+  [ ] Update AUDIT_SUMMARY.txt
+
+================================================================================
+AUDIT SIGN-OFF
+================================================================================
+
+Auditor: Data Integrity Auditor (Agent #2)
+Date: 2025-12-25
+Status: ⚠️ CRITICAL DISCREPANCIES IDENTIFIED
+
+Findings: 2 critical bugs, 2 significant discrepancies
+Recommendation: IMMEDIATE FIX REQUIRED before dashboard release
+
+Next Step: Review with Metric Logic Architect (Agent #1) for calculation verification

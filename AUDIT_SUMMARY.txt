@@ -1,77 +1,82 @@
 ================================================================================
-DATA INTEGRITY AUDIT - EXECUTIVE SUMMARY
-   데이터 정합성 감사 - 핵심 요약
+DATA INTEGRITY AUDIT SUMMARY
+December 2025 Dashboard
 ================================================================================
 
-Date: 2025-12-22
-Target: HR Dashboard December 2025
-Status: ✅ PASSED - 배포 승인
+Audit Date: 2025-12-25
+Auditor: Data Integrity Auditor (Agent #2)
+Status: 🚨 CRITICAL ISSUES FOUND
 
 ================================================================================
-VERIFICATION RESULTS
+QUICK FINDINGS
 ================================================================================
 
-Total Metrics Checked: 11
-Matching: 11 (100%)
-Mismatching: 0 (0%)
+✅ PASS (2):
+  - Total Employees: 560 (matches source)
+  - Active Employees: 416 (matches source)
 
-Overall Accuracy: 100% ✅
+🚨 CRITICAL (2):
+  - Resigned Count: Shows 5, should be 144 (or clarify as "this month only")
+  - Unauthorized Absence Card: Shows 0, should be 23
 
-================================================================================
-METRIC COMPARISON TABLE
-================================================================================
-
-Metric                         Source          Dashboard       Match
---------------------------------------------------------------------------------
-absence_rate                   12.3%           12.3%           ✅
-data_errors                    0               0               ✅
-long_term_employees            288             288             ✅
-perfect_attendance             99              99              ✅
-post_assignment_resignations   2               2               ✅
-recent_hires                   11              11              ✅
-recent_resignations            4               4               ✅
-resignation_rate               1.0%            1.0%            ✅
-total_employees                411             411             ✅
-unauthorized_absence_rate      0.69%           0.69%           ✅
-under_60_days                  18              18              ✅
+⚠️  SIGNIFICANT (2):
+  - Employees with Absences: Shows 342, should be 416
+  - Unauthorized Filter: Shows 26, should be 23
 
 ================================================================================
-AUDIT METHODOLOGY
+SOURCE DATA VERIFICATION
 ================================================================================
 
-1. Source Data: Calculated from raw CSV files using HRMetricCalculator
-2. Dashboard Data: Extracted from monthlyMetrics in HTML file
-3. Comparison: Exact match for counts, <0.1% tolerance for rates
+✅ Google Drive Sync: 2025-12-25 14:11:57 from folder 2025_12
+
+✅ basic manpower data december.csv:
+   - 560 total employees
+   - 416 active (no stop date or stop date > 2025-12-31)
+   - 144 resigned (stop date <= 2025-12-31)
+
+✅ attendance data december_converted.csv:
+   - 8,262 total absence records
+   - 420 unique employees with absences
+   - 416 active employees with absences
+   - 23 active employees with unauthorized absences (AR1/AR2)
+
+Unauthorized Absence Breakdown:
+   - AR2 (ốm ngắn ngày): 41 records
+   - AR1 (Vắng không phép): 15 records
+   - AR1 (Gửi thư): 15 records
+   - AR1 (Họp kỷ luật): 1 record
 
 ================================================================================
-PREVIOUS ISSUES RESOLVED
+ROOT CAUSES IDENTIFIED
 ================================================================================
 
-Issue 1: Audit script was re-calculating rates from employeeDetails
-  Solution: Extract rates directly from monthlyMetrics in dashboard HTML
+BUG #1: Unauthorized Absence Card = 0 (should be 23)
+-------------------------------------------------------
+Location: complete_dashboard_builder.py lines 4437-4460
+Issue: has_unauthorized_absence flag not set correctly
+Fix: Check line 299 employee_id format consistency
 
-Issue 2: Flag-based metrics mismatch
-  Status: Already fixed in previous session
-
-================================================================================
-RECOMMENDATION
-================================================================================
-
-✅ APPROVED FOR DEPLOYMENT
-
-All 11 metrics match exactly between source data calculations
-and dashboard embedded data.
+BUG #2: Resigned Count = 5 (should be 144 or labeled "this month")
+-------------------------------------------------------
+Location: complete_dashboard_builder.py lines 280-285
+Issue: Only counting resigned_this_month (5) instead of cumulative (144)
+Fix: Business decision needed on definition
 
 ================================================================================
-VERIFICATION COMMANDS
+IMMEDIATE ACTIONS REQUIRED
 ================================================================================
 
-# Source data validation
-python validate_dashboard_metrics.py --month 12 --year 2025
-
-# Dashboard vs Source comparison
-python final_audit_report.py
+1. Fix unauthorized absence card (CRITICAL)
+2. Clarify resigned employee definition (CRITICAL)
+3. Verify employees with absences count (IMPORTANT)
+4. Align filter counts with card counts (IMPORTANT)
 
 ================================================================================
-End of Summary
+DETAILED REPORTS
+================================================================================
+
+See:
+  - DATA_INTEGRITY_AUDIT_REPORT.md (full analysis)
+  - COMPARISON_TABLE.txt (side-by-side comparison)
+
 ================================================================================
