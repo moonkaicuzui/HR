@@ -18304,7 +18304,7 @@ function updateQuickStats(employees) {
     const active = employees.filter(e => e.is_active).length;
     const resigned = employees.filter(e => e.resigned_this_month).length;
     const absentCount = employees.filter(e => (e.absent_days || 0) > 0).length;
-    const unauthorizedCount = employees.filter(e => (e.unauthorized_absent_days || 0) > 0).length;
+    const unauthorizedCount = employees.filter(e => e.has_unauthorized_absence).length;
 
     document.getElementById('statsShowing').textContent = employees.length;
     document.getElementById('statsActiveResigned').textContent = `${active}/${resigned}`;
@@ -20200,7 +20200,7 @@ function exportTeamAnalysisJSON() {{
 
             members.forEach(member => {{
                 if ((member.absent_days || 0) > 0) absentCount++;
-                if ((member.unauthorized_absent_days || 0) > 0) unauthorizedCount++;
+                if (member.has_unauthorized_absence) unauthorizedCount++;
                 if ((member.absent_days || 0) === 0) perfectCount++;
             }});
 
