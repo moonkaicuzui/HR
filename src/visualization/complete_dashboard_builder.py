@@ -608,6 +608,68 @@ class CompleteDashboardBuilder:
 
                     self.modal_data['team_absence_reasons'] = team_reason_data
 
+            # Punctuality data (Come late / Leave early) for Modal 14
+            # 지각/조퇴 데이터 (Modal 14용)
+            if 'Come late' in active_attendance.columns or 'Leave early' in active_attendance.columns:
+                punctuality_details = []
+                come_late_total = 0
+                leave_early_total = 0
+
+                # Get unique employee data with punctuality issues
+                # 지각/조퇴가 있는 직원의 고유 데이터 가져오기
+                for emp_id in active_attendance['ID No'].unique():
+                    emp_records = active_attendance[active_attendance['ID No'] == emp_id]
+
+                    # Get come late and leave early COUNTS (number of instances)
+                    # 지각 및 조퇴 횟수 가져오기 (인스턴스 수 = 건수)
+                    come_late_count = 0
+                    leave_early_count = 0
+
+                    if 'Come late' in emp_records.columns:
+                        # Count records where Come late > 0 (any positive value, including decimals like 0.65)
+                        # 지각이 있는 레코드 수 (0.65 같은 소수점 값도 포함)
+                        come_late_numeric = pd.to_numeric(emp_records['Come late'], errors='coerce').fillna(0)
+                        come_late_count = int((come_late_numeric > 0).sum())
+
+                    if 'Leave early' in emp_records.columns:
+                        # Count records where Leave early > 0
+                        # 조퇴가 있는 레코드 수
+                        leave_early_numeric = pd.to_numeric(emp_records['Leave early'], errors='coerce').fillna(0)
+                        leave_early_count = int((leave_early_numeric > 0).sum())
+
+                    # Only add employees with punctuality issues
+                    # 지각/조퇴가 있는 직원만 추가
+                    if come_late_count > 0 or leave_early_count > 0:
+                        emp_name = emp_records['Last name'].iloc[0] if 'Last name' in emp_records.columns else ''
+                        team_name = ''
+                        if not basic_df.empty:
+                            basic_match = basic_df[basic_df['Employee No'] == emp_id]
+                            if not basic_match.empty:
+                                team_name = str(basic_match['QIP POSITION 2ND  NAME'].iloc[0]) if 'QIP POSITION 2ND  NAME' in basic_match.columns else ''
+
+                        punctuality_details.append({
+                            'employee_id': str(emp_id),
+                            'employee_name': emp_name,
+                            'team': team_name,
+                            'come_late': come_late_count,
+                            'leave_early': leave_early_count,
+                            'total_issues': come_late_count + leave_early_count
+                        })
+
+                        come_late_total += come_late_count
+                        leave_early_total += leave_early_count
+
+                # Sort by total issues (highest first) / 총 이슈 수 기준 정렬 (높은 순)
+                punctuality_details.sort(key=lambda x: x['total_issues'], reverse=True)
+
+                self.modal_data['punctuality_details'] = punctuality_details
+                self.modal_data['punctuality_metrics'] = {
+                    'come_late_total': come_late_total,
+                    'leave_early_total': leave_early_total,
+                    'affected_employees': len(punctuality_details),
+                    'total_issues': come_late_total + leave_early_total
+                }
+
     def _collect_team_data_legacy(self):
         """
         LEGACY: Collect team data based on position_1st (동적 그룹화)
@@ -1466,6 +1528,19 @@ class CompleteDashboardBuilder:
                 if reason in reason_map:
                     reason_ko, reason_en, reason_vi = reason_map[reason]
 
+                # Get come late and leave early values / 지각 및 조퇴 값 가져오기
+                come_late_val = row.get('Come late', 0)
+                leave_early_val = row.get('Leave early', 0)
+                # Convert to numeric, default 0 / 숫자로 변환, 기본값 0
+                try:
+                    come_late = int(come_late_val) if pd.notna(come_late_val) and str(come_late_val).strip() else 0
+                except (ValueError, TypeError):
+                    come_late = 0
+                try:
+                    leave_early = int(leave_early_val) if pd.notna(leave_early_val) and str(leave_early_val).strip() else 0
+                except (ValueError, TypeError):
+                    leave_early = 0
+
                 record = {
                     'employee_no': str(row.get('ID No', '')),
                     'employee_name': str(row.get('Last name', '')),
@@ -1482,7 +1557,9 @@ class CompleteDashboardBuilder:
                     'reason_en': reason_en,
                     'reason_vi': reason_vi,
                     'department': str(row.get('Department', '')),
-                    'work_time': str(row.get('WTime', ''))
+                    'work_time': str(row.get('WTime', '')),
+                    'come_late': come_late,
+                    'leave_early': leave_early
                 }
                 records.append(record)
             except Exception as e:
@@ -1503,6 +1580,25 @@ class CompleteDashboardBuilder:
             target_metrics['team_absence_avg'] = avg_rate
         else:
             target_metrics['team_absence_avg'] = 0.0
+
+        # Calculate punctuality issues for KPI card #14 / KPI 카드 #14를 위한 지각/조퇴 인원 계산
+        # Count unique employees with come_late > 0 or leave_early > 0
+        # 지각 또는 조퇴가 있는 고유 직원 수 계산
+        punctuality_employees = set()
+        come_late_total = 0
+        leave_early_total = 0
+        if hasattr(self, 'attendance_data') and self.attendance_data:
+            for record in self.attendance_data:
+                emp_no = record.get('employee_no', '')
+                come_late = record.get('come_late', 0)
+                leave_early = record.get('leave_early', 0)
+                if come_late > 0 or leave_early > 0:
+                    punctuality_employees.add(emp_no)
+                come_late_total += come_late
+                leave_early_total += leave_early
+        target_metrics['punctuality_issues'] = len(punctuality_employees)
+        target_metrics['come_late_count'] = come_late_total
+        target_metrics['leave_early_count'] = leave_early_total
 
         html = f"""<!DOCTYPE html>
 <html lang="ko">
@@ -5117,6 +5213,9 @@ class CompleteDashboardBuilder:
             },
             'post_assignment_resignations': {  # 배정 후 퇴사 (낮을수록 좋음)
                 'critical': 10, 'warning': 5, 'good': 2, 'excellent': 0
+            },
+            'punctuality_issues': {  # 지각/조퇴 인원 (낮을수록 좋음, 약 5% 기준)
+                'critical': 20, 'warning': 12, 'good': 6, 'excellent': 3
             }
         }
 
@@ -5173,7 +5272,8 @@ class CompleteDashboardBuilder:
             (10, 'long_term_employees', '장기근속자', '명', 'Long-term (1yr+)', 'Lâu năm (1 năm+)'),
             (11, 'data_errors', '데이터 오류', '건', 'Data Errors', 'Lỗi dữ liệu'),
             (12, 'pregnant_employees', '임신 직원', '명', 'Pregnant Employees', 'Nhân viên mang thai'),
-            (13, 'team_absence_avg', '팀별 평균 결근율', '%', 'Team Avg Absence', 'Tỷ lệ vắng TB theo nhóm')
+            (13, 'team_absence_avg', '팀별 평균 결근율', '%', 'Team Avg Absence', 'Tỷ lệ vắng TB theo nhóm'),
+            (14, 'punctuality_issues', '지각/조퇴', '명', 'Come Late / Leave Early', 'Đi muộn / Về sớm')
         ]
 
         html_parts = ['<div class="row g-3">']
@@ -5196,7 +5296,8 @@ class CompleteDashboardBuilder:
                     'under_60_days',                 # 60일 미만 증가 = 이탈 위험 증가
                     'post_assignment_resignations',  # 배정 후 퇴사 증가 = 나쁨
                     'data_errors',                   # 데이터 오류 증가 = 나쁨
-                    'team_absence_avg'               # 팀별 결근율 증가 = 나쁨
+                    'team_absence_avg',              # 팀별 결근율 증가 = 나쁨
+                    'punctuality_issues'             # 지각/조퇴 증가 = 나쁨
                 }
 
                 # Determine if this is a good or bad change
@@ -5291,6 +5392,11 @@ class CompleteDashboardBuilder:
                     'ko': "📐 계산: 임신 상태로 등록된 재직자 수",
                     'en': "📐 Formula: Active employees registered as pregnant",
                     'vi': "📐 Công thức: NV đang làm việc đăng ký mang thai"
+                },
+                'punctuality_issues': {
+                    'ko': "📐 계산: 지각 또는 조퇴한 직원 수 (고유 인원)",
+                    'en': "📐 Formula: Employees with late arrivals or early departures",
+                    'vi': "📐 Công thức: Nhân viên đi muộn hoặc về sớm"
                 }
             }
 
@@ -8297,6 +8403,80 @@ class CompleteDashboardBuilder:
                     </p>
                     <div style="height: 450px; position: relative;">
                         <canvas id="modalChart13_authorizedBreakdown"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+""")
+
+        # Modal 14: Punctuality Issues (Come Late / Leave Early)
+        # 모달 14: 지각/조퇴 현황
+        modals_html.append("""
+<div class="modal fade" id="modal14" tabindex="-1">
+    <div class="modal-dialog modal-xl" style="max-width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title lang-modal-title" data-ko="지각/조퇴 현황 상세" data-en="Punctuality Issues - Details" data-vi="Chi tiết đi muộn / về sớm">지각/조퇴 현황 상세</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContent14">
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-warning bg-gradient text-white">
+                            <div class="card-body">
+                                <h6 class="card-title lang-text" data-ko="지각 총 건수" data-en="Total Late Arrivals" data-vi="Tổng số lần đi muộn">지각 총 건수</h6>
+                                <h2 class="mb-0" id="totalComeLate">-</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info bg-gradient text-white">
+                            <div class="card-body">
+                                <h6 class="card-title lang-text" data-ko="조퇴 총 건수" data-en="Total Early Departures" data-vi="Tổng số lần về sớm">조퇴 총 건수</h6>
+                                <h2 class="mb-0" id="totalLeaveEarly">-</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-danger bg-gradient text-white">
+                            <div class="card-body">
+                                <h6 class="card-title lang-text" data-ko="영향 받은 직원 수" data-en="Employees Affected" data-vi="Số nhân viên bị ảnh hưởng">영향 받은 직원 수</h6>
+                                <h2 class="mb-0" id="punctualityAffected">-</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart: Come Late vs Leave Early -->
+                <div class="modal-chart-container mb-4">
+                    <h6 class="lang-chart-title" data-ko="1️⃣ 지각 vs 조퇴 비교" data-en="1️⃣ Late Arrivals vs Early Departures" data-vi="1️⃣ Đi muộn vs Về sớm">1️⃣ 지각 vs 조퇴 비교</h6>
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="modalChart14_comparison"></canvas>
+                    </div>
+                </div>
+
+                <!-- Employee List with Punctuality Issues -->
+                <div class="modal-chart-container">
+                    <h6 class="lang-chart-title" data-ko="2️⃣ 지각/조퇴 직원 목록" data-en="2️⃣ Employees with Punctuality Issues" data-vi="2️⃣ Danh sách nhân viên đi muộn/về sớm">2️⃣ 지각/조퇴 직원 목록</h6>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th class="lang-text" data-ko="사번" data-en="Employee No" data-vi="Mã NV">사번</th>
+                                    <th class="lang-text" data-ko="이름" data-en="Name" data-vi="Tên">이름</th>
+                                    <th class="lang-text" data-ko="부서" data-en="Department" data-vi="Phòng ban">부서</th>
+                                    <th class="lang-text" data-ko="지각 건수" data-en="Late Count" data-vi="Số lần muộn">지각 건수</th>
+                                    <th class="lang-text" data-ko="조퇴 건수" data-en="Early Count" data-vi="Số lần sớm">조퇴 건수</th>
+                                    <th class="lang-text" data-ko="합계" data-en="Total" data-vi="Tổng">합계</th>
+                                </tr>
+                            </thead>
+                            <tbody id="punctualityEmployeeList">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -16224,6 +16404,120 @@ function showModal13() {{
                 }}
             }}
         }});
+    }}, 300);
+}}
+
+// ============================================
+// Modal 14: Punctuality Issues (Come Late / Leave Early)
+// 모달 14: 지각/조퇴 상세
+// ============================================
+
+function showModal14() {{
+    // Destroy existing charts / 기존 차트 제거
+    ['comparison', 'team'].forEach(type => {{
+        const chartKey = `modal14_${{type}}`;
+        if (modalCharts[chartKey]) modalCharts[chartKey].destroy();
+    }});
+
+    const modal = new bootstrap.Modal(document.getElementById('modal14'));
+    modal.show();
+
+    setTimeout(() => {{
+        // Get punctuality data from modalData / modalData에서 지각/조퇴 데이터 가져오기
+        const punctualityData = modalData.punctuality_metrics;
+        const punctualityDetails = modalData.punctuality_details || [];
+
+        if (!punctualityData) {{
+            debugLog('No punctuality data found');
+            return;
+        }}
+
+        // Update summary cards / 요약 카드 업데이트
+        document.getElementById('totalComeLate').textContent = punctualityData.come_late_total || 0;
+        document.getElementById('totalLeaveEarly').textContent = punctualityData.leave_early_total || 0;
+        document.getElementById('punctualityAffected').textContent = punctualityData.affected_employees || 0;
+
+        // Chart 1: Come Late vs Leave Early Comparison (Doughnut)
+        // 차트 1: 지각 vs 조퇴 비교 (도넛 차트)
+        const comeLate = punctualityData.come_late_total || 0;
+        const leaveEarly = punctualityData.leave_early_total || 0;
+
+        modalCharts['modal14_comparison'] = new Chart(document.getElementById('modalChart14_comparison'), {{
+            type: 'doughnut',
+            data: {{
+                labels: [
+                    currentLanguage === 'ko' ? '지각' : currentLanguage === 'vi' ? 'Đi muộn' : 'Come Late',
+                    currentLanguage === 'ko' ? '조퇴' : currentLanguage === 'vi' ? 'Về sớm' : 'Leave Early'
+                ],
+                datasets: [{{
+                    data: [comeLate, leaveEarly],
+                    backgroundColor: ['rgba(255, 193, 7, 0.8)', 'rgba(23, 162, 184, 0.8)'],
+                    borderColor: ['rgba(255, 193, 7, 1)', 'rgba(23, 162, 184, 1)'],
+                    borderWidth: 2
+                }}]
+            }},
+            options: {{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {{
+                    legend: {{
+                        position: 'bottom'
+                    }},
+                    title: {{
+                        display: true,
+                        text: currentLanguage === 'ko' ? '지각 vs 조퇴 비율' :
+                              currentLanguage === 'vi' ? 'Tỷ lệ đi muộn vs về sớm' : 'Come Late vs Leave Early Ratio'
+                    }},
+                    tooltip: {{
+                        callbacks: {{
+                            label: function(context) {{
+                                const total = comeLate + leaveEarly;
+                                const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                                const countLabel = currentLanguage === 'ko' ? '건' :
+                                                   currentLanguage === 'vi' ? 'lần' : 'times';
+                                return `${{context.label}}: ${{context.raw}}${{countLabel}} (${{percentage}}%)`;
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+        }});
+
+        // Populate employee table / 직원 테이블 채우기
+        const tbody = document.getElementById('punctualityEmployeeList');
+        tbody.innerHTML = '';
+
+        if (punctualityDetails.length === 0) {{
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">
+                ${{currentLanguage === 'ko' ? '지각/조퇴 데이터가 없습니다' :
+                   currentLanguage === 'vi' ? 'Không có dữ liệu đi muộn/về sớm' : 'No punctuality issues found'}}
+            </td></tr>`;
+        }} else {{
+            // Use document fragment for better performance / 더 나은 성능을 위해 document fragment 사용
+            const fragment = document.createDocumentFragment();
+            punctualityDetails.forEach((emp, index) => {{
+                const totalBadge = emp.total_issues >= 5 ? 'bg-danger' :
+                                  emp.total_issues >= 3 ? 'bg-warning' : 'bg-info';
+                const row = document.createElement('tr');
+                // Sanitize user-controlled strings to prevent XSS / XSS 방지를 위해 사용자 데이터 새니타이즈
+                row.innerHTML = `
+                    <td>${{index + 1}}</td>
+                    <td>${{sanitizeHTML(emp.employee_name || emp.employee_id)}}</td>
+                    <td>${{sanitizeHTML(emp.team || '-')}}</td>
+                    <td class="text-center">
+                        <span class="badge bg-warning text-dark">${{emp.come_late}}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-info">${{emp.leave_early}}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge ${{totalBadge}}">${{emp.total_issues}}</span>
+                    </td>
+                `;
+                fragment.appendChild(row);
+            }});
+            tbody.appendChild(fragment);  // Single DOM reflow / 단일 DOM 리플로우
+        }}
     }}, 300);
 }}
 

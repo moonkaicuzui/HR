@@ -249,6 +249,36 @@
       "display_format": "{value}명",
       "card_number": 2,
       "is_error_metric": true
+    },
+
+    "punctuality_issues": {
+      "id": "punctuality_issues",
+      "name_ko": "지각/조퇴",
+      "name_en": "Come Late / Leave Early",
+      "name_vi": "Đi muộn / Về sớm",
+      "category": "attendance",
+      "formula": "COUNT(DISTINCT employees WHERE come_late > 0 OR leave_early > 0)",
+      "formula_description_ko": "지각 또는 조퇴한 직원 수 (고유 인원)",
+      "formula_description_en": "Count of employees with late arrivals or early departures (unique count)",
+      "data_sources": ["attendance"],
+      "calculation_method": "count",
+      "is_negative_metric": true,
+      "thresholds": {
+        "excellent": {"max": 1.5, "color": "#28a745"},
+        "good": {"min": 1.5, "max": 3, "color": "#17a2b8"},
+        "warning": {"min": 3, "max": 5, "color": "#ffc107"},
+        "critical": {"min": 5, "color": "#dc3545"}
+      },
+      "display_format": "{value}명",
+      "card_number": 12,
+      "trend_enabled": true,
+      "show_rate": true,
+      "rate_formula": "punctuality_issues / total_employees * 100",
+      "breakdown_enabled": true,
+      "breakdown_fields": ["come_late_count", "leave_early_count"],
+      "reusable": true,
+      "insight_ko": "지각/조퇴가 5% 이상이면 체계적 개선 프로그램 필요",
+      "insight_en": "If punctuality issues exceed 5%, systematic improvement program needed"
     }
   },
 

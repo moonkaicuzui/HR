@@ -23,7 +23,8 @@
       "under_60_days": "입사 60일 미만",
       "post_assignment_resignations": "보직 부여 후 퇴사",
       "full_attendance": "만근자",
-      "long_term_employees": "장기근속자 (1년 이상)"
+      "long_term_employees": "장기근속자 (1년 이상)",
+      "punctuality_issues": "지각/조퇴"
     },
 
     "metrics": {
@@ -39,6 +40,9 @@
       "post_assignment_resignations": "보직 부여 후 퇴사",
       "full_attendance": "만근자",
       "long_term_employees": "장기근속자 (1년 이상)",
+      "punctuality_issues": "지각/조퇴",
+      "come_late": "지각",
+      "leave_early": "조퇴",
       "total": "총계",
       "type1": "TYPE-1",
       "type2": "TYPE-2",
@@ -142,7 +146,8 @@
       "under_60_days": "Under 60 Days",
       "post_assignment_resignations": "Post-Assignment Resignations",
       "full_attendance": "Full Attendance",
-      "long_term_employees": "Long-term Employees (1+ year)"
+      "long_term_employees": "Long-term Employees (1+ year)",
+      "punctuality_issues": "Come Late / Leave Early"
     },
 
     "metrics": {
@@ -158,6 +163,9 @@
       "post_assignment_resignations": "Post-Assignment Resignations",
       "full_attendance": "Full Attendance",
       "long_term_employees": "Long-term Employees (1+ year)",
+      "punctuality_issues": "Come Late / Leave Early",
+      "come_late": "Come Late",
+      "leave_early": "Leave Early",
       "total": "Total",
       "type1": "TYPE-1",
       "type2": "TYPE-2",
@@ -261,7 +269,8 @@
       "under_60_days": "Dưới 60 ngày",
       "post_assignment_resignations": "Nghỉ việc sau khi phân công",
       "full_attendance": "Chuyên cần đầy đủ",
-      "long_term_employees": "Nhân viên lâu năm (1+ năm)"
+      "long_term_employees": "Nhân viên lâu năm (1+ năm)",
+      "punctuality_issues": "Đi muộn / Về sớm"
     },
 
     "metrics": {
@@ -277,6 +286,9 @@
       "post_assignment_resignations": "Nghỉ việc sau khi phân công",
       "full_attendance": "Chuyên cần đầy đủ",
       "long_term_employees": "Nhân viên lâu năm (1+ năm)",
+      "punctuality_issues": "Đi muộn / Về sớm",
+      "come_late": "Đi muộn",
+      "leave_early": "Về sớm",
       "total": "Tổng cộng",
       "type1": "LOẠI-1",
       "type2": "LOẠI-2",
